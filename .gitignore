@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Env files — never commit real credentials (Task Security-01)
+.env
+.env.*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
