@@ -28,7 +28,11 @@ BERKAS = [("graph.obj", "graph.obj.backup-pre-mrt"),
 
 def jalan(*cmd, cek=True):
     print(f"  $ {' '.join(cmd)}")
-    p = subprocess.run(cmd, capture_output=True, text=True)
+    # Log docker memuat byte non-cp1252; tanpa encoding eksplisit, Windows
+    # membacanya dengan cp1252, thread pembacanya crash, stdout jadi None — dan
+    # itu yang dulu menjatuhkan skrip ini tepat SESUDAH graph ditukar.
+    p = subprocess.run(cmd, capture_output=True, text=True,
+                       encoding="utf-8", errors="replace")
     if cek and p.returncode != 0:
         print(p.stdout[-500:], p.stderr[-500:])
         raise SystemExit(f"perintah gagal: {' '.join(cmd)}")
@@ -97,6 +101,17 @@ def main() -> int:
     shutil.copy2(STAGING / "mrt_gtfs.zip", PROD / "mrt_gtfs.zip")
     print("  mrt_gtfs.zip")
 
+    try:
+        return lanjut_sesudah_swap()
+    except Exception as err:
+        # Graph produksi SUDAH ditukar di titik ini. Error tak terduga apa pun
+        # tidak boleh meninggalkannya berjalan dalam keadaan belum teruji.
+        print(f"\nERROR tak terduga sesudah swap: {err!r}")
+        rollback()
+        return 1
+
+
+def lanjut_sesudah_swap() -> int:
     print("\n3. Restart OTP2 produksi")
     jalan("docker", "restart", CONTAINER)
     if not tunggu_otp2():
@@ -104,8 +119,8 @@ def main() -> int:
         return 1
 
     print("\n4. Statistik graph baru")
-    log = jalan("docker", "logs", "--tail", "400", CONTAINER, cek=False).stdout \
-        + jalan("docker", "logs", "--tail", "400", CONTAINER, cek=False).stderr
+    p = jalan("docker", "logs", "--tail", "400", CONTAINER, cek=False)
+    log = (p.stdout or "") + (p.stderr or "")
     for baris in log.splitlines():
         if "Graph loaded" in baris or "Transit loaded" in baris:
             print("  " + baris.split(") ", 1)[-1])

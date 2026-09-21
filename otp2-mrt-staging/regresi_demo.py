@@ -32,6 +32,11 @@ SKENARIO = {
     "S3 Grogol -> Kp. Melayu": ((-6.1680, 106.7890), (-6.2244, 106.8664)),
 }
 BATAS_LATENSI_S = 30
+# Hasil routing berubah menurut jam (headway/jadwal). Tanpa jam yang dikunci,
+# baseline dan pemeriksaan membandingkan dua jam berbeda — ini yang dulu
+# membuat perubahan Grogol->Kp. Melayu salah didiagnosis sebagai "efek build
+# penuh", padahal A/B dengan jam sama menunjukkan graph lama & baru identik.
+JAM_UJI = "2026-09-22T08:00:00+07:00"
 KWITANG = "Kwitang"  # halte eksklusif kandidat #1 di Senen->Grogol
 
 
@@ -47,7 +52,8 @@ def post(url, payload, timeout=90):
 def cari(o, d):
     return post(f"{BASE}/routes",
                 {"origin": {"lat": o[0], "lng": o[1]},
-                 "destination": {"lat": d[0], "lng": d[1]}})
+                 "destination": {"lat": d[0], "lng": d[1]},
+                 "departure_time": JAM_UJI})
 
 
 def panaskan():
@@ -124,6 +130,7 @@ def main():
     flip, detail = uji_flip()
     print(f"  {'BERUBAH' if flip else 'TIDAK BERUBAH'}: {detail}")
     hasil["_flip"] = flip
+    hasil["_jam_uji"] = JAM_UJI
 
     if mode == "--simpan-baseline":
         BASELINE.write_text(json.dumps(hasil, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -138,6 +145,10 @@ def main():
         print("\nTidak ada baseline untuk dibandingkan.")
         return 2
     base = json.loads(BASELINE.read_text(encoding="utf-8"))
+    if base.get("_jam_uji") != JAM_UJI:
+        print(f"\nBaseline diambil pada jam {base.get('_jam_uji', 'TIDAK DIKUNCI')}, "
+              f"pemeriksaan pada {JAM_UJI} — tidak sebanding. Ambil ulang baseline.")
+        return 2
 
     print("\n" + "=" * 66)
     print(f"{'skenario':<26}{'baseline':>16}{'sekarang':>16}")
