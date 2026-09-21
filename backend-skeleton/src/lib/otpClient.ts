@@ -88,6 +88,10 @@ export interface OtpLeg {
   // needed to join a BUS leg back to frequencies.txt/stop_times.txt by the
   // real GTFS route_id, same reasoning as `OtpPlace.stop.gtfsId` above.
   route: { shortName: string | null; longName: string | null; gtfsId: string } | null;
+  // Halte yang DILEWATI kendaraan di antara titik naik dan turun (null untuk
+  // leg jalan kaki). Dipakai untuk mencocokkan laporan kepadatan terhadap
+  // seluruh halte yang dilalui rute, bukan cuma titik naik/turunnya.
+  intermediateStops: Array<{ gtfsId: string }> | null;
 }
 
 export interface OtpItinerary {
@@ -146,6 +150,7 @@ const PLAN_QUERY = `
             from { name stop { gtfsId } }
             to { name stop { gtfsId } }
             route { shortName longName gtfsId }
+            intermediateStops { gtfsId }
           }
         }
       }

@@ -37,8 +37,8 @@
 // response.
 //
 // Task Backend-04 adds crowd_level: for every stop a candidate touches
-// (boarding, alighting, transfer points — via each leg's from/to GTFS stop
-// id), look up the recency-weighted aggregate from crowdDensity.ts and take
+// (boarding, alighting, transfer points, and every stop passed in between —
+// see collectStopIds), look up the recency-weighted aggregate from crowdDensity.ts and take
 // the worst across all of them. Left undefined (never a guessed default)
 // when none of those stops has an active report.
 //
@@ -201,14 +201,19 @@ function buildRouteId(it: OtpItinerary, fallbackIndex: number, usedIds: Set<stri
   return id;
 }
 
-// Every GTFS stop this itinerary touches — boarding, alighting, and transfer
-// points alike (a transfer shows up as the `to` of one leg and the `from` of
-// the next, both included here). Plain walk endpoints (raw origin/
-// destination coordinates) have no `stop`, so they're naturally excluded.
+// Setiap halte GTFS yang dilalui itinerary: titik naik, turun, transfer, DAN
+// semua halte yang dilewati kendaraan di antaranya. Dulu hanya titik naik/
+// turun — sehingga rute yang melintas halte padat tanpa berhenti di sana
+// tidak pernah kena penalti, padahal narasi produknya "halte yang dilewati
+// rute". Contoh nyatanya: 7F+3 melintasi Kwitang, tapi laporan padat di
+// Kwitang hanya menghukum 2A yang kebetulan naik dari sana.
+// Titik jalan kaki mentah (koordinat asal/tujuan) tidak punya `stop`, jadi
+// otomatis tidak ikut.
 function collectStopIds(it: OtpItinerary): string[] {
   const ids = new Set<string>();
   for (const leg of it.legs) {
     if (leg.from.stop) ids.add(leg.from.stop.gtfsId);
+    for (const stop of leg.intermediateStops ?? []) ids.add(stop.gtfsId);
     if (leg.to.stop) ids.add(leg.to.stop.gtfsId);
   }
   return [...ids];
