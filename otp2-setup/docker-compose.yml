@@ -1,0 +1,22 @@
+services:
+  otp2:
+    image: opentripplanner/opentripplanner:2.10.0_2026-09-01T15-06
+    container_name: otp2-transjakarta
+    # Task Ops-01: sebelum ini tidak ada restart policy sama sekali
+    # (RestartPolicy "no", RestartCount 0 — dikonfirmasi lewat docker
+    # inspect pada container yang lama), jadi container ini tidak pernah
+    # hidup sendiri lagi kalau proses di dalamnya crash (OOM, exception,
+    # dll) ATAU kalau Docker Desktop/laptop restart. "unless-stopped" (bukan
+    # "always") supaya kalau memang sengaja di-stop manual lewat
+    # `docker stop`/`docker kill`, dia tetap diam — bukan langsung nyala
+    # sendiri menimpa keputusan orang yang sengaja mematikannya. Detail
+    # investigasi + cara cek cepat "hidup atau tidak": lihat README.md
+    # bagian "Keeping it running".
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/var/opentripplanner
+    # Loads the pre-built graph.obj and serves it. Run scripts/build-graph
+    # first (or whenever the GTFS input changes) to (re)generate graph.obj.
+    command: ["--load", "--serve"]

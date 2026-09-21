@@ -1,0 +1,122 @@
+{
+  "resolved": {
+    "LBB": {
+      "name": "Lebak Bulus",
+      "order": 1,
+      "lat": -6.2892744,
+      "lon": 106.7749355,
+      "source": "overpass:railway:ref=LBB",
+      "osm_name": "Lebak Bulus Bank Syariah Indonesia",
+      "operator": "MRT Jakarta"
+    },
+    "FTM": {
+      "name": "Fatmawati",
+      "order": 2,
+      "lat": -6.2924511,
+      "lon": 106.7924644,
+      "source": "overpass:railway:ref=FTM",
+      "osm_name": "Fatmawati Indomaret",
+      "operator": "MRT Jakarta"
+    },
+    "CPR": {
+      "name": "Cipete Raya",
+      "order": 3,
+      "lat": -6.2783596,
+      "lon": 106.7973159,
+      "source": "overpass:railway:ref=CPR",
+      "osm_name": "Cipete Raya TUKU",
+      "operator": "MRT Jakarta"
+    },
+    "HJN": {
+      "name": "Haji Nawi",
+      "order": 4,
+      "lat": -6.2666947,
+      "lon": 106.7973262,
+      "source": "overpass:railway:ref=HJN",
+      "osm_name": "Haji Nawi",
+      "operator": "MRT Jakarta"
+    },
+    "BLA": {
+      "name": "Blok A",
+      "order": 5,
+      "lat": -6.2557793,
+      "lon": 106.7971403,
+      "source": "overpass:railway:ref=BLA",
+      "osm_name": "Blok A VISA",
+      "operator": "MRT Jakarta"
+    },
+    "BLM": {
+      "name": "Blok M",
+      "order": 6,
+      "lat": -6.2444643,
+      "lon": 106.7981332,
+      "source": "overpass:railway:ref=BLM",
+      "osm_name": "Blok M BCA",
+      "operator": "MRT Jakarta"
+    },
+    "SSM": {
+      "name": "ASEAN",
+      "order": 7,
+      "lat": -6.2387737,
+      "lon": 106.7984457,
+      "source": "overpass:railway:ref=SSM",
+      "osm_name": "ASEAN Headquarters",
+      "operator": "MRT Jakarta"
+    },
+    "SNY": {
+      "name": "Senayan",
+      "order": 8,
+      "lat": -6.2267337,
+      "lon": 106.8024926,
+      "source": "overpass:railway:ref=SNY",
+      "osm_name": "Senayan Mastercard",
+      "operator": "MRT Jakarta"
+    },
+    "IST": {
+      "name": "Istora",
+      "order": 9,
+      "lat": -6.22239,
+      "lon": 106.8086229,
+      "source": "overpass:railway:ref=IST",
+      "osm_name": "Istora Mandiri",
+      "operator": "MRT Jakarta"
+    },
+    "BNH": {
+      "name": "Bendungan Hilir",
+      "order": 10,
+      "lat": -6.2150263,
+      "lon": 106.8179484,
+      "source": "overpass:railway:ref=BNH",
+      "osm_name": "Bendungan Hilir",
+      "operator": "MRT Jakarta"
+    },
+    "STB": {
+      "name": "Setiabudi",
+      "order": 11,
+      "lat": -6.2090648,
+      "lon": 106.8216945,
+      "source": "overpass:railway:ref=STB",
+      "osm_name": "Setiabudi Astra",
+      "operator": "MRT Jakarta"
+    },
+    "DKA": {
+      "name": "Dukuh Atas",
+      "order": 12,
+      "lat": -6.2007957,
+      "lon": 106.822788,
+      "source": "overpass:railway:ref=DKA",
+      "osm_name": "Dukuh Atas BNI",
+      "operator": "MRT Jakarta"
+    },
+    "BHI": {
+      "name": "Bundaran HI",
+      "order": 13,
+      "lat": -6.1918644,
+      "lon": 106.8230084,
+      "source": "overpass:railway:ref=BHI",
+      "osm_name": "Bundaran HI Bank Jakarta",
+      "operator": "MRT Jakarta"
+    }
+  },
+  "unresolved": []
+}

@@ -1,0 +1,11 @@
+data/graph.obj
+data/transjakarta_gtfs.zip
+data/jabodetabek.osm.pbf
+osm-src/
+
+# Env files — no .env exists here yet, but this folder isn't a git repo
+# at all (checked in Task Security-01), so this just guards against a
+# future accidental commit once/if it becomes one.
+.env
+.env.*
+!.env.example

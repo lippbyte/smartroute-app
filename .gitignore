@@ -1,0 +1,24 @@
+# Rahasia — JANGAN pernah di-commit. backend-skeleton/.env memuat
+# OPENROUTER_API_KEY yang asli.
+.env
+.env.*
+!.env.example
+
+# Dependensi
+node_modules/
+
+# Artefak graph OTP2: ratusan MB, biner, dan bisa dibangun ulang dari
+# feed GTFS + osm.pbf. Dilindungi lewat backup file bertanggal, bukan git —
+# GitHub sendiri menolak file di atas 100 MB.
+*.obj
+*.obj.backup-*
+
+# Ekstrak OpenStreetMap (158 MB), diunduh ulang lewat scripts/clip-osm.sh
+*.pbf
+
+# Log runtime
+*.log
+
+# Keluaran sementara
+__pycache__/
+*.pyc

@@ -1,0 +1,18 @@
+services:
+  otp2-krl-experiment:
+    image: opentripplanner/opentripplanner:2.10.0_2026-09-01T15-06
+    container_name: otp2-krl-experiment
+    # Task Backend-14: THROWAWAY experiment instance, deliberately separate
+    # from otp2-transjakarta (production, port 8080). Different container
+    # name, different host port (8091 — 8081 turned out to already be used
+    # by an unrelated local Node process on this machine, so picked the next
+    # free one instead of touching it), different data/ folder (own copy of
+    # the OSM extract + GTFS, not a mount of otp2-setup/data) — production is
+    # never touched by anything in this folder. No restart policy on
+    # purpose; this isn't meant to run unattended.
+    restart: "no"
+    ports:
+      - "8091:8080"
+    volumes:
+      - ./data:/var/opentripplanner
+    command: ["--load", "--serve"]
