@@ -27,7 +27,7 @@ export const RoutesRequestSchema = z.object({
 export type RoutesRequest = z.infer<typeof RoutesRequestSchema>;
 
 const RouteLegSchema = z.object({
-  mode: z.enum(["WALK", "BUS", "RAIL"]),
+  mode: z.enum(["WALK", "BUS", "RAIL", "SUBWAY"]),
   route_name: z.string().optional(),
   from: z.string(),
   to: z.string(),

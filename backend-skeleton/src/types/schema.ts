@@ -8,7 +8,10 @@ export interface RouteLeg {
   // cuma WALK|BUS, jadi setiap itinerary yang menyentuh KRL ditolak
   // validasi skema dan berubah jadi HTTP 500 di routes.ts — bukan cuma
   // salah label, tapi rutenya hilang sama sekali.
-  mode: "WALK" | "BUS" | "RAIL";
+  //
+  // "SUBWAY" ditambahkan saat MRT masuk graph, untuk alasan yang persis sama:
+  // OTP2 mengirim mode SUBWAY untuk feed dengan route_type=1.
+  mode: "WALK" | "BUS" | "RAIL" | "SUBWAY";
   route_name?: string;
   from: string;
   to: string;

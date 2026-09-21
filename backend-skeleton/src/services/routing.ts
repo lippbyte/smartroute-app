@@ -64,6 +64,7 @@ import {
 import { NoStopNearbyError } from "../lib/errors";
 import { getAggregatedCrowdLevel, worstCrowdLevel } from "./crowdDensity";
 import { getKrlFare, stationCodeFromGtfsId } from "./krlFares";
+import { getMrtFare } from "./mrtFares";
 import { computeReliabilityForItinerary } from "./reliability";
 import { computeRecommendationScore } from "./recommendationScore";
 
@@ -175,9 +176,14 @@ function findUnreachableSide(
   return null;
 }
 
+// Satu sumber daftar moda transit untuk routing.ts. Menambah moda baru ke
+// graph (dulu RAIL/KRL, sekarang SUBWAY/MRT) cukup diubah di sini — bukan di
+// setiap kondisi `mode === ...` yang tersebar dan gampang terlewat satu.
+const TRANSIT_MODES = new Set(["BUS", "RAIL", "SUBWAY"]);
+
 function buildRouteId(it: OtpItinerary, fallbackIndex: number, usedIds: Set<string>): string {
   const transitRouteNames = it.legs
-    .filter((l) => l.mode === "BUS" || l.mode === "RAIL")
+    .filter((l) => TRANSIT_MODES.has(l.mode))
     .map((l) => l.route?.shortName ?? "?");
   const base =
     transitRouteNames.length > 0 ? transitRouteNames.join("+") : `route-${fallbackIndex + 1}`;
@@ -222,34 +228,49 @@ function computeFareIdr(it: OtpItinerary): number {
   if (it.legs.some((l) => l.mode === "BUS")) {
     total += FARE_PER_ITINERARY_IDR;
   }
-  for (const journey of krlJourneys(it)) {
+  for (const journey of gatedJourneys(it, "RAIL")) {
     const fare = getKrlFare(journey.from, journey.to);
     if (fare !== undefined) total += fare;
     else console.warn(`Tarif KRL tidak ditemukan untuk ${journey.from} -> ${journey.to}`);
   }
+  // MRT: operator dan gerbang terpisah dari KRL, jadi tarifnya dijumlahkan
+  // di atas tarif KRL/TransJakarta. Tarif integrasi JakLingko TIDAK
+  // diasumsikan — belum ada sumbernya.
+  for (const journey of gatedJourneys(it, "SUBWAY")) {
+    const fare = getMrtFare(journey.from, journey.to);
+    if (fare !== undefined) total += fare;
+    else console.warn(`Tarif MRT tidak ditemukan untuk ${journey.from} -> ${journey.to}`);
+  }
   return total;
 }
 
-// Satu "perjalanan KRL" = rangkaian leg RAIL yang ditempuh tanpa keluar
-// gerbang. KRL pakai sistem tap-in/tap-out, tarifnya dihitung SEKALI dari
-// stasiun masuk ke stasiun keluar — pindah kereta di dalam area berbayar
-// (mis. ganti lin di Manggarai) TIDAK menambah tarif. Menjumlahkan tarif
-// per leg akan memahalkan rute transfer secara keliru: Bekasi->Manggarai->
-// Jayakarta sempat terhitung Rp6.000 padahal tarif aslinya Rp4.000.
+// Satu "perjalanan bergerbang" = rangkaian leg bermoda `mode` yang ditempuh
+// tanpa keluar gerbang. KRL dan MRT sama-sama tap-in/tap-out, tarifnya
+// dihitung SEKALI dari stasiun masuk ke stasiun keluar — pindah kereta di
+// dalam area berbayar (mis. ganti lin KRL di Manggarai) TIDAK menambah
+// tarif. Menjumlahkan tarif per leg akan memahalkan rute transfer secara
+// keliru: Bekasi->Manggarai->Jayakarta sempat terhitung Rp6.000 padahal
+// tarif aslinya Rp4.000.
 //
-// Leg BUS di tengah berarti penumpang keluar gerbang, jadi leg RAIL
-// sesudahnya dihitung sebagai perjalanan baru (tap-in lagi).
-function krlJourneys(it: OtpItinerary): Array<{ from: string; to: string }> {
+// Leg transit dengan moda LAIN di tengah berarti penumpang keluar gerbang,
+// jadi leg sesudahnya dihitung sebagai perjalanan baru. Dulu hanya BUS yang
+// memutus perjalanan KRL; begitu MRT masuk graph, rute KRL -> MRT -> KRL
+// akan terhitung SATU perjalanan KRL dari stasiun pertama sampai terakhir,
+// padahal penumpangnya tap-out, naik MRT, lalu tap-in lagi.
+function gatedJourneys(
+  it: OtpItinerary,
+  mode: "RAIL" | "SUBWAY"
+): Array<{ from: string; to: string }> {
   const journeys: Array<{ from: string; to: string }> = [];
   let current: { from: string; to: string } | null = null;
 
   for (const leg of it.legs) {
-    if (leg.mode === "BUS") {
+    if (leg.mode !== mode && leg.mode !== "WALK") {
       if (current) journeys.push(current);
       current = null;
       continue;
     }
-    if (leg.mode !== "RAIL") continue; // leg WALK di antara kereta = transfer dalam stasiun
+    if (leg.mode !== mode) continue; // leg WALK di antara kereta = transfer dalam stasiun
     const from = leg.from.stop?.gtfsId;
     const to = leg.to.stop?.gtfsId;
     if (!from || !to) continue;
@@ -271,7 +292,7 @@ function buildRouteCandidate(
   const legs: RouteLeg[] = it.legs.map((l) => ({
     mode: l.mode as RouteLeg["mode"], // validated against the schema before the response leaves the service
     route_name:
-      l.mode === "BUS" || l.mode === "RAIL" ? l.route?.shortName ?? undefined : undefined,
+      TRANSIT_MODES.has(l.mode) ? l.route?.shortName ?? undefined : undefined,
     from: l.from.name,
     to: l.to.name,
   }));

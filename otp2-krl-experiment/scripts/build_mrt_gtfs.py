@@ -25,6 +25,11 @@ from pathlib import Path
 DATA = Path(__file__).resolve().parent.parent / "data"
 COORDS = DATA / "mrt_station_coords.json"
 OUT_ZIP = DATA / "mrt_gtfs.zip"
+FARE_OVERRIDES = DATA / "mrt_fare_overrides.json"
+# Tabel tarif yang dibaca backend saat runtime (services/mrtFares.ts). Ditulis
+# dari fare_rules yang SAMA dengan feed, jadi feed dan backend tidak mungkin
+# berbeda pendapat soal tarif — termasuk override.
+BACKEND_FARES = DATA.parent.parent / "backend-skeleton" / "src" / "data" / "mrtFares.json"
 
 FEED_ID = "MRT"
 AGENCY_ID = "MRTJ"
@@ -194,9 +199,33 @@ def main() -> None:
 
     # Tarif berbasis jarak: satu fare_attributes per tingkat harga, lalu satu
     # fare_rules per pasangan asal-tujuan (pola yang sama dengan feed KRL).
+    #
+    # Tabel override (hasil verifikasi manual di aplikasi MRT-J) MENIMPA rumus
+    # untuk pasangan yang terdaftar. Rumus di atas cuma dugaan dari dua angka
+    # yang dipublikasikan; begitu ada angka yang benar-benar dilihat orang di
+    # aplikasi resmi, angka itu yang menang.
+    overrides_raw = {}
+    if FARE_OVERRIDES.exists():
+        overrides_raw = json.loads(FARE_OVERRIDES.read_text(encoding="utf-8")).get("tarif", {})
+    overrides = {}
+    for key, value in overrides_raw.items():
+        a, _, b = key.partition("-")
+        if a not in info or b not in info:
+            raise SystemExit(f"ERROR: override '{key}' memakai kode stasiun tak dikenal")
+        overrides[(a, b)] = int(value)
+
+    def fare_for(a: str, b: str, i: int, j: int) -> int:
+        # Arah eksplisit menang; kalau tidak ada, arah baliknya dipakai
+        # (tarif MRT simetris), baru terakhir jatuh ke rumus.
+        if (a, b) in overrides:
+            return overrides[(a, b)]
+        if (b, a) in overrides:
+            return overrides[(b, a)]
+        return min(FARE_BASE_IDR + FARE_PER_STATION_IDR * (abs(i - j) - 1), FARE_CAP_IDR)
+
     prices = sorted({
-        min(FARE_BASE_IDR + FARE_PER_STATION_IDR * (abs(i - j) - 1), FARE_CAP_IDR)
-        for i in range(n) for j in range(n) if i != j
+        fare_for(a, b, i, j)
+        for i, a in enumerate(codes) for j, b in enumerate(codes) if i != j
     })
     files["fare_attributes"] = (
         ["fare_id", "price", "currency_type", "payment_method", "transfers", "agency_id"],
@@ -207,7 +236,7 @@ def main() -> None:
         for j, b in enumerate(codes):
             if i == j:
                 continue
-            price = min(FARE_BASE_IDR + FARE_PER_STATION_IDR * (abs(i - j) - 1), FARE_CAP_IDR)
+            price = fare_for(a, b, i, j)
             rules.append([f"{FEED_ID}-{price}", ROUTE_ID, f"{FEED_ID}-{a}", f"{FEED_ID}-{b}"])
     files["fare_rules"] = (["fare_id", "route_id", "origin_id", "destination_id"], rules)
 
@@ -228,6 +257,45 @@ def main() -> None:
 
     print(f"\nDitulis: {OUT_ZIP}")
     print(f"Tarif: Rp{prices[0]:,} - Rp{prices[-1]:,} ({len(prices)} tingkat)".replace(",", "."))
+
+    price_of = {f"{FEED_ID}-{p}": p for p in prices}
+    backend_fares = {
+        f"{origin}|{dest}": price_of[fare_id] for fare_id, _, origin, dest in rules
+    }
+    BACKEND_FARES.write_text(
+        json.dumps(
+            {
+                "_sumber": "Di-generate oleh otp2-krl-experiment/scripts/build_mrt_gtfs.py "
+                           "dari fare_rules mrt_gtfs.zip. Jangan diedit manual — ubah "
+                           "rumus atau mrt_fare_overrides.json lalu jalankan ulang script itu.",
+                "_status": "TODO: verifikasi — lihat blok KONFIGURASI di build_mrt_gtfs.py",
+                "fares": backend_fares,
+            },
+            indent=2,
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    print(f"Tabel tarif backend: {BACKEND_FARES} ({len(backend_fares)} pasangan)")
+
+    if overrides:
+        meleset = []
+        for (a, b), harga in overrides.items():
+            i, j = codes.index(a), codes.index(b)
+            rumus = min(FARE_BASE_IDR + FARE_PER_STATION_IDR * (abs(i - j) - 1), FARE_CAP_IDR)
+            if rumus != harga:
+                meleset.append((a, b, rumus, harga))
+        print(f"Override terpakai: {len(overrides)} pasangan, {len(meleset)} berbeda dari rumus")
+        for a, b, rumus, harga in meleset:
+            print(f"  {a}-{b}: rumus Rp{rumus:,} -> terverifikasi Rp{harga:,}".replace(",", "."))
+        if len(meleset) > len(overrides) / 2:
+            print(
+                "  CATATAN: lebih dari separuh pasangan yang diverifikasi meleset dari\n"
+                "  rumus. Itu tanda rumusnya sendiri salah — perbaiki rumusnya, jangan\n"
+                "  terus menambal pasangan satu per satu."
+            )
+    else:
+        print("Override tarif: belum ada (semua dari rumus, masih TODO: verifikasi)")
 
 
 if __name__ == "__main__":

@@ -48,7 +48,7 @@ export function reliabilityFromHeadwayMinutes(headwayMinutes: number | undefined
 function transitLegIndexes(legs: OtpLeg[]): number[] {
   const indexes: number[] = [];
   legs.forEach((leg, i) => {
-    if (leg.mode === "BUS" || leg.mode === "RAIL") indexes.push(i);
+    if (leg.mode === "BUS" || leg.mode === "RAIL" || leg.mode === "SUBWAY") indexes.push(i);
   });
   return indexes;
 }

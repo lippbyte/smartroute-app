@@ -1,0 +1,5 @@
+route_id,service_id,trip_id,trip_headsign,direction_id
+MRT-NS,WEEKDAY,MRT-WEEKDAY-0,Bundaran HI,0
+MRT-NS,WEEKDAY,MRT-WEEKDAY-1,Lebak Bulus,1
+MRT-NS,WEEKEND,MRT-WEEKEND-0,Bundaran HI,0
+MRT-NS,WEEKEND,MRT-WEEKEND-1,Lebak Bulus,1

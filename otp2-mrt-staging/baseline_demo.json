@@ -1,0 +1,53 @@
+{
+  "S1 Blok M -> Kota": {
+    "latensi_s": 0.5,
+    "jumlah_kandidat": 1,
+    "teratas": "1",
+    "eta_min": 91,
+    "tarif": 3500,
+    "moda": [
+      "WALK",
+      "BUS",
+      "WALK"
+    ],
+    "urutan": [
+      "1"
+    ]
+  },
+  "S2 Senen -> Grogol": {
+    "latensi_s": 1.21,
+    "jumlah_kandidat": 2,
+    "teratas": "2A",
+    "eta_min": 62,
+    "tarif": 3500,
+    "moda": [
+      "WALK",
+      "BUS",
+      "WALK"
+    ],
+    "urutan": [
+      "2A",
+      "2A+JAK.53"
+    ]
+  },
+  "S3 Grogol -> Kp. Melayu": {
+    "latensi_s": 7.58,
+    "jumlah_kandidat": 3,
+    "teratas": "8+Bogor",
+    "eta_min": 80,
+    "tarif": 6500,
+    "moda": [
+      "WALK",
+      "BUS",
+      "WALK",
+      "RAIL",
+      "WALK"
+    ],
+    "urutan": [
+      "8+Bogor",
+      "9+Cikarang+5",
+      "8+Bogor+11M"
+    ]
+  },
+  "_flip": false
+}

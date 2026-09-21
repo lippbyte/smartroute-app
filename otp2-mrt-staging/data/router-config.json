@@ -1,0 +1,10 @@
+{
+  "routingDefaults": {
+    "walkSpeed": 1.33,
+    "numItineraries": 5,
+    "walkReluctance": 2.0
+  },
+  "transit": {
+    "maxTransferDurationSeconds": 1800
+  }
+}

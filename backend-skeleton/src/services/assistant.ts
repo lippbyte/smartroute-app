@@ -27,7 +27,13 @@ function describeLeg(leg: RouteCandidate["legs"][number]): string {
   const trip = `${leg.from} -> ${leg.to}`;
   if (leg.mode === "BUS") return `naik TransJakarta ${leg.route_name ?? "?"} (${trip})`;
   if (leg.mode === "RAIL") return `naik KRL ${leg.route_name ?? "?"} (${trip})`;
-  return `jalan kaki (${trip})`;
+  // Tanpa baris ini leg MRT jatuh ke "jalan kaki" di bawah — LLM akan
+  // disuguhi fakta bahwa pengguna berjalan kaki Lebak Bulus -> Bundaran HI.
+  if (leg.mode === "SUBWAY") return `naik MRT (${trip})`;
+  if (leg.mode === "WALK") return `jalan kaki (${trip})`;
+  // Moda yang belum dikenal lebih baik disebut apa adanya daripada dikira
+  // jalan kaki — salah itu yang barusan hampir terjadi pada MRT.
+  return `naik ${leg.mode} (${trip})`;
 }
 
 function describeCandidate(route: RouteCandidate): string {
