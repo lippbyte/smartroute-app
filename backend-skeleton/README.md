@@ -391,6 +391,24 @@ report — same no-fake-data principle held since Task Backend-03.
   aggregate. Out of scope for the competition MVP per the task brief.
 - Storage is in-memory only — reports are lost on server restart. Fine for a
   demo/rehearsal run; would need a real datastore for production use.
+- **Laporan dibaca per halte, dan batas "satu halte" adalah ASUMSI, bukan
+  temuan data.** Peron-peron dianggap satu halte kalau operatornya sama,
+  namanya sama, dan berjarak <= 100 m (`src/services/stopClusters.ts`).
+  Radius 100 m dipilih dengan asumsi halte BRT di median jalan adalah satu
+  bangunan dengan satu antrean untuk kedua arah — asumsi itu belum dicek ke
+  kondisi lapangan. Dampaknya konkret di dua halte, satu-satunya yang
+  hasilnya berbeda antara radius 50 m dan 100 m (audit 21 Sep 2026):
+  **Flyover Jatinegara** (4 peron, rentang 98 m) dan **Grogol Reformasi**
+  (4 peron, rentang 83 m). Di 100 m keduanya jadi satu klaster, jadi laporan
+  "padat" di satu arah ikut menghukum rute arah sebaliknya. Kalau ternyata
+  tiap arah punya antrean sendiri, turunkan radius ke 50 m — keduanya akan
+  terpecah per arah, dan 207 klaster lainnya tidak berubah.
+- Halte senama **lintas operator** sengaja tidak digabung walau berdekatan
+  (mis. Universitas Pancasila TJ vs KRL, 34 m; Lebak Bulus TJ vs MRT, 96 m),
+  karena gerbang dan antreannya terpisah. Laporan di halte TJ tidak
+  memengaruhi stasiun KRL/MRT di sebelahnya.
+- Audit ulang klaster setiap graph OTP2 dibangun ulang:
+  `npx tsx scripts/audit-stop-clusters.ts`.
 
 ## Task Backend-06: `recommendation_score` + LLM assistant
 

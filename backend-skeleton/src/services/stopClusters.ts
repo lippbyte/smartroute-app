@@ -12,6 +12,9 @@
 // antreannya memang terpisah. Lihat scripts/audit-stop-clusters.ts.
 import { getAllOtpStops, type OtpStop } from "../lib/otpClient";
 
+// ASUMSI, bukan temuan data: peron senama dalam 100 m dianggap berbagi satu
+// antrean. Hanya Flyover Jatinegara (98 m) dan Grogol Reformasi (83 m) yang
+// hasilnya berbeda dengan radius 50 m — lihat "Known limitations" di README.
 export const CLUSTER_RADIUS_M = 100;
 
 const RETRY_MS = 30_000;
