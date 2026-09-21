@@ -22,7 +22,20 @@ const REQUEST_TIMEOUT_MS = 15_000;
 
 // Answers are meant to be short, direct wayfinding info, not an essay — caps
 // completion length (and cost) accordingly.
-const MAX_ANSWER_TOKENS = 400;
+//
+// Batas ini mencakup token REASONING, bukan cuma jawaban. Model aktif
+// (z-ai/glm-5.3-flash) adalah model reasoning: pada prompt asli, reasoning-nya
+// sendiri menghabiskan 400/400 token (finish_reason=length) dan jawabannya
+// kosong. Menaikkan batas ke 1500 memang menghasilkan jawaban, tapi butuh
+// ~29 detik — melewati REQUEST_TIMEOUT_MS di bawah. Memangkas konteks juga
+// tidak menolong: dengan prompt 311 token reasoning tetap memakan 394/400.
+const MAX_ANSWER_TOKENS = 600;
+
+// Batas keras untuk reasoning, supaya sisa MAX_ANSWER_TOKENS (minimal 450
+// token) selalu tersedia untuk jawaban — terlepas dari seberapa lama model
+// ingin "berpikir". Terukur ~2 detik dan biaya terendah dari opsi yang diuji.
+// Mematikan reasoning sepenuhnya ({ enabled: false }) ditolak oleh model ini.
+const MAX_REASONING_TOKENS = 150;
 
 // Low temperature: this assistant must stay grounded in the GTFS context we
 // hand it (see assistant.ts's system prompt), not invent plausible-sounding
@@ -82,6 +95,7 @@ export async function askOpenRouter(messages: ChatMessage[]): Promise<string> {
         model,
         messages,
         max_tokens: MAX_ANSWER_TOKENS,
+        reasoning: { max_tokens: MAX_REASONING_TOKENS },
         temperature: TEMPERATURE,
       }),
       signal: controller.signal,
