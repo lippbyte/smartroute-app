@@ -148,9 +148,12 @@ function dedupeItineraries(itineraries: OtpItinerary[]): OtpItinerary[] {
       bestByPattern.set(key, it);
     }
   }
-  return [...bestByPattern.values()]
-    .sort((a, b) => a.duration - b.duration)
-    .slice(0, MAX_CANDIDATES);
+  // SENGAJA tidak dipotong di sini. Dulu dipotong ke MAX_CANDIDATES berdasarkan
+  // durasi, SEBELUM skor rekomendasi (yang memperhitungkan tarif, kepadatan,
+  // keandalan) dihitung — rute murah yang sedikit lebih lambat tersingkir
+  // tanpa pernah dinilai. Pemotongan kini terjadi sesudah penilaian, di
+  // computeRouteRecommendation.
+  return [...bestByPattern.values()].sort((a, b) => a.duration - b.duration);
 }
 
 // Routing-error codes that mean "this coordinate itself can't be reached by
@@ -376,7 +379,12 @@ export async function computeRouteRecommendation(
     .map((it, index) => buildRouteCandidate(it, index, usedIds, atSecs))
     // Task Backend-06 AC: routes[] ordered by recommendation_score,
     // highest (most recommended) first.
-    .sort((a, b) => b.recommendation_score - a.recommendation_score);
+    .sort((a, b) => b.recommendation_score - a.recommendation_score)
+    // Dipotong SESUDAH dinilai: skornya absolut per kandidat (konstanta
+    // normalisasi tetap di recommendationScore.ts), jadi menilai seluruh pool
+    // tidak menggeser skor siapa pun — cuma memastikan rute yang tersingkir
+    // memang yang skornya kalah, bukan yang kebetulan sedikit lebih lambat.
+    .slice(0, MAX_CANDIDATES);
 
   return {
     request_id: crypto.randomUUID(),
