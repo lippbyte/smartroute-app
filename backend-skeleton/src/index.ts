@@ -3,6 +3,7 @@
 import "dotenv/config";
 import app from "./app";
 import { preloadGtfsFeed } from "./lib/gtfsFeed";
+import { preloadStopClusters } from "./services/stopClusters";
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
 
@@ -10,6 +11,11 @@ const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
 // lookup + the assistant's route list both need it) rather than lazily on
 // whichever request happens to need it first.
 preloadGtfsFeed();
+
+// Klaster peron untuk agregasi laporan kepadatan per halte. Tidak menahan
+// startup: kalau OTP2 belum siap, dicoba ulang di latar belakang, dan selama
+// itu laporan dihitung per peron seperti sebelumnya.
+preloadStopClusters();
 
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);

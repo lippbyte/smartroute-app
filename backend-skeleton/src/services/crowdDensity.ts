@@ -11,6 +11,8 @@
 // cut for the MVP per the task brief, not an oversight; documented as a
 // known limitation in the README rather than solved here.
 
+import { clusterMembersOf } from "./stopClusters";
+
 export type CrowdLevel = "low" | "moderate" | "high";
 
 export interface CrowdReport {
@@ -55,12 +57,18 @@ export function recordCrowdReport(
 // fresh "lengang" from 30 seconds ago. Returns undefined when there is no
 // report at all inside the window — callers must NOT substitute a default,
 // per the task's explicit no-fake-data constraint.
+//
+// Laporan disimpan per peron (stop_id yang benar-benar dilaporkan, supaya peta
+// kepadatan tetap menampilkan peron itu), tapi DIBACA per halte: laporan dari
+// peron mana pun dalam klaster yang sama ikut dihitung. Tanpa ini, laporan di
+// satu dari enam peron "Monumen Nasional" tidak berpengaruh ke rute yang
+// lewat peron sebelahnya — lihat stopClusters.ts.
 export function getAggregatedCrowdLevel(
   stopId: string,
   now: Date = new Date()
 ): CrowdLevel | undefined {
-  const reports = reportsByStop.get(stopId);
-  if (!reports || reports.length === 0) return undefined;
+  const reports = clusterMembersOf(stopId).flatMap((id) => reportsByStop.get(id) ?? []);
+  if (reports.length === 0) return undefined;
 
   let weightedSum = 0;
   let totalWeight = 0;
