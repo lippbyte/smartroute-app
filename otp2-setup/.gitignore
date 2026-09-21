@@ -7,9 +7,7 @@ data/graph.obj
 data/jabodetabek.osm.pbf
 osm-src/
 
-# Env files — no .env exists here yet, but this folder isn't a git repo
-# at all (checked in Task Security-01), so this just guards against a
-# future accidental commit once/if it becomes one.
+# File .env berisi rahasia (kunci API dsb.) dan tidak boleh pernah masuk repo backend/.
 .env
 .env.*
 !.env.example
