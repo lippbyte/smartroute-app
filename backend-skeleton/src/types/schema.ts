@@ -11,8 +11,16 @@ export interface RouteLeg {
   //
   // "SUBWAY" ditambahkan saat MRT masuk graph, untuk alasan yang persis sama:
   // OTP2 mengirim mode SUBWAY untuk feed dengan route_type=1.
-  mode: "WALK" | "BUS" | "RAIL" | "SUBWAY";
+  //
+  // "TRAM" = LRT Jabodebek: feed-nya route_type=0 ("Tram, Streetcar, Light
+  // rail" di GTFS) dan OTP2 memetakan route_type 0 ke mode TRAM.
+  mode: "WALK" | "BUS" | "RAIL" | "SUBWAY" | "TRAM";
   route_name?: string;
+  // Hanya leg BUS: kategori resmi `route_desc` dari feed TransJakarta
+  // ("BRT", "Mikrotrans", "Angkutan Umum Integrasi", ...). Satu feed BUS
+  // menaungi BRT, feeder, dan JakLingko sekaligus — tanpa field ini
+  // frontend tidak bisa membedakannya dan semuanya tampil "TransJakarta".
+  route_category?: string;
   from: string;
   to: string;
 }

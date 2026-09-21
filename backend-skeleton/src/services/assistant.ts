@@ -4,6 +4,7 @@
 import type { RouteCandidate } from "../types/schema";
 import { computeRouteRecommendation } from "./routing";
 import { getGtfsContextText } from "./gtfsContext";
+import { JAKLINGKO_CATEGORY } from "./tjRouteCategory";
 import { askOpenRouter } from "../lib/openRouterClient";
 import { recordOpenRouterCall } from "../lib/openRouterRateLimit";
 
@@ -25,11 +26,22 @@ const SYSTEM_PROMPT_HEADER =
 
 function describeLeg(leg: RouteCandidate["legs"][number]): string {
   const trip = `${leg.from} -> ${leg.to}`;
-  if (leg.mode === "BUS") return `naik TransJakarta ${leg.route_name ?? "?"} (${trip})`;
+  if (leg.mode === "BUS") {
+    // Kategori resmi dari GTFS; JakLingko (Mikrotrans) gratis, jadi kalau
+    // disebut "TransJakarta" LLM bisa mengarang tarif Rp3.500 untuknya.
+    const operator =
+      leg.route_category === JAKLINGKO_CATEGORY ? "JakLingko" : "TransJakarta";
+    const category =
+      leg.route_category && leg.route_category !== JAKLINGKO_CATEGORY
+        ? ` [${leg.route_category}]`
+        : "";
+    return `naik ${operator} ${leg.route_name ?? "?"}${category} (${trip})`;
+  }
   if (leg.mode === "RAIL") return `naik KRL ${leg.route_name ?? "?"} (${trip})`;
   // Tanpa baris ini leg MRT jatuh ke "jalan kaki" di bawah — LLM akan
   // disuguhi fakta bahwa pengguna berjalan kaki Lebak Bulus -> Bundaran HI.
   if (leg.mode === "SUBWAY") return `naik MRT (${trip})`;
+  if (leg.mode === "TRAM") return `naik LRT Jabodebek ${leg.route_name ?? "?"} (${trip})`;
   if (leg.mode === "WALK") return `jalan kaki (${trip})`;
   // Moda yang belum dikenal lebih baik disebut apa adanya daripada dikira
   // jalan kaki — salah itu yang barusan hampir terjadi pada MRT.

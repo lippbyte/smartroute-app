@@ -22,7 +22,8 @@ router.post("/routes", async (req, res) => {
     const recommendation = await computeRouteRecommendation(
       parsedBody.data.origin,
       parsedBody.data.destination,
-      parsedBody.data.departure_time
+      parsedBody.data.departure_time,
+      parsedBody.data.modes
     );
 
     // Belt-and-suspenders: even though we built this object ourselves, it

@@ -65,6 +65,8 @@ import { NoStopNearbyError } from "../lib/errors";
 import { getAggregatedCrowdLevel, worstCrowdLevel } from "./crowdDensity";
 import { getKrlFare, stationCodeFromGtfsId } from "./krlFares";
 import { getMrtFare } from "./mrtFares";
+import { getLrtFare } from "./lrtFares";
+import { tjRouteCategory, tjRouteFareIdr } from "./tjRouteCategory";
 import { computeReliabilityForItinerary } from "./reliability";
 import { computeRecommendationScore } from "./recommendationScore";
 
@@ -91,14 +93,10 @@ const UNCERTAINTY_BUFFER_RATIO = 0.15;
 //     premium/express services.
 //   - fare_id PP2 (Rp25.000) is defined in fare_attributes.txt but not
 //     referenced by any row in fare_rules.txt (currently unused).
-// So Rp3.500 is only correct for FP/FP2 routes (the majority, and likely
-// everything reachable by the current TransJakarta+JakLingko demo corridor)
-// — but a candidate whose leg(s) run on a GR route should be free, and one
-// on a PP/PP3 route should cost far more than Rp3.500. Left as the flat
-// value here per the task's explicit instruction not to change fare logic
-// without a discussed decision first — implementing real per-route lookup
-// needs a route_id -> fare_id map (from fare_rules.txt) joined against each
-// leg's OTP2 route id, which is a real scope change, not a one-line fix.
+// Diputuskan (setelah laporan Backend-13): tarif per rute kini dibaca dari
+// GTFS itu sendiri (tjRouteFareIdr) — GR gratis, PP/PP3 Royaltrans per naik.
+// Konstanta ini tinggal dipakai untuk tap-in reguler FP/FP2, satu kali per
+// perjalanan. Lihat computeFareIdr.
 const FARE_PER_ITINERARY_IDR = 3500;
 
 const MAX_CANDIDATES = 3;
@@ -182,7 +180,7 @@ function findUnreachableSide(
 // Satu sumber daftar moda transit untuk routing.ts. Menambah moda baru ke
 // graph (dulu RAIL/KRL, sekarang SUBWAY/MRT) cukup diubah di sini — bukan di
 // setiap kondisi `mode === ...` yang tersebar dan gampang terlewat satu.
-const TRANSIT_MODES = new Set(["BUS", "RAIL", "SUBWAY"]);
+const TRANSIT_MODES = new Set(["BUS", "RAIL", "SUBWAY", "TRAM"]);
 
 function buildRouteId(it: OtpItinerary, fallbackIndex: number, usedIds: Set<string>): string {
   const transitRouteNames = it.legs
@@ -233,9 +231,22 @@ function collectStopIds(it: OtpItinerary): string[] {
 // nilai kembalian, supaya angka yang tampil tidak diam-diam terlalu murah.
 function computeFareIdr(it: OtpItinerary): number {
   let total = 0;
-  if (it.legs.some((l) => l.mode === "BUS")) {
-    total += FARE_PER_ITINERARY_IDR;
+  // TransJakarta, per tarif rute di GTFS resmi (fare_rules/fare_attributes):
+  //   - Rp0 (JakLingko/Mikrotrans, Bus Wisata): gratis, tidak memicu tap-in.
+  //   - premium > Rp3.500 (Royaltrans Rp20.000/Rp35.000): layanan terpisah
+  //     dengan tap-in sendiri, jadi dikenakan per naik.
+  //   - sisanya (Rp3.500: BRT, feeder, Transjabodetabek, Rusun): SATU kali
+  //     Rp3.500 untuk seluruh perjalanan, sesuai transfer gratis 3 jam.
+  // Rute tanpa fare_rule diperlakukan sebagai reguler (perilaku lama).
+  let regularTapIn = false;
+  for (const leg of it.legs) {
+    if (leg.mode !== "BUS") continue;
+    const fare = tjRouteFareIdr(leg.route?.gtfsId);
+    if (fare === 0) continue;
+    if (fare !== undefined && fare > FARE_PER_ITINERARY_IDR) total += fare;
+    else regularTapIn = true;
   }
+  if (regularTapIn) total += FARE_PER_ITINERARY_IDR;
   for (const journey of gatedJourneys(it, "RAIL")) {
     const fare = getKrlFare(journey.from, journey.to);
     if (fare !== undefined) total += fare;
@@ -248,6 +259,13 @@ function computeFareIdr(it: OtpItinerary): number {
     const fare = getMrtFare(journey.from, journey.to);
     if (fare !== undefined) total += fare;
     else console.warn(`Tarif MRT tidak ditemukan untuk ${journey.from} -> ${journey.to}`);
+  }
+  // LRT Jabodebek: gerbang sendiri, tarif per pasangan stasiun yang
+  // bergantung jam naik (jam sibuk hari kerja vs di luarnya).
+  for (const journey of gatedJourneys(it, "TRAM")) {
+    const fare = getLrtFare(journey.from, journey.to, journey.boardingTime);
+    if (fare !== undefined) total += fare;
+    else console.warn(`Tarif LRT tidak ditemukan untuk ${journey.from} -> ${journey.to} @ ${journey.boardingTime}`);
   }
   return total;
 }
@@ -267,10 +285,10 @@ function computeFareIdr(it: OtpItinerary): number {
 // padahal penumpangnya tap-out, naik MRT, lalu tap-in lagi.
 function gatedJourneys(
   it: OtpItinerary,
-  mode: "RAIL" | "SUBWAY"
-): Array<{ from: string; to: string }> {
-  const journeys: Array<{ from: string; to: string }> = [];
-  let current: { from: string; to: string } | null = null;
+  mode: "RAIL" | "SUBWAY" | "TRAM"
+): Array<{ from: string; to: string; boardingTime?: string }> {
+  const journeys: Array<{ from: string; to: string; boardingTime?: string }> = [];
+  let current: { from: string; to: string; boardingTime?: string } | null = null;
 
   for (const leg of it.legs) {
     if (leg.mode !== mode && leg.mode !== "WALK") {
@@ -285,7 +303,7 @@ function gatedJourneys(
     const fromCode = stationCodeFromGtfsId(from);
     const toCode = stationCodeFromGtfsId(to);
     if (current) current.to = toCode;
-    else current = { from: fromCode, to: toCode };
+    else current = { from: fromCode, to: toCode, boardingTime: leg.start?.scheduledTime };
   }
   if (current) journeys.push(current);
   return journeys;
@@ -301,6 +319,7 @@ function buildRouteCandidate(
     mode: l.mode as RouteLeg["mode"], // validated against the schema before the response leaves the service
     route_name:
       TRANSIT_MODES.has(l.mode) ? l.route?.shortName ?? undefined : undefined,
+    route_category: l.mode === "BUS" ? tjRouteCategory(l.route?.gtfsId) : undefined,
     from: l.from.name,
     to: l.to.name,
   }));
@@ -354,7 +373,9 @@ export async function computeRouteRecommendation(
   destination: Coordinate,
   // Task Backend-03c: optional pin for the search time. Undefined -> "now",
   // same as before this task (AC: default behavior must not change).
-  departureTime?: string
+  departureTime?: string,
+  // Filter moda transit OTP2; undefined/kosong = semua moda.
+  modes?: string[]
 ): Promise<RouteRecommendation> {
   const originLabel = formatCoordLabel(origin);
   const destLabel = formatCoordLabel(destination);
@@ -365,7 +386,8 @@ export async function computeRouteRecommendation(
     destination,
     originLabel,
     destLabel,
-    effectiveDeparture
+    effectiveDeparture,
+    modes
   );
 
   const unreachableSide = findUnreachableSide(routingErrors);
@@ -376,7 +398,29 @@ export async function computeRouteRecommendation(
     );
   }
 
-  const candidates = dedupeItineraries(itineraries);
+  let pool = itineraries;
+  let candidates = dedupeItineraries(pool);
+
+  // planConnection berhalaman per JAM BERANGKAT, bukan per variasi rute.
+  // Moda yang cepat dan rapat (LRT tiap ~4-8 menit) bisa menghabiskan seluruh
+  // hasil dengan pola yang sama persis — Bekasi -> Blok M turun dari 3
+  // kandidat ke 1 (12x "LRT > 13B") begitu LRT masuk graph. Kalau pola unik
+  // kurang dari MAX_CANDIDATES dan pengguna tidak memfilter moda, cari lagi
+  // dengan tiap moda transit yang sudah terpakai dikecualikan satu per satu.
+  // Pencarian tambahan HANYA terjadi saat kandidat kurang, jadi rute yang
+  // sudah punya 3 pola berbeda tidak berubah sama sekali.
+  if (!modes?.length && candidates.length < MAX_CANDIDATES) {
+    const used = new Set(
+      candidates.flatMap((it) => it.legs.map((l) => l.mode)).filter((m) => TRANSIT_MODES.has(m))
+    );
+    for (const dominant of used) {
+      const others = [...TRANSIT_MODES].filter((m) => m !== dominant);
+      const extra = await planTrip(origin, destination, originLabel, destLabel, effectiveDeparture, others);
+      pool = pool.concat(extra.itineraries);
+      candidates = dedupeItineraries(pool);
+      if (candidates.length >= MAX_CANDIDATES) break;
+    }
+  }
 
   const atSecs = jakartaTimeOfDaySeconds(effectiveDeparture);
   const usedIds = new Set<string>();

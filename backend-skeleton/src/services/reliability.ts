@@ -41,14 +41,15 @@ export function reliabilityFromHeadwayMinutes(headwayMinutes: number | undefined
   return { score: 0.1, risk: "high" };
 }
 
-// Semua leg bermoda transit (bukan jalan kaki). Sejak integrasi KRL, "RAIL"
-// ikut dihitung — kalau tidak, perjalanan KRL lalu sambung TransJakarta
+// Semua leg bermoda transit (bukan jalan kaki): BUS, RAIL (KRL), SUBWAY
+// (MRT), TRAM (LRT). Daftar putih moda per moda baru pernah tertinggal
+// (KRL, lalu MRT) — kalau tidak, perjalanan KRL lalu sambung TransJakarta
 // terbaca seolah cuma punya satu leg transit alias "tanpa transfer",
 // padahal justru titik pindah moda itu yang paling berisiko bagi penumpang.
 function transitLegIndexes(legs: OtpLeg[]): number[] {
   const indexes: number[] = [];
   legs.forEach((leg, i) => {
-    if (leg.mode === "BUS" || leg.mode === "RAIL" || leg.mode === "SUBWAY") indexes.push(i);
+    if (leg.mode !== "WALK") indexes.push(i);
   });
   return indexes;
 }

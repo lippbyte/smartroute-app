@@ -92,6 +92,9 @@ export interface OtpLeg {
   // leg jalan kaki). Dipakai untuk mencocokkan laporan kepadatan terhadap
   // seluruh halte yang dilalui rute, bukan cuma titik naik/turunnya.
   intermediateStops: Array<{ gtfsId: string }> | null;
+  // Jam naik terjadwal (ISO, sudah WIB). Dipakai tarif LRT Jabodebek, yang
+  // berbeda antara jam sibuk hari kerja dan di luarnya.
+  start: { scheduledTime: string } | null;
 }
 
 export interface OtpItinerary {
@@ -113,7 +116,11 @@ export interface OtpRoutingError {
   inputField: "FROM" | "TO" | "DATE_TIME" | "VIA" | null;
 }
 
-const PLAN_QUERY = `
+// Filter moda ditambahkan hanya kalau diminta: OTP2 2.10 crash kalau argumen
+// `modes` dikirim null ("modesArgs is null"), jadi tanpa filter argumennya
+// harus benar-benar hilang dari query, bukan diisi null.
+function planQuery(withModes: boolean): string {
+  return `
   query PlanRoute(
     $originLat: CoordinateValue!
     $originLon: CoordinateValue!
@@ -124,6 +131,7 @@ const PLAN_QUERY = `
     $earliestDeparture: OffsetDateTime!
     $first: Int!
     $searchWindow: Duration
+    ${withModes ? "$modes: PlanModesInput!" : ""}
   ) {
     planConnection(
       origin: {
@@ -137,6 +145,7 @@ const PLAN_QUERY = `
       dateTime: { earliestDeparture: $earliestDeparture }
       first: $first
       searchWindow: $searchWindow
+      ${withModes ? "modes: $modes" : ""}
     ) {
       edges {
         node {
@@ -151,6 +160,7 @@ const PLAN_QUERY = `
             to { name stop { gtfsId } }
             route { shortName longName gtfsId }
             intermediateStops { gtfsId }
+            start { scheduledTime }
           }
         }
       }
@@ -158,6 +168,7 @@ const PLAN_QUERY = `
     }
   }
 `;
+}
 
 interface PlanConnectionResponse {
   planConnection: {
@@ -184,9 +195,13 @@ export async function planTrip(
   destination: { lat: number; lng: number },
   originLabel: string,
   destLabel: string,
-  earliestDeparture: string
+  earliestDeparture: string,
+  // Mode transit OTP2 yang boleh dipakai (mis. ["RAIL"]); undefined = semua.
+  // Leg jalan kaki tetap selalu diizinkan untuk akses/transfer.
+  transitModes?: string[]
 ): Promise<PlanTripResult> {
-  const data = await postGraphQL<PlanConnectionResponse>(PLAN_QUERY, {
+  const withModes = !!transitModes?.length;
+  const data = await postGraphQL<PlanConnectionResponse>(planQuery(withModes), {
     originLat: origin.lat,
     originLon: origin.lng,
     originLabel,
@@ -196,6 +211,9 @@ export async function planTrip(
     earliestDeparture,
     first: OVERFETCH_COUNT,
     searchWindow: SEARCH_WINDOW,
+    ...(withModes
+      ? { modes: { transit: { transit: transitModes!.map((mode) => ({ mode })) } } }
+      : {}),
   });
   return {
     itineraries: data.planConnection.edges.map((e) => e.node),

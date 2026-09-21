@@ -22,13 +22,18 @@ export const RoutesRequestSchema = z.object({
   // out-of-schedule-range value should just come back as routes: [] from
   // OTP2, not get rejected at this layer.
   departure_time: z.iso.datetime({ offset: true }).optional(),
+  // Filter moda (chip "Bus/KRL/MRT/LRT" di layar hasil): hanya moda transit
+  // OTP2 ini yang boleh dipakai; jalan kaki selalu boleh. Kosong/tidak ada =
+  // semua moda, sama seperti sebelum filter ini ada.
+  modes: z.array(z.enum(["BUS", "RAIL", "SUBWAY", "TRAM"])).optional(),
 });
 
 export type RoutesRequest = z.infer<typeof RoutesRequestSchema>;
 
 const RouteLegSchema = z.object({
-  mode: z.enum(["WALK", "BUS", "RAIL", "SUBWAY"]),
+  mode: z.enum(["WALK", "BUS", "RAIL", "SUBWAY", "TRAM"]),
   route_name: z.string().optional(),
+  route_category: z.string().optional(),
   from: z.string(),
   to: z.string(),
 });
