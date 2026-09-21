@@ -12,6 +12,10 @@
     {
       "type": "gtfs",
       "source": "krl_gtfs.zip"
+    },
+    {
+      "type": "gtfs",
+      "source": "mrt_gtfs.zip"
     }
   ],
   "transitServiceStart": "-P1Y",
