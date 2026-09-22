@@ -1,0 +1,338 @@
+{
+  "base": "http://localhost:3006",
+  "at": "2026-09-21T07:30:00+07:00",
+  "results": {
+    "L1": {
+      "name": "LRT Jati Mulya -> Dukuh Atas BNI",
+      "http": 200,
+      "ms": 481,
+      "routes": [
+        {
+          "route_id": "Cikarang",
+          "legs": [
+            "RAIL:Cikarang"
+          ],
+          "minutes": [
+            83,
+            96
+          ],
+          "cost_idr": 3000,
+          "transfers": 0,
+          "risk": "medium",
+          "crowd": null,
+          "score": 0.484
+        },
+        {
+          "route_id": "Bekasi Line",
+          "legs": [
+            "TRAM:Bekasi Line"
+          ],
+          "minutes": [
+            49,
+            57
+          ],
+          "cost_idr": 20000,
+          "transfers": 0,
+          "risk": "medium",
+          "crowd": null,
+          "score": 0.44
+        },
+        {
+          "route_id": "B21+Cikarang",
+          "legs": [
+            "BUS:B21[Transjabodetabek]",
+            "RAIL:Cikarang"
+          ],
+          "minutes": [
+            92,
+            106
+          ],
+          "cost_idr": 6500,
+          "transfers": 1,
+          "risk": "medium",
+          "crowd": null,
+          "score": 0.429
+        }
+      ],
+      "expectMode": "TRAM"
+    },
+    "L2": {
+      "name": "LRT Harjamukti -> Kuningan",
+      "http": 200,
+      "ms": 1610,
+      "routes": [
+        {
+          "route_id": "Cibubur Line",
+          "legs": [
+            "TRAM:Cibubur Line"
+          ],
+          "minutes": [
+            39,
+            45
+          ],
+          "cost_idr": 19000,
+          "transfers": 0,
+          "risk": "medium",
+          "crowd": null,
+          "score": 0.463
+        },
+        {
+          "route_id": "1T+6",
+          "legs": [
+            "BUS:1T[Royaltrans]",
+            "BUS:6[BRT]"
+          ],
+          "minutes": [
+            105,
+            121
+          ],
+          "cost_idr": 23500,
+          "transfers": 1,
+          "risk": "low",
+          "crowd": null,
+          "score": 0.415
+        },
+        {
+          "route_id": "1T",
+          "legs": [
+            "BUS:1T[Royaltrans]"
+          ],
+          "minutes": [
+            109,
+            126
+          ],
+          "cost_idr": 20000,
+          "transfers": 0,
+          "risk": "high",
+          "crowd": null,
+          "score": 0.205
+        }
+      ],
+      "expectMode": "TRAM"
+    },
+    "S1": {
+      "name": "Blok M -> Kota",
+      "http": 200,
+      "ms": 525,
+      "routes": [
+        {
+          "route_id": "1",
+          "legs": [
+            "BUS:1[BRT]"
+          ],
+          "minutes": [
+            92,
+            106
+          ],
+          "cost_idr": 3500,
+          "transfers": 0,
+          "risk": "low",
+          "crowd": null,
+          "score": 0.559
+        },
+        {
+          "route_id": "M+1",
+          "legs": [
+            "SUBWAY:M",
+            "BUS:1[BRT]"
+          ],
+          "minutes": [
+            75,
+            87
+          ],
+          "cost_idr": 11500,
+          "transfers": 1,
+          "risk": "low",
+          "crowd": null,
+          "score": 0.516
+        },
+        {
+          "route_id": "M+Cikarang+Bogor",
+          "legs": [
+            "SUBWAY:M",
+            "RAIL:Cikarang",
+            "RAIL:Bogor"
+          ],
+          "minutes": [
+            64,
+            74
+          ],
+          "cost_idr": 10000,
+          "transfers": 2,
+          "risk": "medium",
+          "crowd": null,
+          "score": 0.456
+        }
+      ]
+    },
+    "S3": {
+      "name": "Grogol -> Kampung Melayu",
+      "http": 200,
+      "ms": 2519,
+      "routes": [
+        {
+          "route_id": "3+8+5C",
+          "legs": [
+            "BUS:3[BRT]",
+            "BUS:8[BRT]",
+            "BUS:5C[BRT]"
+          ],
+          "minutes": [
+            93,
+            107
+          ],
+          "cost_idr": 3500,
+          "transfers": 2,
+          "risk": "low",
+          "crowd": null,
+          "score": 0.557
+        },
+        {
+          "route_id": "8+5C",
+          "legs": [
+            "BUS:8[BRT]",
+            "BUS:5C[BRT]"
+          ],
+          "minutes": [
+            93,
+            107
+          ],
+          "cost_idr": 3500,
+          "transfers": 1,
+          "risk": "low",
+          "crowd": null,
+          "score": 0.557
+        },
+        {
+          "route_id": "Cikarang+Bogor",
+          "legs": [
+            "RAIL:Cikarang",
+            "RAIL:Bogor"
+          ],
+          "minutes": [
+            75,
+            87
+          ],
+          "cost_idr": 3000,
+          "transfers": 1,
+          "risk": "medium",
+          "crowd": null,
+          "score": 0.501
+        }
+      ]
+    },
+    "PB": {
+      "name": "Pasar Baru -> Lebak Bulus",
+      "http": 200,
+      "ms": 1475,
+      "routes": [
+        {
+          "route_id": "2+1+M",
+          "legs": [
+            "BUS:2[BRT]",
+            "BUS:1[BRT]",
+            "SUBWAY:M"
+          ],
+          "minutes": [
+            76,
+            88
+          ],
+          "cost_idr": 17500,
+          "transfers": 2,
+          "risk": "low",
+          "crowd": null,
+          "score": 0.479
+        },
+        {
+          "route_id": "Bogor+Cikarang+M",
+          "legs": [
+            "RAIL:Bogor",
+            "RAIL:Cikarang",
+            "SUBWAY:M"
+          ],
+          "minutes": [
+            73,
+            84
+          ],
+          "cost_idr": 17000,
+          "transfers": 2,
+          "risk": "medium",
+          "crowd": null,
+          "score": 0.386
+        },
+        {
+          "route_id": "Bogor+M",
+          "legs": [
+            "RAIL:Bogor",
+            "SUBWAY:M"
+          ],
+          "minutes": [
+            78,
+            90
+          ],
+          "cost_idr": 17000,
+          "transfers": 1,
+          "risk": "medium",
+          "crowd": null,
+          "score": 0.375
+        }
+      ]
+    },
+    "PB+Monas": {
+      "name": "Pasar Baru -> Lebak Bulus, setelah lapor Monas padat",
+      "http": 200,
+      "ms": 1261,
+      "routes": [
+        {
+          "route_id": "Bogor+Cikarang+M",
+          "legs": [
+            "RAIL:Bogor",
+            "RAIL:Cikarang",
+            "SUBWAY:M"
+          ],
+          "minutes": [
+            73,
+            84
+          ],
+          "cost_idr": 17000,
+          "transfers": 2,
+          "risk": "medium",
+          "crowd": null,
+          "score": 0.386
+        },
+        {
+          "route_id": "Bogor+M",
+          "legs": [
+            "RAIL:Bogor",
+            "SUBWAY:M"
+          ],
+          "minutes": [
+            78,
+            90
+          ],
+          "cost_idr": 17000,
+          "transfers": 1,
+          "risk": "medium",
+          "crowd": null,
+          "score": 0.375
+        },
+        {
+          "route_id": "10H+M",
+          "legs": [
+            "BUS:10H[BRT]",
+            "SUBWAY:M"
+          ],
+          "minutes": [
+            95,
+            110
+          ],
+          "cost_idr": 13500,
+          "transfers": 1,
+          "risk": "medium",
+          "crowd": null,
+          "score": 0.351
+        }
+      ]
+    }
+  }
+}

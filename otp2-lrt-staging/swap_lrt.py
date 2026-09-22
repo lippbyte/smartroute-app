@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
-"""Task 4.6 (LRT): pindahkan graph staging ke produksi, uji regresi, dan
-KEMBALIKAN sendiri kalau regresinya gagal — pola sama dengan swap_mrt.py.
+"""Pindahkan graph staging ke produksi, uji regresi, dan KEMBALIKAN sendiri
+kalau regresinya gagal. Dibuat untuk LRT (Task 4.6), dipakai ulang untuk
+jadwal MRT resmi — pola sama dengan swap_mrt.py.
 
-    swap_lrt.py --periksa <baseline.json> <hasil.json>   # cuma bandingkan
-    swap_lrt.py <baseline.json>                          # swap sungguhan
+    swap_lrt.py --periksa <baseline.json> <hasil.json> [--izinkan MODE]
+    swap_lrt.py <baseline.json> [--label pre-xxx] [--izinkan MODE]
+
+--label   akhiran nama backup (default pre-lrt). Beri label baru tiap swap
+          supaya backup swap sebelumnya tidak tertimpa.
+--izinkan mode OTP2 (mis. SUBWAY) yang feed-nya sengaja diubah: rute yang
+          memakai mode itu boleh berubah isi (dicetak sebagai CATATAN), rute
+          lain tetap harus identik.
 
 baseline.json = hasil scripts/regression-routes.mjs terhadap graph produksi
 SEBELUM swap (jam dikunci). Urutan swap: backup, salin, restart, uji.
@@ -22,8 +29,21 @@ PROD = HERE.parent / "otp2-setup" / "data"
 BACKEND = HERE.parent / "backend-skeleton"
 CONTAINER = "otp2-transjakarta"
 OTP_URL = "http://localhost:8080/otp/gtfs/v1"
-BERKAS = [("graph.obj", "graph.obj.backup-pre-lrt"),
-          ("build-config.json", "build-config.json.backup-pre-lrt")]
+
+
+def opsi(nama, default=None):
+    if nama in sys.argv:
+        i = sys.argv.index(nama)
+        nilai = sys.argv[i + 1]
+        del sys.argv[i:i + 2]
+        return nilai
+    return default
+
+
+LABEL = opsi("--label", "pre-lrt")
+IZINKAN = opsi("--izinkan")
+BERKAS = [("graph.obj", f"graph.obj.backup-{LABEL}"),
+          ("build-config.json", f"build-config.json.backup-{LABEL}")]
 
 
 def jalan(*cmd, cek=True, cwd=None):
@@ -71,8 +91,14 @@ def periksa(baseline: dict, hasil: dict) -> list[str]:
         if not base.get("routes"):
             continue  # skenario LRT: sebelum LRT masuk graph bisa saja tanpa rute
         top_b, top_h = base["routes"][0], new["routes"][0]
+
+        def pakai(r):
+            return bool(IZINKAN) and any(l.startswith(f"{IZINKAN}:") for l in r["legs"])
+
         if top_b["route_id"] != top_h["route_id"]:
-            if any(l.startswith("TRAM:") for l in top_h["legs"]):
+            if pakai(top_b) or pakai(top_h):
+                print(f"  CATATAN {sid}: #1 berubah {top_b['route_id']} -> {top_h['route_id']} (melibatkan {IZINKAN})")
+            elif any(l.startswith("TRAM:") for l in top_h["legs"]):
                 print(f"  CATATAN {sid}: #1 berubah {top_b['route_id']} -> {top_h['route_id']} (rute baru memakai LRT)")
             else:
                 gagal.append(f"{sid}: #1 bergeser {top_b['route_id']} -> {top_h['route_id']} tanpa melibatkan LRT")
@@ -81,6 +107,11 @@ def periksa(baseline: dict, hasil: dict) -> list[str]:
         for r in new["routes"]:
             if r["route_id"] in lama and {**r, "legs": [l.split("[")[0] for l in r["legs"]]} != \
                     {**lama[r["route_id"]], "legs": [l.split("[")[0] for l in lama[r["route_id"]]["legs"]]}:
+                if pakai(r):
+                    print(f"  CATATAN {sid}: rute {r['route_id']} berubah (memakai {IZINKAN}): "
+                          f"{lama[r['route_id']]['minutes']} mnt Rp{lama[r['route_id']]['cost_idr']} -> "
+                          f"{r['minutes']} mnt Rp{r['cost_idr']}")
+                    continue
                 gagal.append(f"{sid}: rute {r['route_id']} berubah isi ({lama[r['route_id']]} -> {r})")
     # Skenario LRT baru (tidak ada di baseline pra-LRT): minimal satu
     # kandidat harus benar-benar memakai leg LRT.
@@ -132,7 +163,8 @@ def main() -> int:
         print(f"  {nama} -> {backup}")
 
     print("\n2. Salin graph baru ke produksi")
-    for nama in ("graph.obj", "build-config.json", "lrt_gtfs.zip"):
+    feeds = [f["source"] for f in json.loads((STAGING / "build-config.json").read_text())["transitFeeds"]]
+    for nama in ["graph.obj", "build-config.json", *feeds]:
         shutil.copy2(STAGING / nama, PROD / nama)
         print(f"  {nama}")
 
@@ -159,7 +191,7 @@ def main() -> int:
         rollback()
         return 1
 
-    print("\nSWAP SUKSES — graph dengan LRT sekarang melayani produksi")
+    print(f"\nSWAP SUKSES — graph staging sekarang melayani produksi (backup: *.backup-{LABEL})")
     print("Rollback manual kalau nanti bermasalah:")
     for nama, backup in BERKAS:
         print(f"  cp {PROD / backup} {PROD / nama}")
