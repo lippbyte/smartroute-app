@@ -4,17 +4,30 @@
 Koordinat berasal dari `data/mrt_station_coords.json` (hasil
 geocode_mrt_stations.py, sumber OSM Overpass per stasiun).
 
-=============================================================================
-NILAI YANG BELUM TERVERIFIKASI — lihat blok KONFIGURASI di bawah
-=============================================================================
-jakartamrt.co.id tidak bisa dibaca secara terprogram: seluruh halaman yang
-dicoba (/id/jadwal-kereta, /id/tarif) mengembalikan kerangka JavaScript tanpa
-isi. Jadi TIDAK ADA satu pun angka operasional di file ini yang berasal dari
-situs resmi. Semuanya ditandai `TODO: verifikasi` beserta sumber sementaranya.
+JADWAL — dari sumber resmi (21 Sep 2026):
+jakartamrt.co.id adalah aplikasi React; datanya diambil dari API CMS yang
+dipanggil situs itu sendiri (lihat data/mrt_source/FETCHED_AT.txt). Tiap
+stasiun memuat daftar jam keberangkatan PER ARAH ("End" = menuju Bundaran HI,
+"Start" = menuju Lebak Bulus — terbukti dari stasiun ujung: Lebak Bulus hanya
+punya daftar "End", Bundaran HI hanya "Start") dan PER JENIS HARI (weekdays /
+weekends = "Jadwal Hari Biasa" / "Jadwal Hari Libur" di situs), presisi
+detik. Trip dirangkai dari jam-jam itu (lihat build_official_trips); tidak
+ada headway atau waktu tempuh yang dikarang.
 
-Jangan menyajikan angka-angka ini sebagai data resmi MRT Jakarta sebelum
-dicek ke sumber primer.
-=============================================================================
+TODO: verifikasi (turunan, bukan dari tabel resmi):
+  - Jam TIBA di stasiun ujung tidak ada di daftar mana pun (daftarnya hanya
+    keberangkatan): diisi dari median waktu tempuh ruas yang sama di arah
+    sebaliknya. Kereta yang berhenti di tengah jalur (tidak muncul lagi di
+    stasiun berikutnya) diberi jam tiba dari median ruas searah.
+  - "Hari Libur" dipetakan ke Sabtu+Minggu; tanggal libur nasional belum ada
+    di calendar_dates.txt.
+
+TARIF — dari sumber resmi (22 Sep 2026): tabel data/mrt_source/tarif_resmi.json,
+diambil fetch_mrt_official_fares.py dari endpoint halaman "Rencana Perjalanan"
+jakartamrt.co.id. 154/156 pasangan resmi; simetris; tidak bergantung jam.
+TODO: verifikasi — Blok A <-> Senayan tidak punya data di situs resmi, jadi
+masih dari rumus di bawah (yang terbukti meleset Rp1.000 di 74 dari 154
+pasangan resmi — perlakukan angkanya sebagai perkiraan).
 """
 import csv
 import json
@@ -35,36 +48,28 @@ FEED_ID = "MRT"
 AGENCY_ID = "MRTJ"
 ROUTE_ID = "MRT-NS"
 
+# Snapshot respons API jadwal resmi (lihat docstring).
+OFFICIAL_STATIONS = DATA / "mrt_source" / "stasiun.json"
+# Tabel tarif resmi, hasil fetch_mrt_official_fares.py.
+OFFICIAL_FARES = DATA / "mrt_source" / "tarif_resmi.json"
+
+# Batas waktu tempuh satu ruas saat merangkai trip. Ruas terpanjang di data
+# resmi ~3,5 menit, jarak antar-kereta paling rapat ~4,5 menit — jadi "jam
+# berikutnya di stasiun selanjutnya, maksimal 6 menit" tidak ambigu. Kalau
+# data berubah dan rangkaian mulai meleset, build_official_trips berhenti
+# dengan error, bukan diam-diam menghasilkan trip keliru.
+MAX_SEGMENT_SECONDS = 6 * 60
+
 # ==========================================================================
-# KONFIGURASI — setiap angka di bawah ini belum diverifikasi ke sumber primer
+# RUMUS TARIF CADANGAN — hanya untuk pasangan tanpa data resmi
 # ==========================================================================
-
-# TODO: verifikasi — Wikipedia menyebut "under 30 minutes" untuk Lebak Bulus
-# <-> Bundaran HI, tanpa angka pasti. 30 menit dipakai sebagai batas atas yang
-# disebut sumber itu, BUKAN angka resmi.
-END_TO_END_SECONDS = 30 * 60
-
-# TODO: verifikasi — waktu berhenti di peron tidak disebut sumber mana pun.
-# 20 detik adalah nilai lazim metro kota; murni asumsi teknis.
-DWELL_SECONDS = 20
-
-# TODO: verifikasi — jam operasional dari sumber sekunder (blog/agregator
-# berita), bukan jakartamrt.co.id: kereta pertama ~05:00, terakhir ~24:00.
-SERVICE_START = "05:00:00"
-SERVICE_END = "24:00:00"
-
-# TODO: verifikasi — headway 5 menit (sibuk) / 10 menit (biasa) dari infobox
-# Wikipedia. Rentang jam sibuk di bawah TIDAK disebut sumber mana pun dan
-# murni asumsi pola komuter Jakarta.
-HEADWAY_PEAK_SECONDS = 5 * 60
-HEADWAY_OFFPEAK_SECONDS = 10 * 60
-PEAK_WINDOWS = [("05:00:00", "09:00:00"), ("16:00:00", "20:00:00")]
-
-# TODO: verifikasi — akhir pekan disebut sumber sekunder "10-15 menit". Dipakai
-# batas bawahnya (10 menit) supaya tidak melebih-lebihkan frekuensi.
-HEADWAY_WEEKEND_SECONDS = 10 * 60
-
-# TODO: verifikasi — tarif dari Wikipedia (bersitasi, tapi bukan situs resmi):
+# Dibandingkan dengan tabel resmi (22 Sep 2026), rumus ini benar di 80 dan
+# meleset Rp1.000 di 74 dari 154 pasangan: tarif resmi berbasis JARAK (ruas
+# panjang seperti Lebak Bulus-Fatmawati lebih mahal, ruas pendek di pusat
+# kota lebih murah), bukan jumlah stasiun. Dipertahankan hanya sebagai
+# cadangan untuk Blok A <-> Senayan. Catatan asal rumusnya di bawah.
+#
+# Semula: tarif dari Wikipedia (bersitasi, tapi bukan situs resmi):
 # minimum Rp3.000, naik Rp1.000 tiap stasiun, maksimum Rp14.000 untuk
 # perjalanan penuh.
 #
@@ -103,6 +108,90 @@ def to_seconds(clock: str) -> int:
     return h * 3600 + m * 60 + s
 
 
+def load_official_lists(codes: list[str]) -> dict:
+    """{(service, arah): {kode_stasiun: [detik, ...]}} dari snapshot API resmi.
+    arah 0 = menuju Bundaran HI ("End"), 1 = menuju Lebak Bulus ("Start")."""
+    data = json.loads(OFFICIAL_STATIONS.read_text(encoding="utf-8"))["data"]
+    rows = sorted(data, key=lambda d: d["index"])
+    if len(rows) != len(codes):
+        raise SystemExit(f"ERROR: API resmi punya {len(rows)} stasiun, feed {len(codes)} — cek ulang")
+    lists = {}
+    for code, row in zip(codes, rows):
+        sched = row["object"]["schedule"]
+        for service, prefix in (("WEEKDAY", "weekdays"), ("WEEKEND", "weekends")):
+            for direction, suffix in ((0, "End"), (1, "Start")):
+                raw = sched.get(prefix + suffix) or ""
+                times = sorted(to_seconds(t.strip()) for t in raw.split(";") if t.strip())
+                lists.setdefault((service, direction), {})[code] = times
+    return lists
+
+
+def chain_official_trips(order: list[str], lists: dict) -> tuple[list, dict, dict]:
+    """Rangkai trip dari daftar keberangkatan per stasiun (satu arah).
+
+    Tiap jam di stasiun k disambung ke jam paling awal di stasiun k+1 yang
+    lebih besar, maksimal MAX_SEGMENT_SECONDS — tidak ambigu karena ruas
+    lebih pendek dari jarak antar-kereta. Jam yang tidak tersambung dari
+    stasiun sebelumnya = kereta yang MULAI di stasiun itu (mis. Blok M
+    05:00:00). Kereta yang tidak muncul di stasiun berikutnya = berhenti di
+    sana; jam tibanya diturunkan (lihat TODO di docstring).
+    """
+    pools = {c: list(lists.get(c, [])) for c in order}
+    finished, active = [], []
+    stats = {"tersambung": 0, "mulai_di_tengah": 0, "tiba_diturunkan": 0}
+    seg_runs: dict[tuple[str, str], list[int]] = {}
+
+    for k, code in enumerate(order):
+        if k > 0:
+            prev = order[k - 1]
+            still = []
+            for trip in sorted(active, key=lambda t: t[-1][1]):
+                t = trip[-1][1]
+                nxt = next((x for x in pools[code] if x > t), None)
+                if nxt is not None and nxt - t <= MAX_SEGMENT_SECONDS:
+                    pools[code].remove(nxt)
+                    trip.append((code, nxt))
+                    seg_runs.setdefault((prev, code), []).append(nxt - t)
+                    stats["tersambung"] += 1
+                    still.append(trip)
+                else:
+                    finished.append(trip)
+            active = still
+        # Jam yang tersisa di stasiun ini = kereta yang mulai dari sini.
+        for t in pools[code]:
+            active.append([(code, t)])
+            if k > 0:
+                stats["mulai_di_tengah"] += 1
+        pools[code] = []
+    finished.extend(active)
+    median = {seg: sorted(v)[len(v) // 2] for seg, v in seg_runs.items()}
+    return finished, median, stats
+
+
+def finish_official_trips(order: list[str], finished: list, median: dict,
+                          reverse_median: dict, stats: dict) -> tuple[list, dict]:
+    """Tambahkan jam tiba untuk kereta yang berhenti sebelum stasiun
+    berikutnya (termasuk stasiun ujung, yang tidak punya daftar keberangkatan
+    di arah ini)."""
+    trips = []
+    for trip in finished:
+        last_code = trip[-1][0]
+        k = order.index(last_code)
+        if k < len(order) - 1:
+            nxt = order[k + 1]
+            # Ruas searah teramati kalau stasiun berikutnya punya daftar di
+            # arah ini; kalau tidak (stasiun ujung), pakai arah sebaliknya.
+            run = median.get((last_code, nxt)) or reverse_median.get((nxt, last_code))
+            if run is None:
+                raise SystemExit(f"ERROR: tidak ada waktu tempuh untuk {last_code}->{nxt}")
+            trip.append((nxt, trip[-1][1] + run))
+            stats["tiba_diturunkan"] += 1
+        if len(trip) >= 2:
+            trips.append(trip)
+    stats["trip"] = len(trips)
+    return trips, {**stats, "median_ruas": median}
+
+
 def main() -> None:
     raw = json.loads(COORDS.read_text(encoding="utf-8"))
     if raw["unresolved"]:
@@ -113,17 +202,8 @@ def main() -> None:
     info = {c: v for c, v in stations}
     n = len(stations)
 
-    # Waktu antar stasiun dibagi PROPORSIONAL terhadap jarak asli antar
-    # koordinat, bukan dibagi rata — segmen Lebak Bulus->Fatmawati jauh lebih
-    # panjang daripada Istora->Bendungan Hilir, dan membagi rata akan membuat
-    # ETA tiap stasiun meleset meski totalnya kebetulan benar.
     seg_m = [haversine_m(info[codes[i]], info[codes[i + 1]]) for i in range(n - 1)]
-    total_m = sum(seg_m)
-    running = END_TO_END_SECONDS - DWELL_SECONDS * (n - 2)
-    seg_s = [max(30, round(running * d / total_m)) for d in seg_m]
-
-    print(f"Total jarak jalur: {total_m/1000:.1f} km")
-    print(f"Waktu jalan {running}s + berhenti {DWELL_SECONDS}s x {n-2} = {END_TO_END_SECONDS}s")
+    print(f"Total jarak jalur: {sum(seg_m)/1000:.1f} km")
 
     files: dict[str, tuple[list[str], list[list]]] = {}
 
@@ -154,48 +234,39 @@ def main() -> None:
         ],
     )
 
-    trips, stop_times, freqs = [], [], []
+    # Jadwal resmi: rangkai dulu kedua arah (jam tiba di ujung satu arah butuh
+    # waktu tempuh arah sebaliknya), baru lengkapi.
+    lists = load_official_lists(codes)
+    trips, stop_times = [], []
     for service in ("WEEKDAY", "WEEKEND"):
+        chained = {}
         for direction in (0, 1):
-            trip_id = f"{FEED_ID}-{service}-{direction}"
             order = codes if direction == 0 else list(reversed(codes))
-            headsign = info[order[-1]]["name"]
-            trips.append([ROUTE_ID, service, trip_id, headsign, str(direction)])
-
-            t = to_seconds(SERVICE_START)
-            legs = seg_s if direction == 0 else list(reversed(seg_s))
-            for i, code in enumerate(order):
-                arrival = t
-                departure = t if i in (0, len(order) - 1) else t + DWELL_SECONDS
-                stop_times.append(
-                    [trip_id, hhmmss(arrival), hhmmss(departure),
-                     f"{FEED_ID}-{code}", str(i + 1)]
-                )
-                if i < len(legs):
-                    t = departure + legs[i]
-
-            if service == "WEEKDAY":
-                # Jendela sibuk dan sisanya, tanpa tumpang tindih.
-                cursor = to_seconds(SERVICE_START)
-                for start, end in PEAK_WINDOWS:
-                    if cursor < to_seconds(start):
-                        freqs.append([trip_id, hhmmss(cursor), start,
-                                      str(HEADWAY_OFFPEAK_SECONDS), "0"])
-                    freqs.append([trip_id, start, end, str(HEADWAY_PEAK_SECONDS), "0"])
-                    cursor = to_seconds(end)
-                if cursor < to_seconds(SERVICE_END):
-                    freqs.append([trip_id, hhmmss(cursor), SERVICE_END,
-                                  str(HEADWAY_OFFPEAK_SECONDS), "0"])
-            else:
-                freqs.append([trip_id, SERVICE_START, SERVICE_END,
-                              str(HEADWAY_WEEKEND_SECONDS), "0"])
+            chained[direction] = (order, *chain_official_trips(order, lists[(service, direction)]))
+        for direction in (0, 1):
+            order, finished, median, stats = chained[direction]
+            reverse_median = chained[1 - direction][2]
+            official, stats = finish_official_trips(order, finished, median, reverse_median, stats)
+            total_listed = sum(len(v) for v in lists[(service, direction)].values())
+            used = sum(len(t) for t in official) - stats["tiba_diturunkan"]
+            if used != total_listed:
+                raise SystemExit(f"ERROR {service} arah {direction}: {total_listed} jam resmi, "
+                                 f"{used} terpakai — rangkaian meleset")
+            print(f"  {service} arah {'Bundaran HI' if direction == 0 else 'Lebak Bulus'}: "
+                  f"{stats['trip']} trip, {used}/{total_listed} jam resmi terpakai, "
+                  f"{stats['mulai_di_tengah']} mulai di tengah, "
+                  f"{stats['tiba_diturunkan']} jam tiba diturunkan")
+            for k, trip in enumerate(sorted(official, key=lambda t: t[0][1])):
+                trip_id = f"{FEED_ID}-{service}-{direction}-{k:03d}"
+                headsign = info[trip[-1][0]]["name"]
+                trips.append([ROUTE_ID, service, trip_id, headsign, str(direction)])
+                for seq, (code, t) in enumerate(trip, start=1):
+                    stop_times.append([trip_id, hhmmss(t), hhmmss(t), f"{FEED_ID}-{code}", str(seq)])
 
     files["trips"] = (
         ["route_id", "service_id", "trip_id", "trip_headsign", "direction_id"], trips)
     files["stop_times"] = (
         ["trip_id", "arrival_time", "departure_time", "stop_id", "stop_sequence"], stop_times)
-    files["frequencies"] = (
-        ["trip_id", "start_time", "end_time", "headway_secs", "exact_times"], freqs)
 
     # Tarif berbasis jarak: satu fare_attributes per tingkat harga, lalu satu
     # fare_rules per pasangan asal-tujuan (pola yang sama dengan feed KRL).
@@ -214,13 +285,23 @@ def main() -> None:
             raise SystemExit(f"ERROR: override '{key}' memakai kode stasiun tak dikenal")
         overrides[(a, b)] = int(value)
 
+    # Tabel tarif RESMI (fetch_mrt_official_fares.py, API halaman Rencana
+    # Perjalanan jakartamrt.co.id) menang atas rumus. Urutan: override manual,
+    # tabel resmi arah yang sama, tabel resmi arah balik, baru rumus.
+    official = {}
+    if OFFICIAL_FARES.exists():
+        for key, value in json.loads(OFFICIAL_FARES.read_text(encoding="utf-8"))["tarif"].items():
+            a, _, b = key.partition("-")
+            official[(a, b)] = int(value)
+    from_formula: set[str] = set()
+
     def fare_for(a: str, b: str, i: int, j: int) -> int:
-        # Arah eksplisit menang; kalau tidak ada, arah baliknya dipakai
-        # (tarif MRT simetris), baru terakhir jatuh ke rumus.
-        if (a, b) in overrides:
-            return overrides[(a, b)]
-        if (b, a) in overrides:
-            return overrides[(b, a)]
+        for table in (overrides, official):
+            if (a, b) in table:
+                return table[(a, b)]
+            if (b, a) in table:
+                return table[(b, a)]
+        from_formula.add(f"{a}-{b}")
         return min(FARE_BASE_IDR + FARE_PER_STATION_IDR * (abs(i - j) - 1), FARE_CAP_IDR)
 
     prices = sorted({
@@ -268,7 +349,13 @@ def main() -> None:
                 "_sumber": "Di-generate oleh otp2-krl-experiment/scripts/build_mrt_gtfs.py "
                            "dari fare_rules mrt_gtfs.zip. Jangan diedit manual — ubah "
                            "rumus atau mrt_fare_overrides.json lalu jalankan ulang script itu.",
-                "_status": "TODO: verifikasi — lihat blok KONFIGURASI di build_mrt_gtfs.py",
+                "_status": (
+                    f"Terverifikasi: {len(rules) - len(from_formula)}/{len(rules)} pasangan dari "
+                    "tabel resmi jakartamrt.co.id (data/mrt_source/tarif_resmi.json). "
+                    + (f"TODO: verifikasi — {len(from_formula)} pasangan masih dari rumus "
+                       f"(tidak ada data resmi): {', '.join(sorted(from_formula))}"
+                       if from_formula else "Tidak ada pasangan dari rumus.")
+                ),
                 "fares": backend_fares,
             },
             indent=2,
@@ -277,6 +364,8 @@ def main() -> None:
         encoding="utf-8",
     )
     print(f"Tabel tarif backend: {BACKEND_FARES} ({len(backend_fares)} pasangan)")
+    print(f"Sumber tarif: {len(rules) - len(from_formula)} pasangan resmi, "
+          f"{len(from_formula)} dari rumus{': ' + ', '.join(sorted(from_formula)) if from_formula else ''}")
 
     if overrides:
         meleset = []
@@ -295,7 +384,7 @@ def main() -> None:
                 "  terus menambal pasangan satu per satu."
             )
     else:
-        print("Override tarif: belum ada (semua dari rumus, masih TODO: verifikasi)")
+        print("Override tarif manual: tidak ada (tarif dari tabel resmi, sisanya rumus — lihat di atas)")
 
 
 if __name__ == "__main__":
