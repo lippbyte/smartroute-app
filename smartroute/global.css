@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Kolom input di web ikut font app (lihat components/Text.tsx). */
+input, textarea {
+  font-family: "Plus-Jakarta-Sans", sans-serif;
+}
