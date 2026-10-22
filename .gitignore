@@ -1,0 +1,46 @@
+# Aturan di sini berlaku untuk seluruh monorepo. Tiap subproyek tetap punya
+# .gitignore sendiri untuk artefak spesifiknya (graph OTP2 & osm.pbf di
+# backend/, .expo/ di smartroute/, dst).
+
+# Rahasia: kunci OpenRouter, password DB, JWT secret. Salin dari .env.example.
+.env
+.env.*
+!.env.example
+
+# Dependensi & keluaran sementara
+node_modules/
+__pycache__/
+*.pyc
+*.log
+
+# Konfigurasi lokal Claude Code (yang sudah dilacak subproyek tetap dilacak)
+/.claude/
+/testing-1/.claude/
+**/.claude/settings.local.json
+**/.claude/scheduled_tasks.lock
+
+# Arsip backup di root dan proyek lain yang tidak terkait SmartRoute
+/*.zip
+/tictactoe/
+/workshop/
+
+# docs/: hanya gambar yang dipublikasikan. PDF referensi adalah karya pihak
+# ketiga (jurnal, BPS, Dishub) — cantumkan tautannya, jangan unggah ulang.
+/docs/*.pdf
+/docs/*.docx
+
+# testing-1/: hanya kode, konfigurasi, dan laporan. Video, dataset
+# ShanghaiTech, bobot YOLO (diunduh otomatis oleh ultralytics), dan venv
+# berukuran GB.
+/testing-1/.venv/
+/testing-1/xample-video/
+/testing-1/**/venv/
+/testing-1/**/runs/
+/testing-1/**/sample_videos/
+/testing-1/**/ShanghaiTech/
+/testing-1/**/results/demo_videos/
+/testing-1/**/*.zip
+/testing-1/**/*.pt
+/testing-1/**/*.mp4
+/testing-1/**/*.avi
+/testing-1/**/*.mov
