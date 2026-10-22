@@ -36,6 +36,28 @@ const RouteLegSchema = z.object({
   route_category: z.string().optional(),
   from: z.string(),
   to: z.string(),
+  // Wajib dideklarasikan: z.object membuang kunci yang tidak dikenal, jadi
+  // tanpa baris-baris ini data navigasi hilang diam-diam sebelum respons
+  // dikirim.
+  from_coord: z.object({ lat: z.number(), lng: z.number() }).optional(),
+  to_coord: z.object({ lat: z.number(), lng: z.number() }).optional(),
+  headsign: z.string().optional(),
+  path: z.array(z.tuple([z.number(), z.number()])).optional(),
+  stops_passed: z.array(z.object({ name: z.string(), lat: z.number(), lng: z.number() })).optional(),
+  walk_steps: z
+    .array(
+      z.object({
+        distance_m: z.number(),
+        direction: z.string(),
+        street: z.string(),
+        lat: z.number(),
+        lng: z.number(),
+      }),
+    )
+    .optional(),
+  depart_at: z.string().optional(),
+  arrive_at: z.string().optional(),
+  distance_m: z.number().optional(),
 });
 
 const RouteCandidateSchema = z.object({
@@ -97,7 +119,20 @@ export const AssistantAskRequestSchema = z.object({
     .object({
       origin: CoordinateSchema.optional(),
       destination: CoordinateSchema.optional(),
+      // Posisi GPS user saat bertanya — dasar jawaban "halte terdekat".
+      user_location: CoordinateSchema.optional(),
     })
+    .optional(),
+  // Beberapa giliran terakhir supaya pertanyaan lanjutan ("yang kedua
+  // gimana ke sana?") bisa dipahami. Dibatasi supaya prompt tidak membengkak.
+  history: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string().min(1).max(4000),
+      })
+    )
+    .max(10)
     .optional(),
 });
 

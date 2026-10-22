@@ -48,11 +48,14 @@ const MAX_RESULTS = 30;
 /**
  * @param lat/lng - titik user
  * @param radiusM - radius pencarian dalam meter (default DEFAULT_RADIUS_M)
+ * @param maxResults - batas jumlah hasil (default MAX_RESULTS); Asisten AI
+ *   butuh lebih banyak supaya MRT/LRT tidak tergusur titik JakLingko yang padat
  */
 export async function findNearbyStops(
   lat: number,
   lng: number,
-  radiusM: number = DEFAULT_RADIUS_M
+  radiusM: number = DEFAULT_RADIUS_M,
+  maxResults: number = MAX_RESULTS
 ): Promise<NearbyStop[]> {
   const origin = { lat, lng };
   const results: NearbyStop[] = [];
@@ -110,5 +113,5 @@ export async function findNearbyStops(
   }
 
   results.sort((a, b) => a.distance_m - b.distance_m);
-  return results.slice(0, MAX_RESULTS);
+  return results.slice(0, maxResults);
 }

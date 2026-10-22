@@ -13,14 +13,19 @@ router.post("/assistant/ask", async (req, res) => {
       error: "invalid_request",
       message:
         "Body harus berisi question (string, tidak kosong). context opsional: " +
-        "{ origin?: {lat,lng}, destination?: {lat,lng} }.",
+        "{ origin?: {lat,lng}, destination?: {lat,lng}, user_location?: {lat,lng} }. " +
+        "history opsional: maks 10 item { role: 'user'|'assistant', content }.",
       details: parsedBody.error.flatten(),
     });
   }
 
   try {
-    const answer = await askAssistant(parsedBody.data.question, parsedBody.data.context);
-    return res.status(200).json({ answer });
+    const result = await askAssistant(
+      parsedBody.data.question,
+      parsedBody.data.context,
+      parsedBody.data.history
+    );
+    return res.status(200).json(result);
   } catch (err) {
     // Per the task brief: on any OpenRouter failure (missing config,
     // timeout, connection error, bad/empty response) — a clear 502 telling

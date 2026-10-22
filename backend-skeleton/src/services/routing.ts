@@ -59,6 +59,7 @@ import type {
 import {
   planTrip,
   type OtpItinerary,
+  type OtpLeg,
   type OtpRoutingError,
 } from "../lib/otpClient";
 import { NoStopNearbyError } from "../lib/errors";
@@ -66,6 +67,7 @@ import { getAggregatedCrowdLevel, worstCrowdLevel } from "./crowdDensity";
 import { getKrlFare, stationCodeFromGtfsId } from "./krlFares";
 import { getMrtFare } from "./mrtFares";
 import { getLrtFare } from "./lrtFares";
+import { decodePolyline } from "../lib/polyline";
 import { tjRouteCategory, tjRouteFareIdr } from "./tjRouteCategory";
 import { computeReliabilityForItinerary } from "./reliability";
 import { computeRecommendationScore } from "./recommendationScore";
@@ -99,7 +101,8 @@ const UNCERTAINTY_BUFFER_RATIO = 0.15;
 // perjalanan. Lihat computeFareIdr.
 const FARE_PER_ITINERARY_IDR = 3500;
 
-const MAX_CANDIDATES = 3;
+// 4 opsi di layar hasil (diminta user 22 Sep 2026; sebelumnya 3).
+const MAX_CANDIDATES = 4;
 
 interface Coordinate {
   lat: number;
@@ -309,6 +312,23 @@ function gatedJourneys(
   return journeys;
 }
 
+// Feed KRL/MRT/LRT kita tidak punya shapes.txt, jadi OTP2 memberi garis
+// lurus 2 titik dari stasiun naik ke stasiun turun. Garis itu dilewatkan
+// stasiun-stasiun antara supaya di peta mengikuti urutan jalur sebenarnya
+// (bukan memotong kota secara diagonal). Bus TransJakarta sudah punya shape.
+function legPath(l: OtpLeg): Array<[number, number]> | undefined {
+  const decoded = l.legGeometry?.points ? decodePolyline(l.legGeometry.points) : undefined;
+  const stops = l.intermediateStops ?? [];
+  if (l.mode !== "WALK" && stops.length > 0 && (!decoded || decoded.length <= 2)) {
+    return [
+      [l.from.lat, l.from.lon],
+      ...stops.map((s): [number, number] => [s.lat, s.lon]),
+      [l.to.lat, l.to.lon],
+    ];
+  }
+  return decoded;
+}
+
 function buildRouteCandidate(
   it: OtpItinerary,
   index: number,
@@ -322,6 +342,29 @@ function buildRouteCandidate(
     route_category: l.mode === "BUS" ? tjRouteCategory(l.route?.gtfsId) : undefined,
     from: l.from.name,
     to: l.to.name,
+    from_coord: { lat: l.from.lat, lng: l.from.lon },
+    to_coord: { lat: l.to.lat, lng: l.to.lon },
+    headsign: l.headsign ?? undefined,
+    path: legPath(l),
+    stops_passed:
+      l.mode === "WALK"
+        ? undefined
+        : (l.intermediateStops ?? []).map((s) => ({ name: s.name, lat: s.lat, lng: s.lon })),
+    walk_steps:
+      l.mode === "WALK"
+        ? (l.steps ?? []).map((s) => ({
+            distance_m: Math.round(s.distance),
+            direction: s.relativeDirection ?? "CONTINUE",
+            street: s.streetName ?? "",
+            // Titik awal belokan — dipakai layar navigasi untuk tahu belokan
+            // mana yang berikutnya dari posisi GPS.
+            lat: s.lat,
+            lng: s.lon,
+          }))
+        : undefined,
+    depart_at: l.start?.scheduledTime,
+    arrive_at: l.end?.scheduledTime,
+    distance_m: l.distance != null ? Math.round(l.distance) : undefined,
   }));
 
   const crowdLevel = worstCrowdLevel(collectStopIds(it).map((id) => getAggregatedCrowdLevel(id)));

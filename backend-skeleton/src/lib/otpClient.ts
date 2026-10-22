@@ -71,6 +71,8 @@ async function postGraphQL<T>(
 
 export interface OtpPlace {
   name: string;
+  lat: number;
+  lon: number;
   // Present only when this leg endpoint is an actual GTFS stop (boarding,
   // alighting, or transfer point) — null for a plain walk endpoint like the
   // raw origin/destination coordinate. Used by Task Backend-04 to match leg
@@ -91,10 +93,23 @@ export interface OtpLeg {
   // Halte yang DILEWATI kendaraan di antara titik naik dan turun (null untuk
   // leg jalan kaki). Dipakai untuk mencocokkan laporan kepadatan terhadap
   // seluruh halte yang dilalui rute, bukan cuma titik naik/turunnya.
-  intermediateStops: Array<{ gtfsId: string }> | null;
+  intermediateStops: Array<{ gtfsId: string; name: string; lat: number; lon: number }> | null;
   // Jam naik terjadwal (ISO, sudah WIB). Dipakai tarif LRT Jabodebek, yang
   // berbeda antara jam sibuk hari kerja dan di luarnya.
   start: { scheduledTime: string } | null;
+  end: { scheduledTime: string } | null;
+  // Untuk navigasi: arah kendaraan ("Lebak Bulus"), bentuk jalur (polyline
+  // terenkode Google, presisi 5), dan belokan untuk leg jalan kaki.
+  headsign: string | null;
+  legGeometry: { points: string } | null;
+  steps: Array<{
+    distance: number;
+    relativeDirection: string | null;
+    absoluteDirection: string | null;
+    streetName: string | null;
+    lat: number;
+    lon: number;
+  }> | null;
 }
 
 export interface OtpItinerary {
@@ -156,11 +171,15 @@ function planQuery(withModes: boolean): string {
             mode
             duration
             distance
-            from { name stop { gtfsId } }
-            to { name stop { gtfsId } }
+            from { name lat lon stop { gtfsId } }
+            to { name lat lon stop { gtfsId } }
             route { shortName longName gtfsId }
-            intermediateStops { gtfsId }
+            headsign
+            legGeometry { points }
+            intermediateStops { gtfsId name lat lon }
+            steps { distance relativeDirection absoluteDirection streetName lat lon }
             start { scheduledTime }
+            end { scheduledTime }
           }
         }
       }
@@ -316,6 +335,48 @@ const SEARCH_STOPS_QUERY = `
 // query is the same `stops(name: ...)` OTP2 exposes; verified case-
 // insensitive substring match (e.g. "kalider" -> "Kalideres").
 const MAX_SEARCH_RESULTS = 8;
+
+const SEARCH_STOPS_WITH_ROUTES_QUERY = `
+  query SearchStopsWithRoutes($name: String!) {
+    stops(name: $name) {
+      gtfsId
+      name
+      lat
+      lon
+      vehicleMode
+      routes { gtfsId shortName }
+    }
+  }
+`;
+
+export interface OtpStopWithRoutes extends OtpStop {
+  vehicleMode: string | null;
+  routes: Array<{ gtfsId: string; shortName: string | null }>;
+}
+
+// Pencarian tempat (autocomplete asal/tujuan): sama dengan searchOtpStops,
+// tapi tanpa batas 8 dan dengan moda + rute yang melayani tiap stop, supaya
+// peron-peron satu halte bisa digabung dan diberi label koridornya.
+export async function searchOtpStopsWithRoutes(query: string): Promise<OtpStopWithRoutes[]> {
+  const data = await postGraphQL<{
+    stops: Array<{
+      gtfsId: string;
+      name: string;
+      lat: number;
+      lon: number;
+      vehicleMode: string | null;
+      routes: Array<{ gtfsId: string; shortName: string | null }> | null;
+    }>;
+  }>(SEARCH_STOPS_WITH_ROUTES_QUERY, { name: query });
+  return data.stops.map((s) => ({
+    gtfsId: s.gtfsId,
+    name: s.name,
+    lat: s.lat,
+    lng: s.lon,
+    vehicleMode: s.vehicleMode,
+    routes: s.routes ?? [],
+  }));
+}
 
 export async function searchOtpStops(query: string): Promise<OtpStop[]> {
   const data = await postGraphQL<StopsResponse>(SEARCH_STOPS_QUERY, { name: query });

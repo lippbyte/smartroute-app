@@ -25,6 +25,10 @@ export interface CrowdReport {
 // disesuaikan" — a report older than this no longer contributes at all.
 const AGGREGATION_WINDOW_MS = 15 * 60 * 1000;
 
+// Laporan semuda ini langsung menjadi status halte, tanpa dirata-rata dengan
+// laporan lain (lihat getAggregatedCrowdLevel).
+const FRESH_REPORT_WINS_MS = 2 * 60 * 1000;
+
 // Ordinal score so "worse" has a well-defined meaning for both the
 // recency-weighted average and the cross-stop worst-case pick.
 const LEVEL_SCORE: Record<CrowdLevel, number> = {
@@ -69,6 +73,18 @@ export function getAggregatedCrowdLevel(
 ): CrowdLevel | undefined {
   const reports = clusterMembersOf(stopId).flatMap((id) => reportsByStop.get(id) ?? []);
   if (reports.length === 0) return undefined;
+
+  // Laporan yang BARU SAJA masuk dipakai apa adanya (tidak dirata-rata).
+  // Dilaporkan user 23 Sep 2026: melapor "Lengang" di halte yang barusan
+  // dilaporkan "Padat" menghasilkan "Cukup Padat" — rata-rata dari dua
+  // laporan yang sama-sama segar — sehingga status terlihat tidak pernah
+  // berubah setelah melapor. Kondisi halte bisa berubah dalam hitungan
+  // menit, jadi laporan paling baru adalah bukti terbaik tentang keadaan
+  // SEKARANG; rata-rata berbobot di bawah tetap dipakai untuk laporan yang
+  // sudah lebih lama.
+  const newest = reports.reduce((a, b) => (b.reported_at > a.reported_at ? b : a));
+  const newestAgeMs = now.getTime() - newest.reported_at.getTime();
+  if (newestAgeMs >= 0 && newestAgeMs <= FRESH_REPORT_WINS_MS) return newest.level;
 
   let weightedSum = 0;
   let totalWeight = 0;

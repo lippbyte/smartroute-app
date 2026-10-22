@@ -21,20 +21,16 @@ const DEFAULT_MODEL = "anthropic/claude-haiku-4.5";
 const REQUEST_TIMEOUT_MS = 15_000;
 
 // Answers are meant to be short, direct wayfinding info, not an essay — caps
-// completion length (and cost) accordingly.
-//
-// Batas ini mencakup token REASONING, bukan cuma jawaban. Model aktif
-// (z-ai/glm-5.3-flash) adalah model reasoning: pada prompt asli, reasoning-nya
-// sendiri menghabiskan 400/400 token (finish_reason=length) dan jawabannya
-// kosong. Menaikkan batas ke 1500 memang menghasilkan jawaban, tapi butuh
-// ~29 detik — melewati REQUEST_TIMEOUT_MS di bawah. Memangkas konteks juga
-// tidak menolong: dengan prompt 311 token reasoning tetap memakan 394/400.
+// completion length (and cost) accordingly. Untuk model reasoning, batas ini
+// ikut mencakup token reasoning.
 const MAX_ANSWER_TOKENS = 600;
 
-// Batas keras untuk reasoning, supaya sisa MAX_ANSWER_TOKENS (minimal 450
-// token) selalu tersedia untuk jawaban — terlepas dari seberapa lama model
-// ingin "berpikir". Terukur ~2 detik dan biaya terendah dari opsi yang diuji.
-// Mematikan reasoning sepenuhnya ({ enabled: false }) ditolak oleh model ini.
+// Hanya untuk model reasoning non-Anthropic (mis. z-ai/glm-5.3-flash, yang
+// tanpa batas ini menghabiskan seluruh MAX_ANSWER_TOKENS untuk berpikir dan
+// jawabannya kosong, serta menolak reasoning dimatikan). TIDAK dikirim ke
+// Claude: di sana parameter ini menyalakan extended thinking (budget minimum
+// 1024 & wajib temperature 1) — lebih lambat dan tidak dibutuhkan untuk Q&A
+// singkat.
 const MAX_REASONING_TOKENS = 150;
 
 // Low temperature: this assistant must stay grounded in the GTFS context we
@@ -58,7 +54,7 @@ export class OpenRouterRequestError extends Error {
 }
 
 export interface ChatMessage {
-  role: "system" | "user";
+  role: "system" | "user" | "assistant";
   content: string;
 }
 
@@ -95,7 +91,9 @@ export async function askOpenRouter(messages: ChatMessage[]): Promise<string> {
         model,
         messages,
         max_tokens: MAX_ANSWER_TOKENS,
-        reasoning: { max_tokens: MAX_REASONING_TOKENS },
+        ...(model.startsWith("anthropic/")
+          ? {}
+          : { reasoning: { max_tokens: MAX_REASONING_TOKENS } }),
         temperature: TEMPERATURE,
       }),
       signal: controller.signal,

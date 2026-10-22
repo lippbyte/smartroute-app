@@ -23,6 +23,30 @@ export interface RouteLeg {
   route_category?: string;
   from: string;
   to: string;
+  // Data navigasi (ditambahkan untuk UX ala Google Maps). Sebelumnya layar
+  // navigasi mencari ulang NAMA halte ke Nominatim dan menggambar garis bus
+  // dengan router mobil umum — posisinya bisa melenceng dari halte asli.
+  // Semua ini dari OTP2 langsung, sama dengan yang dipakai merutekan.
+  from_coord?: { lat: number; lng: number };
+  to_coord?: { lat: number; lng: number };
+  // Arah kendaraan, mis. "Lebak Bulus" untuk MRT arah Lebak Bulus.
+  headsign?: string;
+  // Bentuk jalur leg, [lat, lng] berurutan. Bus mengikuti shapes GTFS.
+  path?: Array<[number, number]>;
+  // Halte/stasiun yang DILEWATI di antara titik naik dan turun (leg transit).
+  stops_passed?: Array<{ name: string; lat: number; lng: number }>;
+  // Belokan untuk leg jalan kaki: arah relatif OTP2 (LEFT, RIGHT, CONTINUE,
+  // DEPART, ...) + nama jalan.
+  walk_steps?: Array<{
+    distance_m: number;
+    direction: string;
+    street: string;
+    lat: number; // titik awal belokan
+    lng: number;
+  }>;
+  depart_at?: string; // ISO, WIB
+  arrive_at?: string; // ISO, WIB
+  distance_m?: number;
 }
 
 export interface RouteCandidate {
