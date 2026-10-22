@@ -1,0 +1,17 @@
+{
+  "osm": [
+    {
+      "source": "jabodetabek.osm.pbf"
+    }
+  ],
+  "transitFeeds": [
+    {
+      "type": "gtfs",
+      "source": "transjakarta_gtfs.zip"
+    }
+  ],
+  "transitServiceStart": "-P1Y",
+  "transitServiceEnd": "P3Y",
+  "areaVisibility": false,
+  "islandWithoutStopsMaxSize": 0
+}

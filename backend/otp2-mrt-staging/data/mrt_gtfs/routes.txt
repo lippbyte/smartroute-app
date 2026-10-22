@@ -1,0 +1,2 @@
+route_id,agency_id,route_short_name,route_long_name,route_type,route_color,route_text_color
+MRT-NS,MRTJ,M,Lebak Bulus - Bundaran HI,1,0066B3,FFFFFF

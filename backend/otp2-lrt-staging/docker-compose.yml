@@ -1,0 +1,16 @@
+services:
+  otp2-lrt-staging:
+    image: opentripplanner/opentripplanner:2.10.0_2026-09-01T15-06
+    container_name: otp2-lrt-staging
+    # Task 4 (LRT Jabodebek): instance STAGING, pola sama persis dengan
+    # otp2-mrt-staging — terpisah dari otp2-transjakarta (produksi, 8080) yang
+    # tetap melayani selama graph baru dibangun. Port 8093 (8091 eksperimen
+    # KRL, 8092 staging MRT), folder data/ sendiri berisi SALINAN feed.
+    # Tanpa restart policy: begitu graph lolos uji, graph.obj disalin ke
+    # produksi lewat swap_lrt.py lalu container ini dimatikan.
+    restart: "no"
+    ports:
+      - "8093:8080"
+    volumes:
+      - ./data:/var/opentripplanner
+    command: ["--load", "--serve"]

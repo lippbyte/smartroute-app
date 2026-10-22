@@ -1,0 +1,46 @@
+{
+  "Hari Biasa": {
+    "trip": 425,
+    "dibuang": 0,
+    "stats": {
+      "cocok tepat": 3047,
+      "cocok +-1": 1566,
+      "jam prediksi tak ada di tabel": 115,
+      "trip dibuang (kecocokan < 80%)": 5
+    },
+    "sisa_tak_terpakai": {
+      "setiabudi": 3,
+      "rasuna-said": 3,
+      "kuningan": 47,
+      "pancoran-bank-bjb": 8,
+      "cikoko": 4,
+      "ciliwung": 4,
+      "cawang": 19,
+      "taman-mini": 12,
+      "kampung-rambutan": 5,
+      "ciracas": 4,
+      "halim": 2,
+      "jati-bening-baru": 1,
+      "cikunir-1": 1,
+      "cikunir-2": 1,
+      "bekasi-barat": 1
+    },
+    "per_lin": {
+      "CIBUBUR": 212,
+      "BEKASI": 213
+    }
+  },
+  "Hari Libur": {
+    "trip": 270,
+    "dibuang": 0,
+    "stats": {
+      "cocok tepat": 2150,
+      "cocok +-1": 822
+    },
+    "sisa_tak_terpakai": {},
+    "per_lin": {
+      "CIBUBUR": 134,
+      "BEKASI": 136
+    }
+  }
+}

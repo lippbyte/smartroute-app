@@ -1,0 +1,13 @@
+data/graph.obj
+# data/transjakarta_gtfs.zip SENGAJA tidak diabaikan lagi: file ini dibaca
+# saat runtime oleh OTP2 (build graph) DAN backend (gtfsFeed.ts), sedangkan
+# scripts/download-gtfs.sh mengunduh dari URL tanpa versi (selalu feed
+# terbaru). Tanpa file ini di git, clone baru membangun graph dari feed yang
+# berbeda dengan yang dipakai produksi — tanpa ada yang sadar.
+data/jabodetabek.osm.pbf
+osm-src/
+
+# File .env berisi rahasia (kunci API dsb.) dan tidak boleh pernah masuk repo backend/.
+.env
+.env.*
+!.env.example

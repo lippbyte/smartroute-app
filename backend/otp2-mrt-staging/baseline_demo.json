@@ -1,0 +1,67 @@
+{
+  "S1 Blok M -> Kota": {
+    "latensi_s": 0.65,
+    "jumlah_kandidat": 3,
+    "teratas": "M+Cikarang+Bogor",
+    "eta_min": 69,
+    "tarif": 11000,
+    "moda": [
+      "WALK",
+      "SUBWAY",
+      "WALK",
+      "RAIL",
+      "WALK"
+    ],
+    "urutan": [
+      "M+Cikarang+Bogor",
+      "M+Cikarang+Tanjungpriuk",
+      "M+Bogor"
+    ],
+    "pakai_mrt": [
+      "M+Cikarang+Bogor",
+      "M+Cikarang+Tanjungpriuk",
+      "M+Bogor"
+    ]
+  },
+  "S2 Senen -> Grogol": {
+    "latensi_s": 1.41,
+    "jumlah_kandidat": 2,
+    "teratas": "2A",
+    "eta_min": 62,
+    "tarif": 3500,
+    "moda": [
+      "WALK",
+      "BUS",
+      "WALK"
+    ],
+    "urutan": [
+      "2A",
+      "2A+JAK.53"
+    ],
+    "pakai_mrt": []
+  },
+  "S3 Grogol -> Kp. Melayu": {
+    "latensi_s": 6.96,
+    "jumlah_kandidat": 3,
+    "teratas": "JAK.53+8+Bogor",
+    "eta_min": 90,
+    "tarif": 6500,
+    "moda": [
+      "WALK",
+      "BUS",
+      "WALK",
+      "BUS",
+      "WALK",
+      "RAIL",
+      "WALK"
+    ],
+    "urutan": [
+      "JAK.53+8+Bogor",
+      "8+Bogor",
+      "8+Bogor+11M"
+    ],
+    "pakai_mrt": []
+  },
+  "_flip": false,
+  "_jam_uji": "2026-09-22T08:00:00+07:00"
+}

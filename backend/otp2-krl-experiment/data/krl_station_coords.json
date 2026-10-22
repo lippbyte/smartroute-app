@@ -1,0 +1,595 @@
+{
+  "resolved": {
+    "AC": {
+      "name": "ANCOL",
+      "lat": -6.128115,
+      "lon": 106.8451374,
+      "source": "overpass:railway:ref=AC",
+      "osm_name": "Ancol"
+    },
+    "AK": {
+      "name": "ANGKE",
+      "lat": -6.1447372,
+      "lon": 106.8007792,
+      "source": "overpass:railway:ref=AK",
+      "osm_name": "Angke"
+    },
+    "BPR": {
+      "name": "BATU CEPER",
+      "lat": -6.1719851,
+      "lon": 106.6650601,
+      "source": "overpass:railway:ref=BPR",
+      "osm_name": "Stasiun Batu Ceper"
+    },
+    "BKS": {
+      "name": "BEKASI",
+      "lat": -6.2362143,
+      "lon": 106.9987436,
+      "source": "overpass:railway:ref=BKS",
+      "osm_name": "Bekasi"
+    },
+    "BKST": {
+      "name": "BEKASI TIMUR",
+      "lat": -6.2467953,
+      "lon": 107.0181046,
+      "source": "overpass:railway:ref=BKST",
+      "osm_name": "Bekasi Timur"
+    },
+    "BOO": {
+      "name": "BOGOR",
+      "lat": -6.5942887,
+      "lon": 106.7907695,
+      "source": "overpass:railway:ref=BOO",
+      "osm_name": "Bogor"
+    },
+    "BOI": {
+      "name": "BOJONG INDAH",
+      "lat": -6.1601817,
+      "lon": 106.7361677,
+      "source": "overpass:railway:ref=BOI",
+      "osm_name": "Stasiun Bojong Indah"
+    },
+    "BJD": {
+      "name": "BOJONGGEDE",
+      "lat": -6.4932345,
+      "lon": 106.795025,
+      "source": "overpass:name",
+      "osm_name": "Bojonggede"
+    },
+    "BUA": {
+      "name": "BUARAN",
+      "lat": -6.2156064,
+      "lon": 106.92316,
+      "source": "overpass:railway:ref=BUA",
+      "osm_name": "Buaran"
+    },
+    "CUK": {
+      "name": "CAKUNG",
+      "lat": -6.219081,
+      "lon": 106.9524791,
+      "source": "overpass:railway:ref=CUK",
+      "osm_name": "Cakung"
+    },
+    "CW": {
+      "name": "CAWANG",
+      "lat": -6.2425517,
+      "lon": 106.8586903,
+      "source": "overpass:railway:ref=CW",
+      "osm_name": "Cawang"
+    },
+    "CBN": {
+      "name": "CIBINONG",
+      "lat": -6.4642482,
+      "lon": 106.8525201,
+      "source": "overpass:railway:ref=CBN",
+      "osm_name": "Cibinong"
+    },
+    "CIT": {
+      "name": "CIBITUNG",
+      "lat": -6.2618245,
+      "lon": 107.0837982,
+      "source": "overpass:railway:ref=CIT",
+      "osm_name": "Cibitung"
+    },
+    "CC": {
+      "name": "CICAYUR",
+      "lat": -6.329683,
+      "lon": 106.6189713,
+      "source": "overpass:railway:ref=CC",
+      "osm_name": "Cicayur"
+    },
+    "CKR": {
+      "name": "CIKARANG",
+      "lat": -6.2553138,
+      "lon": 107.1450733,
+      "source": "overpass:railway:ref=CKR",
+      "osm_name": "Cikarang"
+    },
+    "CKI": {
+      "name": "CIKINI",
+      "lat": -6.1985052,
+      "lon": 106.8412799,
+      "source": "overpass:railway:ref=CKI",
+      "osm_name": "Cikini"
+    },
+    "CKY": {
+      "name": "CIKOYA",
+      "lat": -6.3357385,
+      "lon": 106.4116547,
+      "source": "overpass:railway:ref=CKY",
+      "osm_name": "Cikoya"
+    },
+    "CLT": {
+      "name": "CILEBUT",
+      "lat": -6.5307239,
+      "lon": 106.8006884,
+      "source": "overpass:name",
+      "osm_name": "Cilebut"
+    },
+    "CJT": {
+      "name": "CILEJIT",
+      "lat": -6.3542652,
+      "lon": 106.5096432,
+      "source": "overpass:railway:ref=CJT",
+      "osm_name": "Cilejit"
+    },
+    "CSK": {
+      "name": "CISAUK",
+      "lat": -6.3244445,
+      "lon": 106.6416257,
+      "source": "overpass:railway:ref=CSK",
+      "osm_name": "Cisauk"
+    },
+    "CTA": {
+      "name": "CITAYAM",
+      "lat": -6.4488237,
+      "lon": 106.8023619,
+      "source": "overpass:name",
+      "osm_name": "Citayam"
+    },
+    "CTR": {
+      "name": "CITERAS",
+      "lat": -6.3350582,
+      "lon": 106.3326694,
+      "source": "overpass:railway:ref=CTR",
+      "osm_name": "Citeras"
+    },
+    "DAR": {
+      "name": "DARU",
+      "lat": -6.3379704,
+      "lon": 106.4925632,
+      "source": "overpass:railway:ref=DAR",
+      "osm_name": "Daru"
+    },
+    "DP": {
+      "name": "DEPOK",
+      "lat": -6.4185287,
+      "lon": 106.811151,
+      "source": "overpass:railway:ref=DP",
+      "osm_name": "Depo Kereta Rel Listrik Depok"
+    },
+    "DPB": {
+      "name": "DEPOK BARU",
+      "lat": -6.3911293,
+      "lon": 106.8216412,
+      "source": "overpass:railway:ref=DPB",
+      "osm_name": "Depok Baru"
+    },
+    "DRN": {
+      "name": "DUREN KALIBATA",
+      "lat": -6.2552012,
+      "lon": 106.8551672,
+      "source": "overpass:railway:ref=DRN",
+      "osm_name": "Duren Kalibata"
+    },
+    "DU": {
+      "name": "DURI",
+      "lat": -6.1552764,
+      "lon": 106.8012968,
+      "source": "overpass:railway:ref=DU",
+      "osm_name": "Duri"
+    },
+    "GST": {
+      "name": "GANG SENTIONG",
+      "lat": -6.1861531,
+      "lon": 106.8508709,
+      "source": "overpass:railway:ref=GST",
+      "osm_name": "Gang Sentiong"
+    },
+    "GDD": {
+      "name": "GONDANGDIA",
+      "lat": -6.1859109,
+      "lon": 106.8325657,
+      "source": "overpass:railway:ref=GDD",
+      "osm_name": "Gondangdia"
+    },
+    "JIS": {
+      "name": "JAKARTA INTERNATIONAL STADIUM",
+      "lat": -6.1228211,
+      "lon": 106.8613596,
+      "source": "overpass:railway:ref=JIS",
+      "osm_name": "Jakarta International Stadium"
+    },
+    "JAKK": {
+      "name": "JAKARTA KOTA",
+      "lat": -6.1375828,
+      "lon": 106.8146203,
+      "source": "overpass:railway:ref=JAKK",
+      "osm_name": "Jakarta Kota"
+    },
+    "JTK": {
+      "name": "JATAKE",
+      "lat": -6.3349941,
+      "lon": 106.6066128,
+      "source": "overpass:name",
+      "osm_name": "Jatake"
+    },
+    "JNG": {
+      "name": "JATINEGARA",
+      "lat": -6.2149252,
+      "lon": 106.8703394,
+      "source": "overpass:railway:ref=JNG",
+      "osm_name": "Jatinegara"
+    },
+    "JAY": {
+      "name": "JAYAKARTA",
+      "lat": -6.1412999,
+      "lon": 106.8231322,
+      "source": "overpass:railway:ref=JAY",
+      "osm_name": "Jayakarta"
+    },
+    "JUA": {
+      "name": "JUANDA",
+      "lat": -6.1666746,
+      "lon": 106.8304609,
+      "source": "overpass:railway:ref=JUA",
+      "osm_name": "Juanda"
+    },
+    "JMU": {
+      "name": "JURANG MANGU",
+      "lat": -6.288582,
+      "lon": 106.7291463,
+      "source": "overpass:railway:ref=JMU",
+      "osm_name": "Jurangmangu"
+    },
+    "KDS": {
+      "name": "KALIDERES",
+      "lat": -6.1659662,
+      "lon": 106.7037283,
+      "source": "overpass:railway:ref=KDS",
+      "osm_name": "Kalideres"
+    },
+    "KPB": {
+      "name": "KAMPUNG BANDAN",
+      "lat": -6.1327023,
+      "lon": 106.8284875,
+      "source": "overpass:railway:ref=KPB",
+      "osm_name": "Kampung Bandan"
+    },
+    "KAT": {
+      "name": "KARET",
+      "lat": -6.2009538,
+      "lon": 106.8167704,
+      "source": "overpass:railway:ref=KAT",
+      "osm_name": "Karet"
+    },
+    "KBY": {
+      "name": "KEBAYORAN",
+      "lat": -6.23723,
+      "lon": 106.7825345,
+      "source": "overpass:railway:ref=KBY",
+      "osm_name": "Kebayoran"
+    },
+    "KMO": {
+      "name": "KEMAYORAN",
+      "lat": -6.1617033,
+      "lon": 106.8414012,
+      "source": "overpass:railway:ref=KMO",
+      "osm_name": "Kemayoran"
+    },
+    "KLD": {
+      "name": "KLENDER",
+      "lat": -6.2133188,
+      "lon": 106.8994133,
+      "source": "overpass:railway:ref=KLD",
+      "osm_name": "Klender"
+    },
+    "KLDB": {
+      "name": "KLENDER BARU",
+      "lat": -6.2176591,
+      "lon": 106.9401833,
+      "source": "overpass:railway:ref=KLDB",
+      "osm_name": "Klender Baru"
+    },
+    "KMT": {
+      "name": "KRAMAT",
+      "lat": -6.1936203,
+      "lon": 106.8565119,
+      "source": "overpass:railway:ref=KMT",
+      "osm_name": "Kramat"
+    },
+    "KRI": {
+      "name": "KRANJI",
+      "lat": -6.2245133,
+      "lon": 106.9798267,
+      "source": "overpass:railway:ref=KRI",
+      "osm_name": "Kranji"
+    },
+    "LNA": {
+      "name": "LENTENG AGUNG",
+      "lat": -6.3303079,
+      "lon": 106.8346791,
+      "source": "overpass:railway:ref=LNA",
+      "osm_name": "Lenteng Agung"
+    },
+    "MJ": {
+      "name": "MAJA",
+      "lat": -6.332503,
+      "lon": 106.3964794,
+      "source": "overpass:railway:ref=MJ",
+      "osm_name": "Maja"
+    },
+    "MGB": {
+      "name": "MANGGA BESAR",
+      "lat": -6.1498037,
+      "lon": 106.8269826,
+      "source": "overpass:railway:ref=MGB",
+      "osm_name": "Mangga Besar"
+    },
+    "MRI": {
+      "name": "MANGGARAI",
+      "lat": -6.2101704,
+      "lon": 106.849935,
+      "source": "overpass:railway:ref=MRI",
+      "osm_name": "Manggarai"
+    },
+    "MTR": {
+      "name": "MATRAMAN",
+      "lat": -6.2125672,
+      "lon": 106.8597528,
+      "source": "overpass:railway:ref=MTR",
+      "osm_name": "Matraman"
+    },
+    "TLM": {
+      "name": "METLAND TELAGAMURNI",
+      "lat": -6.2574741,
+      "lon": 107.111227,
+      "source": "overpass:railway:ref=TLM",
+      "osm_name": "Metland Telagamurni"
+    },
+    "NMO": {
+      "name": "NAMBO",
+      "lat": -6.466282,
+      "lon": 106.906269,
+      "source": "overpass:railway:ref=NMO",
+      "osm_name": "Nambo"
+    },
+    "PLM": {
+      "name": "PALMERAH",
+      "lat": -6.2079197,
+      "lon": 106.7972321,
+      "source": "overpass:railway:ref=PLM",
+      "osm_name": "Palmerah"
+    },
+    "PRP": {
+      "name": "PARUNG PANJANG",
+      "lat": -6.3443444,
+      "lon": 106.5698462,
+      "source": "overpass:railway:ref=PRP",
+      "osm_name": "Parungpanjang"
+    },
+    "PSM": {
+      "name": "PASAR MINGGU",
+      "lat": -6.2833322,
+      "lon": 106.8448558,
+      "source": "overpass:railway:ref=PSM",
+      "osm_name": "Pasar Minggu"
+    },
+    "PSMB": {
+      "name": "PASAR MINGGU BARU",
+      "lat": -6.262798,
+      "lon": 106.8517957,
+      "source": "overpass:railway:ref=PSMB",
+      "osm_name": "Pasar Minggu Baru"
+    },
+    "PSE": {
+      "name": "PASAR SENEN",
+      "lat": -6.1744233,
+      "lon": 106.8445744,
+      "source": "overpass:railway:ref=PSE",
+      "osm_name": "Pasar Senen"
+    },
+    "PSG": {
+      "name": "PESING",
+      "lat": -6.1612525,
+      "lon": 106.7719077,
+      "source": "overpass:railway:ref=PSG",
+      "osm_name": "Pesing"
+    },
+    "POC": {
+      "name": "PONDOK CINA",
+      "lat": -6.3690593,
+      "lon": 106.8320844,
+      "source": "overpass:name",
+      "osm_name": "Pondok Cina"
+    },
+    "POK": {
+      "name": "PONDOK JATI",
+      "lat": -6.2091242,
+      "lon": 106.8623419,
+      "source": "overpass:railway:ref=POK",
+      "osm_name": "Pondok Jati"
+    },
+    "PDRG": {
+      "name": "PONDOK RAJEG",
+      "lat": -6.4607829,
+      "lon": 106.824296,
+      "source": "overpass:railway:ref=PDRG",
+      "osm_name": "Pondok Rajeg"
+    },
+    "PDJ": {
+      "name": "PONDOK RANJI",
+      "lat": -6.2766831,
+      "lon": 106.7446926,
+      "source": "overpass:railway:ref=PDJ",
+      "osm_name": "Pondok Ranji"
+    },
+    "PI": {
+      "name": "PORIS",
+      "lat": -6.1697346,
+      "lon": 106.6807523,
+      "source": "overpass:railway:ref=PI",
+      "osm_name": "Poris"
+    },
+    "RJW": {
+      "name": "RAJAWALI",
+      "lat": -6.1450996,
+      "lon": 106.8368325,
+      "source": "overpass:railway:ref=RJW",
+      "osm_name": "Rajawali"
+    },
+    "RK": {
+      "name": "RANGKASBITUNG",
+      "lat": -6.3527788,
+      "lon": 106.2515252,
+      "source": "overpass:railway:ref=RK",
+      "osm_name": "Rangkasbitung"
+    },
+    "RW": {
+      "name": "RAWA BUAYA",
+      "lat": -6.1627437,
+      "lon": 106.7227543,
+      "source": "overpass:railway:ref=RW",
+      "osm_name": "Rawa Buaya"
+    },
+    "RU": {
+      "name": "RAWA BUNTU",
+      "lat": -6.314884,
+      "lon": 106.6761518,
+      "source": "overpass:railway:ref=RU",
+      "osm_name": "Rawa Buntu"
+    },
+    "SW": {
+      "name": "SAWAH BESAR",
+      "lat": -6.1606672,
+      "lon": 106.8276549,
+      "source": "overpass:railway:ref=SW",
+      "osm_name": "Sawah Besar"
+    },
+    "SRP": {
+      "name": "SERPONG",
+      "lat": -6.3201527,
+      "lon": 106.6655836,
+      "source": "overpass:railway:ref=SRP",
+      "osm_name": "Serpong"
+    },
+    "SDM": {
+      "name": "SUDIMARA",
+      "lat": -6.2968441,
+      "lon": 106.7126471,
+      "source": "overpass:railway:ref=SDM",
+      "osm_name": "Sudimara"
+    },
+    "SUD": {
+      "name": "SUDIRMAN",
+      "lat": -6.2024081,
+      "lon": 106.8234493,
+      "source": "overpass:railway:ref=SUD",
+      "osm_name": "Sudirman"
+    },
+    "SUDB": {
+      "name": "SUDIRMAN BARU",
+      "lat": -6.2015938,
+      "lon": 106.8197174,
+      "source": "overpass:railway:ref=SUDB",
+      "osm_name": "BNI City"
+    },
+    "TKO": {
+      "name": "TAMAN KOTA",
+      "lat": -6.158627,
+      "lon": 106.7565728,
+      "source": "overpass:railway:ref=TKO",
+      "osm_name": "Taman Kota"
+    },
+    "TB": {
+      "name": "TAMBUN",
+      "lat": -6.2585496,
+      "lon": 107.0558044,
+      "source": "overpass:railway:ref=TB",
+      "osm_name": "Tambun"
+    },
+    "THB": {
+      "name": "TANAH ABANG",
+      "lat": -6.1857127,
+      "lon": 106.8108938,
+      "source": "overpass:railway:ref=THB",
+      "osm_name": "Tanah Abang"
+    },
+    "THI": {
+      "name": "TANAH TINGGI",
+      "lat": -6.1751701,
+      "lon": 106.6467095,
+      "source": "overpass:name",
+      "osm_name": "Tanah Tinggi"
+    },
+    "TNG": {
+      "name": "TANGERANG",
+      "lat": -6.1769753,
+      "lon": 106.6320106,
+      "source": "overpass:railway:ref=TNG",
+      "osm_name": "Tangerang"
+    },
+    "TNT": {
+      "name": "TANJUNG BARAT",
+      "lat": -6.3080407,
+      "lon": 106.8389492,
+      "source": "overpass:railway:ref=TNT",
+      "osm_name": "Tanjung Barat"
+    },
+    "TPK": {
+      "name": "TANJUNG PRIOK",
+      "lat": -6.1106914,
+      "lon": 106.8814984,
+      "source": "overpass:railway:ref=TPK",
+      "osm_name": "Tanjung Priuk"
+    },
+    "TEB": {
+      "name": "TEBET",
+      "lat": -6.2263977,
+      "lon": 106.8584389,
+      "source": "overpass:railway:ref=TEB",
+      "osm_name": "Tebet"
+    },
+    "TEJ": {
+      "name": "TENJO",
+      "lat": -6.3273185,
+      "lon": 106.4616586,
+      "source": "overpass:railway:ref=TEJ",
+      "osm_name": "Tenjo"
+    },
+    "TGS": {
+      "name": "TIGARAKSA",
+      "lat": -6.328836,
+      "lon": 106.4340596,
+      "source": "overpass:railway:ref=TGS",
+      "osm_name": "Tigaraksa"
+    },
+    "UI": {
+      "name": "UNIV. INDONESIA",
+      "lat": -6.3604315,
+      "lon": 106.831782,
+      "source": "overpass:railway:ref=UI",
+      "osm_name": "Universitas Indonesia"
+    },
+    "UP": {
+      "name": "UNIV. PANCASILA",
+      "lat": -6.3393452,
+      "lon": 106.834263,
+      "source": "overpass:railway:ref=UP",
+      "osm_name": "Universitas Pancasila"
+    }
+  },
+  "unresolved": [
+    "WIL0"
+  ]
+}

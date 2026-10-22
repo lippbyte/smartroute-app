@@ -1,0 +1,22 @@
+{
+  "_catatan": [
+    "Tarif hasil VERIFIKASI MANUAL dari aplikasi MRT-J. Isi di sini menimpa",
+    "rumus di build_mrt_gtfs.py untuk pasangan yang bersangkutan.",
+    "",
+    "Format kunci: \"KODE_ASAL-KODE_TUJUAN\", nilai: tarif rupiah (angka bulat).",
+    "Berlaku dua arah: \"LBB-BHI\" juga dipakai untuk BHI->LBB, KECUALI arah",
+    "baliknya ditulis eksplisit sendiri.",
+    "",
+    "Kode stasiun: LBB Lebak Bulus, FTM Fatmawati, CPR Cipete Raya,",
+    "HJN Haji Nawi, BLA Blok A, BLM Blok M, SSM ASEAN, SNY Senayan,",
+    "IST Istora, BNH Bendungan Hilir, STB Setiabudi, DKA Dukuh Atas,",
+    "BHI Bundaran HI.",
+    "",
+    "Setelah menambah entri, jalankan ulang:",
+    "  python scripts/build_mrt_gtfs.py && python scripts/validate_mrt_gtfs.py",
+    "Script akan melaporkan pasangan mana yang tarifnya BERBEDA dari rumus —",
+    "kalau banyak yang meleset, rumusnya sendiri yang perlu diperbaiki, bukan",
+    "ditambal satu per satu lewat file ini."
+  ],
+  "tarif": {}
+}

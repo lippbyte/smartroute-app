@@ -1,0 +1,20 @@
+services:
+  otp2-mrt-staging:
+    image: opentripplanner/opentripplanner:2.10.0_2026-09-01T15-06
+    container_name: otp2-mrt-staging
+    # Task 3 (MRT): instance STAGING, sengaja terpisah dari otp2-transjakarta
+    # (produksi, port 8080) yang harus tetap melayani selama graph baru
+    # dibangun. Pola sama seperti otp2-krl-experiment: nama container sendiri,
+    # port host sendiri (8092 — 8091 sudah dipakai eksperimen KRL), dan
+    # folder data/ sendiri berisi SALINAN feed, bukan mount ke otp2-setup/data.
+    # Produksi tidak pernah disentuh oleh apa pun di folder ini.
+    #
+    # Tanpa restart policy, dan memang tidak dimaksudkan jalan tanpa diawasi:
+    # begitu graph-nya lolos uji, graph.obj-nya disalin ke produksi lalu
+    # container ini dimatikan.
+    restart: "no"
+    ports:
+      - "8092:8080"
+    volumes:
+      - ./data:/var/opentripplanner
+    command: ["--load", "--serve"]
