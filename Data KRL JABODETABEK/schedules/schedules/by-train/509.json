@@ -1,0 +1,45 @@
+{
+  "train_id": "509",
+  "ka_name": "COMMUTER LINE PRAMEKS KUTOARJO",
+  "color": "#0084D8",
+  "stops": [
+    {
+      "station_id": "YK",
+      "station_name": "YOGYAKARTA",
+      "time_est": "16:20:00",
+      "transit_station": true,
+      "transit": [
+        "#ff0000",
+        "#0000ff"
+      ]
+    },
+    {
+      "station_id": "WT",
+      "station_name": "WATES",
+      "time_est": "16:45:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "WJ",
+      "station_name": "WOJO",
+      "time_est": "16:58:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "JN",
+      "station_name": "JENAR",
+      "time_est": "17:07:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "KTA",
+      "station_name": "KUTOARJO",
+      "time_est": "17:20:00",
+      "transit_station": false,
+      "transit": ""
+    }
+  ]
+}

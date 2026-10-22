@@ -1,0 +1,66 @@
+{
+  "train_id": "1800A",
+  "ka_name": "COMMUTER LINE RANGKASBITUNG",
+  "color": "#93ca3e",
+  "stops": [
+    {
+      "station_id": "THB",
+      "station_name": "TANAH ABANG",
+      "time_est": "21:30:00",
+      "transit_station": true,
+      "transit": [
+        "#008000",
+        "#0000ff"
+      ]
+    },
+    {
+      "station_id": "PLM",
+      "station_name": "PALMERAH",
+      "time_est": "21:36:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "KBY",
+      "station_name": "KEBAYORAN",
+      "time_est": "21:42:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "PDJ",
+      "station_name": "PONDOK RANJI",
+      "time_est": "21:50:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "JMU",
+      "station_name": "JURANG MANGU",
+      "time_est": "21:52:30",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "SDM",
+      "station_name": "SUDIMARA",
+      "time_est": "21:56:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "RU",
+      "station_name": "RAWA BUNTU",
+      "time_est": "22:01:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "SRP",
+      "station_name": "SERPONG",
+      "time_est": "22:05:00",
+      "transit_station": false,
+      "transit": ""
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "train_id": "330",
+  "ka_name": "COMMUTER LINE WALAHAR",
+  "color": "#0084D8",
+  "stops": [
+    {
+      "station_id": "CKR",
+      "station_name": "CIKARANG",
+      "time_est": "11:36:00",
+      "transit_station": false,
+      "transit": ""
+    }
+  ]
+}

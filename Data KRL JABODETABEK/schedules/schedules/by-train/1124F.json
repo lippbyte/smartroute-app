@@ -1,0 +1,42 @@
+{
+  "train_id": "1124F",
+  "ka_name": "COMMUTER LINE BOGOR",
+  "color": "#E30A16",
+  "stops": [
+    {
+      "station_id": "DP",
+      "station_name": "DEPOK",
+      "time_est": "05:33:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "CTA",
+      "station_name": "CITAYAM",
+      "time_est": "05:40:00",
+      "transit_station": true,
+      "transit": ""
+    },
+    {
+      "station_id": "BJD",
+      "station_name": "BOJONGGEDE",
+      "time_est": "05:46:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "CLT",
+      "station_name": "CILEBUT",
+      "time_est": "05:52:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "BOO",
+      "station_name": "BOGOR",
+      "time_est": "06:00:00",
+      "transit_station": false,
+      "transit": ""
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "train_id": "6030B",
+  "ka_name": "COMMUTER LINE CIKARANG",
+  "color": "#0084D8",
+  "stops": [
+    {
+      "station_id": "KPB",
+      "station_name": "KAMPUNG BANDAN",
+      "time_est": "12:37:00",
+      "transit_station": true,
+      "transit": [
+        "#ff8095",
+        "#0000ff"
+      ]
+    },
+    {
+      "station_id": "AK",
+      "station_name": "ANGKE",
+      "time_est": "12:46:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "DU",
+      "station_name": "DURI",
+      "time_est": "12:50:00",
+      "transit_station": true,
+      "transit": [
+        "#d2691e",
+        "#0000ff"
+      ]
+    },
+    {
+      "station_id": "THB",
+      "station_name": "TANAH ABANG",
+      "time_est": "12:57:00",
+      "transit_station": true,
+      "transit": [
+        "#008000",
+        "#0000ff"
+      ]
+    },
+    {
+      "station_id": "KAT",
+      "station_name": "KARET",
+      "time_est": "12:59:30",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "SUDB",
+      "station_name": "SUDIRMAN BARU",
+      "time_est": "13:00:00",
+      "transit_station": true,
+      "transit": [
+        "#2D2B70",
+        "#0000ff"
+      ]
+    },
+    {
+      "station_id": "SUD",
+      "station_name": "SUDIRMAN",
+      "time_est": "13:00:30",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "MRI",
+      "station_name": "MANGGARAI",
+      "time_est": "13:08:00",
+      "transit_station": true,
+      "transit": [
+        "#0000ff",
+        "#ff0000"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,159 @@
+{
+  "train_id": "5088B",
+  "ka_name": "COMMUTER LINE CIKARANG",
+  "color": "#0084D8",
+  "stops": [
+    {
+      "station_id": "AK",
+      "station_name": "ANGKE",
+      "time_est": "11:54:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "DU",
+      "station_name": "DURI",
+      "time_est": "12:02:00",
+      "transit_station": true,
+      "transit": [
+        "#d2691e",
+        "#0000ff"
+      ]
+    },
+    {
+      "station_id": "THB",
+      "station_name": "TANAH ABANG",
+      "time_est": "12:09:00",
+      "transit_station": true,
+      "transit": [
+        "#008000",
+        "#0000ff"
+      ]
+    },
+    {
+      "station_id": "KAT",
+      "station_name": "KARET",
+      "time_est": "12:11:30",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "SUDB",
+      "station_name": "SUDIRMAN BARU",
+      "time_est": "12:12:30",
+      "transit_station": true,
+      "transit": [
+        "#2D2B70",
+        "#0000ff"
+      ]
+    },
+    {
+      "station_id": "SUD",
+      "station_name": "SUDIRMAN",
+      "time_est": "12:13:30",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "MRI",
+      "station_name": "MANGGARAI",
+      "time_est": "12:21:00",
+      "transit_station": true,
+      "transit": [
+        "#0000ff",
+        "#ff0000"
+      ]
+    },
+    {
+      "station_id": "MTR",
+      "station_name": "MATRAMAN",
+      "time_est": "12:23:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "JNG",
+      "station_name": "JATINEGARA",
+      "time_est": "12:28:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "KLD",
+      "station_name": "KLENDER",
+      "time_est": "12:32:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "BUA",
+      "station_name": "BUARAN",
+      "time_est": "12:34:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "KLDB",
+      "station_name": "KLENDER BARU",
+      "time_est": "12:35:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "CUK",
+      "station_name": "CAKUNG",
+      "time_est": "12:41:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "KRI",
+      "station_name": "KRANJI",
+      "time_est": "12:44:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "BKS",
+      "station_name": "BEKASI",
+      "time_est": "12:52:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "BKST",
+      "station_name": "BEKASI TIMUR",
+      "time_est": "12:55:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "TB",
+      "station_name": "TAMBUN",
+      "time_est": "13:01:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "CIT",
+      "station_name": "CIBITUNG",
+      "time_est": "13:04:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "TLM",
+      "station_name": "METLAND TELAGAMURNI",
+      "time_est": "13:06:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "CKR",
+      "station_name": "CIKARANG",
+      "time_est": "13:13:00",
+      "transit_station": false,
+      "transit": ""
+    }
+  ]
+}

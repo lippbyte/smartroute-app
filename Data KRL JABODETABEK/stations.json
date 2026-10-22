@@ -1,0 +1,597 @@
+[
+  {
+    "id": "AC",
+    "name": "ANCOL",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "AK",
+    "name": "ANGKE",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "WIL0",
+    "name": "AREA JABODETABEK",
+    "groupWil": 0,
+    "fgEnable": 0,
+    "active": false
+  },
+  {
+    "id": "BPR",
+    "name": "BATU CEPER",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "BKS",
+    "name": "BEKASI",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "BKST",
+    "name": "BEKASI TIMUR",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "BOO",
+    "name": "BOGOR",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "BOI",
+    "name": "BOJONG INDAH",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "BJD",
+    "name": "BOJONGGEDE",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "BUA",
+    "name": "BUARAN",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "CUK",
+    "name": "CAKUNG",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "CW",
+    "name": "CAWANG",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "CBN",
+    "name": "CIBINONG",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "CIT",
+    "name": "CIBITUNG",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "CC",
+    "name": "CICAYUR",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "CKR",
+    "name": "CIKARANG",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "CKI",
+    "name": "CIKINI",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "CKY",
+    "name": "CIKOYA",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "CLT",
+    "name": "CILEBUT",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "CJT",
+    "name": "CILEJIT",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "CSK",
+    "name": "CISAUK",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "CTA",
+    "name": "CITAYAM",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "CTR",
+    "name": "CITERAS",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "DAR",
+    "name": "DARU",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "DP",
+    "name": "DEPOK",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "DPB",
+    "name": "DEPOK BARU",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "DRN",
+    "name": "DUREN KALIBATA",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "DU",
+    "name": "DURI",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "GST",
+    "name": "GANG SENTIONG",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "GDD",
+    "name": "GONDANGDIA",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "JIS",
+    "name": "JAKARTA INTERNATIONAL STADIUM",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "JAKK",
+    "name": "JAKARTA KOTA",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "JTK",
+    "name": "JATAKE",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "JNG",
+    "name": "JATINEGARA",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "JAY",
+    "name": "JAYAKARTA",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "JUA",
+    "name": "JUANDA",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "JMU",
+    "name": "JURANG MANGU",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "KDS",
+    "name": "KALIDERES",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "KPB",
+    "name": "KAMPUNG BANDAN",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "KAT",
+    "name": "KARET",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "KBY",
+    "name": "KEBAYORAN",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "KMO",
+    "name": "KEMAYORAN",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "KLD",
+    "name": "KLENDER",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "KLDB",
+    "name": "KLENDER BARU",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "KMT",
+    "name": "KRAMAT",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "KRI",
+    "name": "KRANJI",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "LNA",
+    "name": "LENTENG AGUNG",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "MJ",
+    "name": "MAJA",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "MGB",
+    "name": "MANGGA BESAR",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "MRI",
+    "name": "MANGGARAI",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "MTR",
+    "name": "MATRAMAN",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "TLM",
+    "name": "METLAND TELAGAMURNI",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "NMO",
+    "name": "NAMBO",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "PLM",
+    "name": "PALMERAH",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "PRP",
+    "name": "PARUNG PANJANG",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "PSM",
+    "name": "PASAR MINGGU",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "PSMB",
+    "name": "PASAR MINGGU BARU",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "PSE",
+    "name": "PASAR SENEN",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "PSG",
+    "name": "PESING",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "POC",
+    "name": "PONDOK CINA",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "POK",
+    "name": "PONDOK JATI",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "PDRG",
+    "name": "PONDOK RAJEG",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "PDJ",
+    "name": "PONDOK RANJI",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "PI",
+    "name": "PORIS",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "RJW",
+    "name": "RAJAWALI",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "RK",
+    "name": "RANGKASBITUNG",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "RW",
+    "name": "RAWA BUAYA",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "RU",
+    "name": "RAWA BUNTU",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "SW",
+    "name": "SAWAH BESAR",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "SRP",
+    "name": "SERPONG",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "SDM",
+    "name": "SUDIMARA",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "SUD",
+    "name": "SUDIRMAN",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "SUDB",
+    "name": "SUDIRMAN BARU",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "TKO",
+    "name": "TAMAN KOTA",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "TB",
+    "name": "TAMBUN",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "THB",
+    "name": "TANAH ABANG",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "THI",
+    "name": "TANAH TINGGI",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "TNG",
+    "name": "TANGERANG",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "TNT",
+    "name": "TANJUNG BARAT",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "TPK",
+    "name": "TANJUNG PRIOK",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "TEB",
+    "name": "TEBET",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "TEJ",
+    "name": "TENJO",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "TGS",
+    "name": "TIGARAKSA",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "UI",
+    "name": "UNIV. INDONESIA",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  },
+  {
+    "id": "UP",
+    "name": "UNIV. PANCASILA",
+    "groupWil": 0,
+    "fgEnable": 1,
+    "active": true
+  }
+]

@@ -1,0 +1,51 @@
+{
+  "train_id": "1676C",
+  "ka_name": "COMMUTER LINE RANGKASBITUNG",
+  "color": "#0084D8",
+  "stops": [
+    {
+      "station_id": "THB",
+      "station_name": "TANAH ABANG",
+      "time_est": "10:17:00",
+      "transit_station": true,
+      "transit": [
+        "#008000",
+        "#0000ff"
+      ]
+    },
+    {
+      "station_id": "KAT",
+      "station_name": "KARET",
+      "time_est": "10:20:30",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "SUDB",
+      "station_name": "SUDIRMAN BARU",
+      "time_est": "10:21:30",
+      "transit_station": true,
+      "transit": [
+        "#2D2B70",
+        "#0000ff"
+      ]
+    },
+    {
+      "station_id": "SUD",
+      "station_name": "SUDIRMAN",
+      "time_est": "10:22:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "MRI",
+      "station_name": "MANGGARAI",
+      "time_est": "10:28:00",
+      "transit_station": true,
+      "transit": [
+        "#0000ff",
+        "#ff0000"
+      ]
+    }
+  ]
+}

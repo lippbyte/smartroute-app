@@ -1,0 +1,141 @@
+{
+  "metadata": {
+    "dataset": "ShanghaiTech Part B (MOCK DATA)",
+    "model": "yolo11n.pt",
+    "confidence_threshold": 0.5,
+    "sample_size": 15,
+    "note": "This is mock data for testing setup only"
+  },
+  "aggregate_metrics": {
+    "MAE": 2.6666666666666665,
+    "MAPE": 6.234625075483594,
+    "RMSE": 4.147288270665544,
+    "predicted_mean": 41.2,
+    "predicted_std": 8.688689966464066,
+    "actual_mean": 40.266666666666666,
+    "actual_std": 6.1260826707520755,
+    "total_samples": 15
+  },
+  "per_image_results": [
+    {
+      "image_name": "IMG_001.jpg",
+      "image_path": "ShanghaiTech/part_B/test_data/images/IMG_001.jpg",
+      "predicted_count": 33,
+      "actual_count": 38,
+      "absolute_error": 5,
+      "percentage_error": 13.157894736842104
+    },
+    {
+      "image_name": "IMG_002.jpg",
+      "image_path": "ShanghaiTech/part_B/test_data/images/IMG_002.jpg",
+      "predicted_count": 46,
+      "actual_count": 42,
+      "absolute_error": 4,
+      "percentage_error": 9.523809523809524
+    },
+    {
+      "image_name": "IMG_003.jpg",
+      "image_path": "ShanghaiTech/part_B/test_data/images/IMG_003.jpg",
+      "predicted_count": 30,
+      "actual_count": 29,
+      "absolute_error": 1,
+      "percentage_error": 3.4482758620689653
+    },
+    {
+      "image_name": "IMG_004.jpg",
+      "image_path": "ShanghaiTech/part_B/test_data/images/IMG_004.jpg",
+      "predicted_count": 59,
+      "actual_count": 46,
+      "absolute_error": 13,
+      "percentage_error": 28.26086956521739
+    },
+    {
+      "image_name": "IMG_005.jpg",
+      "image_path": "ShanghaiTech/part_B/test_data/images/IMG_005.jpg",
+      "predicted_count": 35,
+      "actual_count": 36,
+      "absolute_error": 1,
+      "percentage_error": 2.7777777777777777
+    },
+    {
+      "image_name": "IMG_006.jpg",
+      "image_path": "ShanghaiTech/part_B/test_data/images/IMG_006.jpg",
+      "predicted_count": 52,
+      "actual_count": 50,
+      "absolute_error": 2,
+      "percentage_error": 4.0
+    },
+    {
+      "image_name": "IMG_007.jpg",
+      "image_path": "ShanghaiTech/part_B/test_data/images/IMG_007.jpg",
+      "predicted_count": 39,
+      "actual_count": 38,
+      "absolute_error": 1,
+      "percentage_error": 2.631578947368421
+    },
+    {
+      "image_name": "IMG_008.jpg",
+      "image_path": "ShanghaiTech/part_B/test_data/images/IMG_008.jpg",
+      "predicted_count": 35,
+      "actual_count": 39,
+      "absolute_error": 4,
+      "percentage_error": 10.256410256410255
+    },
+    {
+      "image_name": "IMG_009.jpg",
+      "image_path": "ShanghaiTech/part_B/test_data/images/IMG_009.jpg",
+      "predicted_count": 40,
+      "actual_count": 42,
+      "absolute_error": 2,
+      "percentage_error": 4.761904761904762
+    },
+    {
+      "image_name": "IMG_010.jpg",
+      "image_path": "ShanghaiTech/part_B/test_data/images/IMG_010.jpg",
+      "predicted_count": 42,
+      "actual_count": 42,
+      "absolute_error": 0,
+      "percentage_error": 0.0
+    },
+    {
+      "image_name": "IMG_011.jpg",
+      "image_path": "ShanghaiTech/part_B/test_data/images/IMG_011.jpg",
+      "predicted_count": 47,
+      "actual_count": 45,
+      "absolute_error": 2,
+      "percentage_error": 4.444444444444445
+    },
+    {
+      "image_name": "IMG_012.jpg",
+      "image_path": "ShanghaiTech/part_B/test_data/images/IMG_012.jpg",
+      "predicted_count": 56,
+      "actual_count": 52,
+      "absolute_error": 4,
+      "percentage_error": 7.6923076923076925
+    },
+    {
+      "image_name": "IMG_013.jpg",
+      "image_path": "ShanghaiTech/part_B/test_data/images/IMG_013.jpg",
+      "predicted_count": 32,
+      "actual_count": 32,
+      "absolute_error": 0,
+      "percentage_error": 0.0
+    },
+    {
+      "image_name": "IMG_014.jpg",
+      "image_path": "ShanghaiTech/part_B/test_data/images/IMG_014.jpg",
+      "predicted_count": 34,
+      "actual_count": 34,
+      "absolute_error": 0,
+      "percentage_error": 0.0
+    },
+    {
+      "image_name": "IMG_015.jpg",
+      "image_path": "ShanghaiTech/part_B/test_data/images/IMG_015.jpg",
+      "predicted_count": 38,
+      "actual_count": 39,
+      "absolute_error": 1,
+      "percentage_error": 2.564102564102564
+    }
+  ]
+}

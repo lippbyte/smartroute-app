@@ -1,0 +1,150 @@
+{
+  "train_id": "1736D",
+  "ka_name": "COMMUTER LINE RANGKASBITUNG",
+  "color": "#16812B",
+  "stops": [
+    {
+      "station_id": "THB",
+      "station_name": "TANAH ABANG",
+      "time_est": "15:46:00",
+      "transit_station": true,
+      "transit": [
+        "#008000",
+        "#0000ff"
+      ]
+    },
+    {
+      "station_id": "PLM",
+      "station_name": "PALMERAH",
+      "time_est": "15:52:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "KBY",
+      "station_name": "KEBAYORAN",
+      "time_est": "15:58:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "PDJ",
+      "station_name": "PONDOK RANJI",
+      "time_est": "16:06:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "JMU",
+      "station_name": "JURANG MANGU",
+      "time_est": "16:08:30",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "SDM",
+      "station_name": "SUDIMARA",
+      "time_est": "16:13:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "RU",
+      "station_name": "RAWA BUNTU",
+      "time_est": "16:18:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "SRP",
+      "station_name": "SERPONG",
+      "time_est": "16:23:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "CSK",
+      "station_name": "CISAUK",
+      "time_est": "16:27:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "CC",
+      "station_name": "CICAYUR",
+      "time_est": "16:30:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "JTK",
+      "station_name": "JATAKE",
+      "time_est": "16:32:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "PRP",
+      "station_name": "PARUNG PANJANG",
+      "time_est": "16:38:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "CJT",
+      "station_name": "CILEJIT",
+      "time_est": "16:45:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "DAR",
+      "station_name": "DARU",
+      "time_est": "16:50:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "TEJ",
+      "station_name": "TENJO",
+      "time_est": "16:54:30",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "TGS",
+      "station_name": "TIGARAKSA",
+      "time_est": "16:59:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "CKY",
+      "station_name": "CIKOYA",
+      "time_est": "17:02:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "MJ",
+      "station_name": "MAJA",
+      "time_est": "17:06:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "CTR",
+      "station_name": "CITERAS",
+      "time_est": "17:15:00",
+      "transit_station": false,
+      "transit": ""
+    },
+    {
+      "station_id": "RK",
+      "station_name": "RANGKASBITUNG",
+      "time_est": "17:26:00",
+      "transit_station": true,
+      "transit": ""
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "sta_code_from": "CTA",
+  "sta_name_from": "CITAYAM",
+  "sta_code_to": "KRI",
+  "sta_name_to": "KRANJI",
+  "fare": 5000,
+  "distance": 42.812
+}

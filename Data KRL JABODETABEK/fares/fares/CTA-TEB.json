@@ -1,0 +1,8 @@
+{
+  "sta_code_from": "CTA",
+  "sta_name_from": "CITAYAM",
+  "sta_code_to": "TEB",
+  "sta_name_to": "TEBET",
+  "fare": 4000,
+  "distance": 25.268
+}

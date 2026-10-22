@@ -1,0 +1,14 @@
+{
+  "train_id": "336",
+  "ka_name": "COMMUTER LINE JATILUHUR",
+  "color": "#0084D8",
+  "stops": [
+    {
+      "station_id": "CKR",
+      "station_name": "CIKARANG",
+      "time_est": "15:35:00",
+      "transit_station": false,
+      "transit": ""
+    }
+  ]
+}

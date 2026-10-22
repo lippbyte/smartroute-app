@@ -1,0 +1,20 @@
+{
+  "title": "KRL Commuter Line Indonesia - Schedules & Fares",
+  "id": "langitbirugm/krl-commuter-line-indonesia-schedules-fares",
+  "licenses": [
+    {
+      "name": "CC-BY-SA-4.0"
+    }
+  ],
+  "description": "Dataset KRL Commuter Line Indonesia yang difilter khusus untuk jaringan Jabodetabek; layanan Wilayah Merak dan Wilayah VI (Yogyakarta-Solo/Kutoarjo) telah dihapus.",
+  "keywords": [
+    "indonesia",
+    "jabodetabek",
+    "krl",
+    "commuter-line",
+    "railway",
+    "schedule",
+    "fare",
+    "public-transit"
+  ]
+}

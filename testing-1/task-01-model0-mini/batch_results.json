@@ -1,0 +1,83 @@
+{
+  "timestamp": "2026-08-28T11:26:25.376482",
+  "total_videos": 7,
+  "results": [
+    {
+      "video": "5bdbb24e753306fc180cf00c699773ae.mp4",
+      "size_mb": 2.7,
+      "total_frames": 384,
+      "frames_with_people": 119,
+      "avg_people": 1.7,
+      "max_people": 5,
+      "track_id_success_rate": 0.0,
+      "unique_track_ids": 0,
+      "status": "OK"
+    },
+    {
+      "video": "10287402-sd_540_960_30fps.mp4",
+      "size_mb": 8.6,
+      "total_frames": 1298,
+      "frames_with_people": 1213,
+      "avg_people": 4.78,
+      "max_people": 9,
+      "track_id_success_rate": 85.9,
+      "unique_track_ids": 38,
+      "status": "OK"
+    },
+    {
+      "video": "12492823_960_540_30fps.mp4",
+      "size_mb": 10.0,
+      "total_frames": 537,
+      "frames_with_people": 537,
+      "avg_people": 8.18,
+      "max_people": 12,
+      "track_id_success_rate": 100.0,
+      "unique_track_ids": 41,
+      "status": "OK"
+    },
+    {
+      "video": "19085074-uhd_2160_3840_60fps.mp4",
+      "size_mb": 25.4,
+      "total_frames": 479,
+      "frames_with_people": 446,
+      "avg_people": 1.0,
+      "max_people": 2,
+      "track_id_success_rate": 94.4,
+      "unique_track_ids": 1,
+      "status": "OK"
+    },
+    {
+      "video": "12752510_3840_2160_60fps.mp4",
+      "size_mb": 83.1,
+      "total_frames": 877,
+      "frames_with_people": 877,
+      "avg_people": 3.98,
+      "max_people": 7,
+      "track_id_success_rate": 100.0,
+      "unique_track_ids": 14,
+      "status": "OK"
+    },
+    {
+      "video": "13827811_3840_2160_30fps.mp4",
+      "size_mb": 61.0,
+      "total_frames": 619,
+      "frames_with_people": 619,
+      "avg_people": 8.32,
+      "max_people": 11,
+      "track_id_success_rate": 100.0,
+      "unique_track_ids": 88,
+      "status": "OK"
+    },
+    {
+      "video": "11724798-uhd_3840_2160_30fps.mp4",
+      "size_mb": 116.8,
+      "total_frames": 1175,
+      "frames_with_people": 1175,
+      "avg_people": 5.32,
+      "max_people": 9,
+      "track_id_success_rate": 100.0,
+      "unique_track_ids": 63,
+      "status": "OK"
+    }
+  ]
+}
