@@ -73,6 +73,21 @@ const RouteCandidateSchema = z.object({
   transfer_count: z.number().int().nonnegative(),
   walking_distance_m: z.number().nonnegative(),
   cost_idr: z.number().nonnegative(),
+  // Hari 3 Task 3: rincian tarif (Trip Pass) — didaftarkan supaya tidak
+  // dibuang Zod.
+  fare_breakdown: z
+    .array(
+      z.object({
+        operator: z.enum(["TransJakarta", "KRL", "MRT", "LRT"]),
+        label: z.string(),
+        fare_idr: z.number().nonnegative().nullable(),
+        leg_indexes: z.array(z.number().int().nonnegative()),
+        from_name: z.string().optional(),
+        to_name: z.string().optional(),
+        note: z.string().optional(),
+      }),
+    )
+    .optional(),
   // Left optional and unset by this task on purpose — filled by Task
   // Backend-04 (crowd_level) and Task Backend-05 (reliability).
   crowd_level: z.enum(["low", "moderate", "high"]).optional(),

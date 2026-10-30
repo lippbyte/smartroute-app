@@ -43,6 +43,17 @@ export interface ReliabilityInfo {
   delay_risk?: number;
 }
 
+// Hari 3 Task 3: mencerminkan FareItem di backend services/routing.ts.
+export interface FareItem {
+  operator: "TransJakarta" | "KRL" | "MRT" | "LRT";
+  label: string;
+  fare_idr: number | null;
+  leg_indexes: number[];
+  from_name?: string;
+  to_name?: string;
+  note?: string;
+}
+
 // Hari 3: mencerminkan backend services/accessibility.ts.
 export type AccessibilityConfidence = "tinggi" | "sedang" | "rendah" | "tidak_diketahui";
 export interface AccessibilityPoint {
@@ -85,6 +96,9 @@ export interface RouteItem {
     trip_data: "lengkap" | "sebagian" | "tidak_ada";
   };
   cost_idr: number;
+  // Hari 3 Task 3: rincian cost_idr per segmen bergerbang (satu tap-in) dari
+  // backend — layar Trip Pass memakainya apa adanya, TIDAK menghitung ulang.
+  fare_breakdown?: FareItem[];
   transfers: number;
   walking_distance_m: number;
   // Optional sejak Task Integration-01, diperbarui di Task Integration-02:

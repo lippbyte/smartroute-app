@@ -100,7 +100,7 @@ const UNCERTAINTY_BUFFER_RATIO = 0.15;
 // Diputuskan (setelah laporan Backend-13): tarif per rute kini dibaca dari
 // GTFS itu sendiri (tjRouteFareIdr) — GR gratis, PP/PP3 Royaltrans per naik.
 // Konstanta ini tinggal dipakai untuk tap-in reguler FP/FP2, satu kali per
-// perjalanan. Lihat computeFareIdr.
+// perjalanan. Lihat computeFareBreakdown.
 const FARE_PER_ITINERARY_IDR = 3500;
 
 // 4 opsi di layar hasil (diminta user 22 Sep 2026; sebelumnya 3).
@@ -234,8 +234,23 @@ function collectStopIds(it: OtpItinerary): string[] {
 // yang ada di jadwal tapi tidak ada di daftar tarif resmi — Grogol adalah
 // contoh nyatanya), leg itu TIDAK dihitung dan itinerary-nya ditandai lewat
 // nilai kembalian, supaya angka yang tampil tidak diam-diam terlalu murah.
-function computeFareIdr(it: OtpItinerary): number {
+// Hari 3 Task 3: rincian tarif per SEGMEN BERGERBANG (satu tap-in) — dipakai
+// layar Trip Pass. Dibangun di fungsi yang SAMA dengan total cost_idr, jadi
+// rincian dan total tidak mungkin berbeda (total = jumlah fare_idr yang
+// diketahui; segmen tanpa tarif = null dan tidak dihitung, sama seperti dulu).
+export interface FareItem {
+  operator: "TransJakarta" | "KRL" | "MRT" | "LRT";
+  label: string;
+  fare_idr: number | null;
+  leg_indexes: number[];
+  from_name?: string;
+  to_name?: string;
+  note?: string;
+}
+
+function computeFareBreakdown(it: OtpItinerary): { total: number; items: FareItem[] } {
   let total = 0;
+  const items: FareItem[] = [];
   // TransJakarta, per tarif rute di GTFS resmi (fare_rules/fare_attributes):
   //   - Rp0 (JakLingko/Mikrotrans, Bus Wisata): gratis, tidak memicu tap-in.
   //   - premium > Rp3.500 (Royaltrans Rp20.000/Rp35.000): layanan terpisah
@@ -243,36 +258,58 @@ function computeFareIdr(it: OtpItinerary): number {
   //   - sisanya (Rp3.500: BRT, feeder, Transjabodetabek, Rusun): SATU kali
   //     Rp3.500 untuk seluruh perjalanan, sesuai transfer gratis 3 jam.
   // Rute tanpa fare_rule diperlakukan sebagai reguler (perilaku lama).
-  let regularTapIn = false;
-  for (const leg of it.legs) {
-    if (leg.mode !== "BUS") continue;
+  const regularLegs: number[] = [];
+  it.legs.forEach((leg, i) => {
+    if (leg.mode !== "BUS") return;
     const fare = tjRouteFareIdr(leg.route?.gtfsId);
-    if (fare === 0) continue;
-    if (fare !== undefined && fare > FARE_PER_ITINERARY_IDR) total += fare;
-    else regularTapIn = true;
+    const name = leg.route?.shortName ?? "?";
+    if (fare === 0) {
+      items.push({ operator: "TransJakarta", label: `Bus ${name}`, fare_idr: 0, leg_indexes: [i], note: "Gratis menurut tarif GTFS (mis. JakLingko/Mikrotrans)" });
+      return;
+    }
+    if (fare !== undefined && fare > FARE_PER_ITINERARY_IDR) {
+      total += fare;
+      items.push({ operator: "TransJakarta", label: `Bus ${name} (layanan premium)`, fare_idr: fare, leg_indexes: [i], note: "Tap-in sendiri" });
+    } else regularLegs.push(i);
+  });
+  if (regularLegs.length) {
+    total += FARE_PER_ITINERARY_IDR;
+    items.push({
+      operator: "TransJakarta",
+      label: `TransJakarta ${regularLegs.map((i) => it.legs[i].route?.shortName ?? "?").join(" + ")}`,
+      fare_idr: FARE_PER_ITINERARY_IDR,
+      leg_indexes: regularLegs,
+      note: regularLegs.length > 1 ? "Satu kali tap-in untuk semua bus reguler (transfer gratis 3 jam)" : undefined,
+    });
   }
-  if (regularTapIn) total += FARE_PER_ITINERARY_IDR;
-  for (const journey of gatedJourneys(it, "RAIL")) {
-    const fare = getKrlFare(journey.from, journey.to);
-    if (fare !== undefined) total += fare;
-    else console.warn(`Tarif KRL tidak ditemukan untuk ${journey.from} -> ${journey.to}`);
+  const gated: Array<[FareItem["operator"], "RAIL" | "SUBWAY" | "TRAM", (j: GatedJourney) => number | undefined]> = [
+    ["KRL", "RAIL", (j) => getKrlFare(j.from, j.to)],
+    // MRT: operator dan gerbang terpisah dari KRL, jadi tarifnya dijumlahkan
+    // di atas tarif KRL/TransJakarta. Tarif integrasi JakLingko TIDAK
+    // diasumsikan — belum ada sumbernya.
+    ["MRT", "SUBWAY", (j) => getMrtFare(j.from, j.to)],
+    // LRT Jabodebek: gerbang sendiri, tarif per pasangan stasiun yang
+    // bergantung jam naik (jam sibuk hari kerja vs di luarnya).
+    ["LRT", "TRAM", (j) => getLrtFare(j.from, j.to, j.boardingTime)],
+  ];
+  for (const [operator, mode, fareOf] of gated) {
+    for (const journey of gatedJourneys(it, mode)) {
+      const fare = fareOf(journey);
+      if (fare !== undefined) total += fare;
+      else console.warn(`Tarif ${operator} tidak ditemukan untuk ${journey.from} -> ${journey.to}${journey.boardingTime ? ` @ ${journey.boardingTime}` : ""}`);
+      items.push({
+        operator,
+        label: `${operator} ${journey.fromName} → ${journey.toName}`,
+        fare_idr: fare ?? null,
+        leg_indexes: journey.legIndexes,
+        from_name: journey.fromName,
+        to_name: journey.toName,
+        note: fare === undefined ? "Tarif tidak ditemukan di data resmi; tidak dihitung" : journey.legIndexes.length > 1 ? "Satu kali tap-in/tap-out (transfer di dalam gerbang)" : undefined,
+      });
+    }
   }
-  // MRT: operator dan gerbang terpisah dari KRL, jadi tarifnya dijumlahkan
-  // di atas tarif KRL/TransJakarta. Tarif integrasi JakLingko TIDAK
-  // diasumsikan — belum ada sumbernya.
-  for (const journey of gatedJourneys(it, "SUBWAY")) {
-    const fare = getMrtFare(journey.from, journey.to);
-    if (fare !== undefined) total += fare;
-    else console.warn(`Tarif MRT tidak ditemukan untuk ${journey.from} -> ${journey.to}`);
-  }
-  // LRT Jabodebek: gerbang sendiri, tarif per pasangan stasiun yang
-  // bergantung jam naik (jam sibuk hari kerja vs di luarnya).
-  for (const journey of gatedJourneys(it, "TRAM")) {
-    const fare = getLrtFare(journey.from, journey.to, journey.boardingTime);
-    if (fare !== undefined) total += fare;
-    else console.warn(`Tarif LRT tidak ditemukan untuk ${journey.from} -> ${journey.to} @ ${journey.boardingTime}`);
-  }
-  return total;
+  items.sort((a, b) => a.leg_indexes[0] - b.leg_indexes[0]);
+  return { total, items };
 }
 
 // Satu "perjalanan bergerbang" = rangkaian leg bermoda `mode` yang ditempuh
@@ -288,14 +325,22 @@ function computeFareIdr(it: OtpItinerary): number {
 // memutus perjalanan KRL; begitu MRT masuk graph, rute KRL -> MRT -> KRL
 // akan terhitung SATU perjalanan KRL dari stasiun pertama sampai terakhir,
 // padahal penumpangnya tap-out, naik MRT, lalu tap-in lagi.
-function gatedJourneys(
-  it: OtpItinerary,
-  mode: "RAIL" | "SUBWAY" | "TRAM"
-): Array<{ from: string; to: string; boardingTime?: string }> {
-  const journeys: Array<{ from: string; to: string; boardingTime?: string }> = [];
-  let current: { from: string; to: string; boardingTime?: string } | null = null;
+// Hari 3 Task 3: + nama stasiun & indeks leg untuk rincian tarif Trip Pass
+// (logika pengelompokan & kode stasiun TIDAK berubah).
+interface GatedJourney {
+  from: string;
+  to: string;
+  boardingTime?: string;
+  fromName: string;
+  toName: string;
+  legIndexes: number[];
+}
 
-  for (const leg of it.legs) {
+function gatedJourneys(it: OtpItinerary, mode: "RAIL" | "SUBWAY" | "TRAM"): GatedJourney[] {
+  const journeys: GatedJourney[] = [];
+  let current: GatedJourney | null = null;
+
+  for (const [i, leg] of it.legs.entries()) {
     if (leg.mode !== mode && leg.mode !== "WALK") {
       if (current) journeys.push(current);
       current = null;
@@ -307,8 +352,13 @@ function gatedJourneys(
     if (!from || !to) continue;
     const fromCode = stationCodeFromGtfsId(from);
     const toCode = stationCodeFromGtfsId(to);
-    if (current) current.to = toCode;
-    else current = { from: fromCode, to: toCode, boardingTime: leg.start?.scheduledTime };
+    if (current) {
+      current.to = toCode;
+      current.toName = leg.to.name;
+      current.legIndexes.push(i);
+    } else {
+      current = { from: fromCode, to: toCode, boardingTime: leg.start?.scheduledTime, fromName: leg.from.name, toName: leg.to.name, legIndexes: [i] };
+    }
   }
   if (current) journeys.push(current);
   return journeys;
@@ -382,7 +432,9 @@ function buildRouteCandidate(
   // tap-in for the whole TransJakarta portion (free transfers for 3 hours),
   // PLUS a separate distance-based KRL fare per KRL leg. A trip touching
   // both is charged both, which is what really happens at the gate.
-  const costIdr = computeFareIdr(it);
+  // Hari 3: total & rincian dari SATU perhitungan (fare_breakdown -> Trip Pass).
+  const fare = computeFareBreakdown(it);
+  const costIdr = fare.total;
 
   // it.duration is OTP2's own scheduled total, native access/egress walk
   // legs included — no more manually adding synthetic walk time on top.
@@ -403,6 +455,7 @@ function buildRouteCandidate(
     transfer_count: it.numberOfTransfers,
     walking_distance_m: walkingDistanceM,
     cost_idr: costIdr,
+    fare_breakdown: fare.items,
     crowd_level: crowdLevel,
     reliability,
     recommendation_score: computeRecommendationScore({

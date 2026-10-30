@@ -5,7 +5,7 @@
 // See backend/Task_Integration_01_Frontend_Backend.md for the task this
 // implements.
 
-import { AccessibilityConfidence, AccessibilityPoint, ApiResponse, CrowdInfo, Leg, RouteItem } from "@/type";
+import { AccessibilityConfidence, AccessibilityPoint, ApiResponse, CrowdInfo, FareItem, Leg, RouteItem } from "@/type";
 import { fetchWithTimeout, RequestTimeoutError } from "@/utils/withTimeout";
 import { API_BASE_URL } from "./apiConfig";
 import { LEG_MODES, legModeFromBackend } from "@/components/transit/legModes";
@@ -63,6 +63,8 @@ export interface BackendRouteCandidate {
   co2_comparator_distance_m?: number;
   co2_basis?: "estimasi";
   co2_factors_version?: string;
+  // Hari 3: rincian tarif per segmen bergerbang (Trip Pass).
+  fare_breakdown?: FareItem[];
   // Hari 3: info aksesibilitas kursi roda (hanya bila diminta).
   accessibility_confidence?: AccessibilityConfidence;
   accessibility_summary?: string;
@@ -266,6 +268,8 @@ export function adaptToLegacyShape(
             factors_version: candidate.co2_factors_version ?? "",
           }
         : undefined,
+    // Hari 3: rincian tarif apa adanya dari backend (tidak dihitung ulang).
+    fare_breakdown: candidate.fare_breakdown,
     // Hari 3: diteruskan hanya bila backend mengirimnya (toggle aktif).
     accessibility: candidate.accessibility_confidence
       ? {

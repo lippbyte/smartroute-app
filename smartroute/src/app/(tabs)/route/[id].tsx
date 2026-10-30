@@ -190,6 +190,18 @@ export default function RouteDetailScreen() {
               Mulai Navigasi
             </Text>
           </Pressable>
+          {/* Hari 3 Task 3: Trip Pass (tarif per bagian + saldo SIMULASI). */}
+          <Pressable
+            onPress={() => router.push({ pathname: "/trip-pass", params: { id: routeData.route_id } })}
+            accessibilityRole="button"
+            accessibilityLabel="Trip Pass: tarif per bagian dan saldo simulasi"
+            className="items-center justify-center py-4 px-4 rounded-xl bg-surface border border-line active:opacity-90 flex-row gap-1.5"
+          >
+            <Ionicons name="card-outline" size={18} color="#0F3FC1" />
+            <Text className="text-md font-bold" style={{ color: "#0F3FC1" }}>
+              Trip Pass
+            </Text>
+          </Pressable>
         </View>
 
         <View className="w-full items-center pt-2">

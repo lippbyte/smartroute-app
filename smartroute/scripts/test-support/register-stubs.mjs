@@ -6,12 +6,17 @@
 //   node --import ./scripts/test-support/register-stubs.mjs --import <tsx>/dist/loader.mjs <skrip.mts>
 import { registerHooks } from "node:module";
 
-const STUBBED = new Set(["react-native", "@expo/vector-icons"]);
-const stubUrl = new URL("./rn-stub.mjs", import.meta.url).href;
+const STUBS = {
+  "react-native": "./rn-stub.mjs",
+  "@expo/vector-icons": "./rn-stub.mjs",
+  // Hari 3: AsyncStorage berbasis berkas (lihat asyncstorage-stub.mjs).
+  "@react-native-async-storage/async-storage": "./asyncstorage-stub.mjs",
+};
 
 registerHooks({
   resolve(specifier, context, nextResolve) {
-    if (STUBBED.has(specifier)) return { url: stubUrl, format: "module", shortCircuit: true };
+    const stub = STUBS[specifier];
+    if (stub) return { url: new URL(stub, import.meta.url).href, format: "module", shortCircuit: true };
     return nextResolve(specifier, context);
   },
 });

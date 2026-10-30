@@ -57,6 +57,18 @@ export interface RouteCandidate {
   transfer_count: number;
   walking_distance_m: number;
   cost_idr: number;
+  // Hari 3 Task 3 (ADDITIVE): rincian cost_idr per segmen bergerbang (satu
+  // tap-in), dari perhitungan yang sama — dipakai layar Trip Pass. Jumlah
+  // fare_idr yang bukan null = cost_idr.
+  fare_breakdown?: Array<{
+    operator: "TransJakarta" | "KRL" | "MRT" | "LRT";
+    label: string;
+    fare_idr: number | null;
+    leg_indexes: number[];
+    from_name?: string;
+    to_name?: string;
+    note?: string;
+  }>;
   // diisi Task Backend-04, kosong dulu di sini
   crowd_level?: "low" | "moderate" | "high";
   // diisi Task Backend-05, kosong dulu di sini
