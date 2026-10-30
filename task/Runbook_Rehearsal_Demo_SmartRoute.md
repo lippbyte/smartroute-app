@@ -16,7 +16,12 @@
 **Talking point:** "Ini bukan cuma kalkulator rute — kami jujur soal ketidakpastian waktu tempuh."
 **Catatan teknis:** pakai `departure_time` yang di-pin ke jam presentasi (bukan biarkan default "sekarang") — supaya hasil rehearsal dan hasil demo beneran identik. Ini pelajaran langsung dari bug yang ditemukan di Backend-03b kemarin.
 **⚠ Urutan wajib:** jalankan Skenario 1 **SEBELUM** Skenario 2. Lihat "Risiko urutan" di Skenario 2.
-**⚠ Perlu ditinjau (21 Sep):** sejak MRT masuk graph, hasil teratas Blok M → Kota adalah **M+1** (MRT lalu Koridor 1, Rp12.500, 1 transfer) — bukan lagi bus langsung bertarif flat. Talking point "tarif flat" di atas tidak lagi cocok dengan layar.
+**⚠ Perlu ditinjau presenter (diperbarui 30 Okt 2026, baseline regresi `departure_time` 2026-09-21T07:30+07:00):** urutan hasil Blok M → Kota hari ini:
+1. **#1 = bus Koridor 1** ("1"), Rp3.500, 92–106 mnt, tanpa transfer.
+2. **#2 = M+1** (MRT lalu Koridor 1), Rp11.500, 75–87 mnt, 1 transfer.
+3. #3 = M+Cikarang+Bogor (Rp10.000, 64–74 mnt, 2 transfer); #4 = M+Bogor (Rp11.000, 74–86 mnt, 1 transfer).
+
+Talking point "tarif flat" kembali cocok dengan #1. Catatan lama (21 Sep) yang menyebut M+1 sebagai #1 sudah tidak berlaku. Presenter perlu memutuskan narasinya: rute #1 bukan yang tercepat (#3 lebih cepat, tetapi 2 transfer).
 
 ### Skenario 2 — Momen utama: laporan kepadatan live mengubah rekomendasi
 **Rute:** Pasar Baru → Lebak Bulus *(menggantikan Kalideres → PGC — di rute itu semua kandidat melewati halte yang sama, jadi laporan kepadatan tidak pernah membalik urutan)*
@@ -27,7 +32,7 @@
 **Terverifikasi:** berbalik di 6/6 jam uji (07:30–17:30), ~2,5 detik per pencarian.
 **Talking point:** ini bukti konkret sistem "belajar" dari kondisi lapangan secara real-time — bagian paling penting untuk ditunjukkan karena paling terlihat "pintar."
 **Risiko:** ini depend ke jaringan + backend jalan mulus di depan juri. **Wajib direkam sebagai video cadangan.**
-**⚠ Risiko urutan — JANGAN ulang Skenario 1 dalam 15 menit setelah Skenario 2.** Laporan "padat" di Monas bertahan 15 menit, dan rute M+1 di Skenario 1 juga melewati Monas (lewat Koridor 1). Kalau Skenario 1 diulang dalam jendela itu — misalnya juri minta diulang — hasilnya **berbeda** dari rehearsal: M+1 turun dari posisi #1. Kalau harus mengulang: **restart backend dulu** (laporan tersimpan di memori dan hilang saat restart), atau tunggu 15 menit.
+**⚠ Risiko urutan — JANGAN ulang Skenario 1 dalam 15 menit setelah Skenario 2.** Laporan "padat" di Monas bertahan 15 menit, dan **dua** rute teratas Skenario 1 melewati Monas lewat Koridor 1. Kalau Skenario 1 diulang dalam jendela itu (misalnya audiens minta diulang), hasilnya **berbeda** dari rehearsal. **Perlu ditinjau presenter (diukur 30 Okt 2026, jam terkunci sama):** bus Koridor 1 (#1) dan M+1 (#2) turun ke #3/#4 berlabel padat, dan #1 pindah ke **M+Cikarang+Bogor**. Kalau harus mengulang: **restart backend dulu** (lihat bagian 2a; laporan tersimpan di memori dan hilang saat restart), atau tunggu 15 menit.
 
 ### Skenario 3 — Mode Wisatawan
 **Rute:** Grogol → Kampung Melayu
