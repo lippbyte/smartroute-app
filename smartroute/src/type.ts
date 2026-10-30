@@ -48,6 +48,11 @@ export interface RouteItem {
   rank: number;
   legs: Leg[];
   travel_time_minutes: number;
+  // Hari 1 Task 5: rentang prediksi ASLI dari backend ({min,max}).
+  // travel_time_minutes di atas tetap = min (dipakai layar lain apa adanya);
+  // rentang ini untuk Ringkasan Perjalanan & riwayat ("Prediksi A–B mnt").
+  // Optional: RouteItem lama/mock tidak punya.
+  travel_time_range?: { min: number; max: number };
   cost_idr: number;
   transfers: number;
   walking_distance_m: number;

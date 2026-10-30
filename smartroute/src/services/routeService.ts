@@ -231,6 +231,7 @@ export function adaptToLegacyShape(
       distance_m: leg.distance_m,
     })),
     travel_time_minutes: candidate.travel_time_minutes.min,
+    travel_time_range: { min: candidate.travel_time_minutes.min, max: candidate.travel_time_minutes.max },
     cost_idr: candidate.cost_idr,
     transfers: candidate.transfer_count,
     walking_distance_m: candidate.walking_distance_m,

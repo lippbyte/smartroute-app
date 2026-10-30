@@ -10,14 +10,15 @@
 //   arah Y" lalu "Turun di Z · N halte lagi" saat naik transit.
 // - Langkah berpindah OTOMATIS saat GPS tiba di ujung leg; tombol manual
 //   tetap ada (untuk demo tanpa bergerak).
-import ArrivalCelebration from "@/components/navigate/ArrivalCelebration";
 import NavBanner from "@/components/navigate/NavBanner";
 import NavigateMap, { NavigateMapHandle } from "@/components/navigate/NavigateMap";
 import type { MapSegment, MapStop } from "@/components/navigate/navigateMapTypes";
 import NavPanel from "@/components/navigate/NavPanel";
+import TripSummary from "@/components/navigate/TripSummary";
 import { legModeStyle } from "@/components/transit/legModes";
 import Text from "@/components/Text";
 import { getRoute } from "@/services/routeStore";
+import { newClientRef } from "@/services/tripService";
 import { haversineM, isWalkLeg, LatLng, legDurationMin } from "@/utils/navInstructions";
 import { computeLegProgress, legPath, nearestVertex } from "@/utils/navProgress";
 import { Ionicons } from "@expo/vector-icons";
@@ -55,6 +56,19 @@ export default function NavigateScreen() {
   // Ref, bukan state: penanda sekali-jalan yang tidak boleh memicu render.
   const hasAutoArrivedRef = useRef(false);
   const hasDecidedFollowRef = useRef(false);
+
+  // Hari 1 Task 5: dasar durasi "Aktual" di Ringkasan Perjalanan.
+  // - Waktu mulai = saat layar navigasi dibuka.
+  // - Durasi aktual HANYA diisi oleh trigger kedatangan 75 m di bawah, dan
+  //   hanya bila GPS pernah tercatat di LUAR radius itu (pengguna benar-
+  //   benar menempuh perjalanan — bukan membuka navigasi saat sudah di
+  //   tujuan, yang akan menghasilkan "Aktual 0 mnt" palsu).
+  // - Selesai lewat tombol manual = "Estimasi".
+  // clientRef: satu per sesi navigasi, supaya simpan ulang tidak dobel.
+  const startedAtRef = useRef(Date.now());
+  const wasAwayFromDestinationRef = useRef(false);
+  const [actualMinutes, setActualMinutes] = useState<number | null>(null);
+  const clientRefRef = useRef(newClientRef());
 
   const legs = stored?.route.legs ?? [];
 
@@ -148,9 +162,20 @@ export default function NavigateScreen() {
     const dist = haversineM(userLocation, end);
     const isLast = currentLegIndex >= legs.length - 1;
 
+    const finalStop = legs[legs.length - 1]?.to_coord;
+    if (
+      finalStop &&
+      haversineM(userLocation, { latitude: finalStop.lat, longitude: finalStop.lng }) > ARRIVAL_RADIUS_METERS
+    ) {
+      wasAwayFromDestinationRef.current = true;
+    }
+
     if (isLast) {
       if (dist <= ARRIVAL_RADIUS_METERS && !hasAutoArrivedRef.current) {
         hasAutoArrivedRef.current = true;
+        if (wasAwayFromDestinationRef.current) {
+          setActualMinutes(Math.max(1, Math.round((Date.now() - startedAtRef.current) / 60_000)));
+        }
         setIsFollowingUser(false);
         setIsFinished(true);
       }
@@ -279,9 +304,12 @@ export default function NavigateScreen() {
       )}
 
       {isFinished && (
-        <ArrivalCelebration
-          routeData={stored.route}
-          destinationLabel={stored.destinationName}
+        <TripSummary
+          route={stored.route}
+          originName={stored.originName}
+          destinationName={stored.destinationName}
+          actualMinutes={actualMinutes}
+          clientRef={clientRefRef.current}
           onGoHome={handleGoHome}
         />
       )}
