@@ -1,4 +1,6 @@
+import AirQualityCard from "@/components/AirQualityCard";
 import ScreenBackground from "@/components/ScreenBackground";
+import { fetchAirQuality, type AirQuality } from "@/services/airQualityService";
 import DepartureTimeField, {
   DEFAULT_DEPARTURE_TIME,
   DepartureTimeValue,
@@ -88,6 +90,15 @@ interface PickedPlace {
 
 export default function Index() {
   const router = useRouter();
+  // Hari 2 Task 3: info kualitas udara (null = tidak tampil, tanpa galat).
+  const [air, setAir] = useState<AirQuality | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetchAirQuality().then((a) => !cancelled && setAir(a));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
   // Koordinat PASTI untuk label yang sedang terisi (saran yang di-tap, GPS,
@@ -344,6 +355,11 @@ export default function Index() {
             Cari Rute Terbaik
           </Text>
         </Pressable>
+
+        {/* Hari 2 Task 3: kualitas udara Jakarta — di bawah tombol cari,
+            supaya form pencarian tidak bergeser. Tidak tampil bila data
+            tidak tersedia. */}
+        <AirQualityCard air={air} />
 
         {/* Task App-01: entry point ke layar peta kepadatan (web-only) */}
         <Pressable

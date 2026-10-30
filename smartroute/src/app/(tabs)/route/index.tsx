@@ -4,9 +4,14 @@
 // jadi root screen di dalam Stack milik route/_layout.tsx, bukan flat
 // sibling dengan route/[id].tsx di dalam Tabs navigator. Lihat komentar di
 // route/_layout.tsx untuk alasan lengkapnya.
+import AirQualityCard from "@/components/AirQualityCard";
+import BadgeInfoSheet from "@/components/BadgeInfoSheet";
 import ScreenBackground from "@/components/ScreenBackground";
 import Text from "@/components/Text";
 import TopNav from "@/components/TopNav";
+import { fetchAirQuality, type AirQuality } from "@/services/airQualityService";
+import { formatCo2, percentVs } from "@/utils/co2Format";
+import { computeRouteBadges, type RouteBadge } from "@/utils/routeBadges";
 import {
   adaptToLegacyShape,
   fetchRealRoutes,
@@ -21,7 +26,7 @@ import { parseCoordParam } from "@/utils/stopActions";
 import { Ionicons } from "@expo/vector-icons";
 import { legModeStyle, MODE_FILTERS } from "@/components/transit/legModes";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Animated, { FadeInDown, LinearTransition } from "react-native-reanimated";
 import {
   ActivityIndicator,
@@ -59,14 +64,25 @@ const getModeIcon = (mode: string) => {
   return <Ionicons name={style.icon} size={18} color={style.color} />;
 };
 
+// Hari 2 Task 3: gaya lencana (teks gelap di latar terang, kontras AA).
+const BADGE_STYLE: Record<RouteBadge["kind"], { icon: keyof typeof Ionicons.glyphMap; bg: string; fg: string }> = {
+  paling_hijau: { icon: "leaf", bg: "#D1FAE5", fg: "#065F46" },
+  aktif_sehat: { icon: "walk", bg: "#DBEAFE", fg: "#1E3A8A" },
+  minim_paparan: { icon: "shield-checkmark", bg: "#EDE9FE", fg: "#4C1D95" },
+};
+
 const RouteOptionCard = ({
   item,
   originName,
   destinationName,
+  badge,
+  onBadgePress,
 }: {
   item: RouteItem;
   originName: string;
   destinationName: string;
+  badge?: RouteBadge;
+  onBadgePress?: (badge: RouteBadge) => void;
 }) => {
   const router = useRouter();
   const typeLabel = getRouteTypeLabel(item);
@@ -99,9 +115,28 @@ const RouteOptionCard = ({
       className="bg-surface px-4 py-4 gap-3 rounded-xl active:opacity-95 border border-line"
     >
       <View className="flex-row justify-between items-center">
-        <Text className="bg-surface-2 font-bold text-ink text-xs px-2.5 py-1 rounded-md capitalize border border-line">
-          {typeLabel}
-        </Text>
+        <View className="flex-row items-center gap-1.5 flex-shrink">
+          <Text className="bg-surface-2 font-bold text-ink text-xs px-2.5 py-1 rounded-md capitalize border border-line">
+            {typeLabel}
+          </Text>
+          {/* Hari 2: maks. satu lencana, info saja (bukan filter/urutan).
+              Diketuk -> penjelasan + "bukan saran medis". */}
+          {badge && (
+            <Pressable
+              onPress={() => onBadgePress?.(badge)}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={`Lencana ${badge.label}. Ketuk untuk penjelasan.`}
+              className="flex-row items-center gap-1 px-2 py-1 rounded-md"
+              style={{ backgroundColor: BADGE_STYLE[badge.kind].bg }}
+            >
+              <Ionicons name={BADGE_STYLE[badge.kind].icon} size={12} color={BADGE_STYLE[badge.kind].fg} />
+              <Text className="text-xs font-bold" style={{ color: BADGE_STYLE[badge.kind].fg }} numberOfLines={1}>
+                {badge.label}
+              </Text>
+            </Pressable>
+          )}
+        </View>
         {item.crowd?.predicted_level === "HIGH" && (
           <View className="flex-row items-center gap-1 bg-red-500/20 px-2 py-0.5 rounded">
             <Ionicons name="people" size={12} color="#EF4444" />
@@ -171,6 +206,24 @@ const RouteOptionCard = ({
               {item.transfers}x transit
             </Text>
           </View>
+          {/* Hari 2: menumpang di grup flex-wrap — di layar sempit turun ke
+              baris berikutnya, tarif di kanan tidak bergeser. Hanya bila
+              backend mengirim data CO₂. */}
+          {item.co2 && (
+            <View
+              className="flex-row items-center gap-1"
+              accessible
+              accessibilityLabel={`Estimasi ${formatCo2(item.co2.estimate_g)} CO₂${
+                percentVs(item.co2.estimate_g, item.co2.car_g) ? `, ${percentVs(item.co2.estimate_g, item.co2.car_g)} dibanding mobil sendirian` : ""
+              }`}
+            >
+              <Ionicons name="leaf-outline" size={14} color="#065F46" />
+              <Text className="text-xs text-ink-2">
+                ≈ {formatCo2(item.co2.estimate_g)} CO₂ · Estimasi
+                {percentVs(item.co2.estimate_g, item.co2.car_g) ? ` · ${percentVs(item.co2.estimate_g, item.co2.car_g)} vs mobil sendirian` : ""}
+              </Text>
+            </View>
+          )}
         </View>
         <Text className="text-sm font-semibold text-ink shrink-0" numberOfLines={1}>
           {formatRupiah(item.cost_idr)}
@@ -359,6 +412,18 @@ export default function RouteScreen() {
   const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // Hari 2 Task 3: kualitas udara (null = tidak tersedia -> tanpa kartu &
+  // tanpa lencana udara, tanpa galat) dan lencana yang sedang dijelaskan.
+  const [air, setAir] = useState<AirQuality | null>(null);
+  const [badgeInfo, setBadgeInfo] = useState<RouteBadge | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchAirQuality().then((a) => !cancelled && setAir(a));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const originLabel = originParam ? shortPlaceLabel(originParam) : undefined;
   const destinationLabel = destinationParam
@@ -440,6 +505,10 @@ export default function RouteScreen() {
     // terpisah supaya urutannya konsisten dengan yang dihitung backend.
     .slice()
     .sort((a, b) => a.rank - b.rank);
+
+  // Hari 2: lencana dari SELURUH kandidat respons (bukan filteredRoutes),
+  // jadi tidak berpindah saat chip diganti. Tidak mengubah urutan.
+  const badges = useMemo(() => computeRouteBadges(apiResponse?.routes ?? [], air), [apiResponse, air]);
 
   // Task App-20: waktu berangkat yang BENAR-BENAR dipakai backend untuk
   // hitung jadwal rute ini — sama untuk semua kandidat di bawah, jadi
@@ -590,7 +659,18 @@ export default function RouteScreen() {
           // Maksimal 4 opsi. Kartu masuk bergantian (fade + naik sedikit,
           // pegas lembut); key memuat moda supaya animasi diputar ulang
           // setiap hasil filter baru datang.
-          filteredRoutes.slice(0, MAX_VISIBLE_ROUTES).map((item, index) => (
+          <>
+          {/* Hari 2: info udara ringkas + tautan penjelasan angka CO₂. */}
+          <AirQualityCard air={air} compact />
+          {filteredRoutes.some((r) => r.co2) && (
+            <Pressable onPress={() => router.push("/co2-info")} accessibilityRole="link" hitSlop={6} className="self-start flex-row items-center gap-1">
+              <Ionicons name="information-circle-outline" size={14} color="#E2E8F0" />
+              <Text className="text-xs underline" style={{ color: "#E2E8F0" }}>
+                Angka CO₂ adalah estimasi — tentang angka ini
+              </Text>
+            </Pressable>
+          )}
+          {filteredRoutes.slice(0, MAX_VISIBLE_ROUTES).map((item, index) => (
             <Animated.View
               key={`${modeKey}-${item.route_id}`}
               entering={FadeInDown.delay(index * 80)
@@ -603,11 +683,16 @@ export default function RouteScreen() {
                 item={item}
                 originName={apiResponse!.origin.name}
                 destinationName={apiResponse!.destination.name}
+                badge={badges[item.route_id]}
+                onBadgePress={setBadgeInfo}
               />
             </Animated.View>
-          ))
+          ))}
+          </>
         )}
       </ScrollView>
+
+      <BadgeInfoSheet badge={badgeInfo} onClose={() => setBadgeInfo(null)} />
 
       <FilterSheet
         visible={isFilterOpen}

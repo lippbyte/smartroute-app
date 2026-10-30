@@ -22,12 +22,13 @@ import { ApiError } from "@/services/apiClient";
 import * as tripService from "@/services/tripService";
 import type { Trip } from "@/services/tripService";
 import { RouteItem } from "@/type";
+import { formatCo2, percentVs } from "@/utils/co2Format";
 import { formatRupiah } from "@/utils/currency";
 import { durationDisplay } from "@/utils/tripFormat";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, ScrollView, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 
 interface Props {
   route: RouteItem;
@@ -114,6 +115,36 @@ export default function TripSummary({ route, originName, destinationName, actual
               {durationNote(display)}
             </Text>
           </View>
+
+          {/* Hari 2: estimasi CO₂ — perbandingan hanya terhadap pembanding
+              untuk jarak (proksi) yang sama, dilabeli; tanpa klaim "hemat". */}
+          {route.co2 && (
+            <View className="gap-1.5 pt-3 border-t border-line">
+              <Text className="text-ink-2 text-sm" weight="semibold">
+                Jejak karbon
+              </Text>
+              <View className="flex-row items-center gap-1.5">
+                <Ionicons name="leaf-outline" size={18} color="#065F46" />
+                <Text className="text-ink text-base" weight="bold">
+                  ≈ {formatCo2(route.co2.estimate_g)} CO₂ (estimasi)
+                </Text>
+              </View>
+              <Text className="text-ink-2 text-xs" style={{ lineHeight: 18 }}>
+                {[
+                  percentVs(route.co2.estimate_g, route.co2.car_g) && `${percentVs(route.co2.estimate_g, route.co2.car_g)} vs mobil sendirian`,
+                  percentVs(route.co2.estimate_g, route.co2.motorcycle_g) && `${percentVs(route.co2.estimate_g, route.co2.motorcycle_g)} vs motor`,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+                {` untuk jarak proksi ${(route.co2.comparator_distance_m / 1000).toFixed(1).replace(".", ",")} km.`}
+              </Text>
+              <Pressable onPress={() => router.push("/co2-info")} accessibilityRole="link" hitSlop={6} className="self-start">
+                <Text className="text-xs underline" weight="semibold" style={{ color: "#0F3FC1" }}>
+                  Tentang angka ini
+                </Text>
+              </Pressable>
+            </View>
+          )}
         </View>
 
         {save.kind === "guest" && (

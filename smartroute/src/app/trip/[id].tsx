@@ -12,6 +12,7 @@ import { legModeStyle } from "@/components/transit/legModes";
 import { useAuth } from "@/context/AuthContext";
 import { ApiError } from "@/services/apiClient";
 import { getTrip, type Trip } from "@/services/tripService";
+import { formatCo2 } from "@/utils/co2Format";
 import { formatRupiah } from "@/utils/currency";
 import { durationDisplay, formatTripDate } from "@/utils/tripFormat";
 import { Ionicons } from "@expo/vector-icons";
@@ -106,6 +107,13 @@ export default function TripDetailScreen() {
                 <Text className="text-ink text-sm" weight="bold">
                   Tarif: {formatRupiah(trip.fare_total)}
                 </Text>
+                {trip.co2_estimate_g != null && (
+                  <Pressable onPress={() => router.push("/co2-info")} accessibilityRole="link" hitSlop={6}>
+                    <Text className="text-ink text-sm">
+                      CO₂: ≈ {formatCo2(trip.co2_estimate_g)} <Text className="text-ink-2 text-sm underline">(estimasi)</Text>
+                    </Text>
+                  </Pressable>
+                )}
               </View>
               <View className="gap-1.5 pt-3 border-t border-line">
                 {(() => {

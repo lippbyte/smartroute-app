@@ -1,8 +1,8 @@
 // Layar Riwayat Perjalanan. Hari 1 Task 5: data ASLI dari GET /trips
 // (sebelumnya daftar & angka karangan: "24 perjalanan", "Rp336rb hemat",
-// "28,8 kg CO₂"). Terbaru dulu; ketuk untuk detail. CO₂ belum dihitung
-// (Hari 2) — ditampilkan "—", bukan angka tebakan. Tamu melihat ajakan
-// masuk, tanpa panggilan ke server.
+// "28,8 kg CO₂"). Terbaru dulu; ketuk untuk detail. CO₂ (Hari 2) = jumlah
+// estimasi dari perjalanan yang punya data saja, berlabel. Tamu melihat
+// ajakan masuk, tanpa panggilan ke server.
 import PrimaryButton from "@/components/form/PrimaryButton";
 import { FormMessage } from "@/components/form/FormField";
 import ScreenBackground from "@/components/ScreenBackground";
@@ -12,6 +12,7 @@ import { DurationBadge, LegChain, Stars } from "@/components/trip/TripBits";
 import { useAuth } from "@/context/AuthContext";
 import { ApiError } from "@/services/apiClient";
 import { listTrips, type Trip } from "@/services/tripService";
+import { formatCo2 } from "@/utils/co2Format";
 import { formatRupiah } from "@/utils/currency";
 import { durationDisplay, formatTripDate } from "@/utils/tripFormat";
 import { Ionicons } from "@expo/vector-icons";
@@ -178,8 +179,18 @@ export default function HistoryScreen() {
             <View className="flex-row gap-2">
               <SummaryCard value={String(state.trips.length)} label="Perjalanan" />
               <SummaryCard value={formatRupiah(state.trips.reduce((sum, t) => sum + t.fare_total, 0))} label="Total tarif" />
-              {/* CO₂ dihitung mulai Hari 2 — sampai itu kosong, bukan tebakan. */}
-              <SummaryCard value="—" label="CO₂ (belum dihitung)" />
+              {/* Hari 2: total hanya dari perjalanan yang PUNYA estimasi CO₂
+                  (perjalanan sebelum Hari 2 tidak punya) — jumlahnya ikut
+                  dicantumkan, tanpa klaim "hemat". */}
+              {(() => {
+                const withCo2 = state.trips.filter((t) => t.co2_estimate_g != null);
+                const total = withCo2.reduce((sum, t) => sum + (t.co2_estimate_g ?? 0), 0);
+                return withCo2.length === 0 ? (
+                  <SummaryCard value="—" label="CO₂ (estimasi)" />
+                ) : (
+                  <SummaryCard value={`≈ ${formatCo2(total)}`} label={`CO₂ estimasi · ${withCo2.length} dari ${state.trips.length} perjalanan`} />
+                );
+              })()}
             </View>
             {groupByMonth(state.trips).map((group) => (
               <View key={group.title} className="gap-3">
