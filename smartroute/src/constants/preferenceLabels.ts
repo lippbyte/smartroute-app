@@ -13,6 +13,10 @@ export const PRIORITY_OPTIONS: { value: Priority; label: string; description: st
   { value: "cepat", label: "Cepat", description: "Waktu tempuh singkat paling penting bagi saya." },
   { value: "murah", label: "Murah", description: "Tarif rendah paling penting bagi saya." },
   { value: "tenang", label: "Tenang", description: "Perjalanan yang tidak padat paling penting bagi saya." },
+  // Hari 2 Task 4. Bukan chip filter — hasil rute tetap ditampilkan seperti
+  // biasa (lihat PRIORITY_NOTE); lencana "Sehat" di kartu berlaku untuk
+  // semua pengguna, bukan karena preferensi ini.
+  { value: "sehat", label: "Sehat", description: "Perjalanan yang lebih aktif dan minim paparan polusi penting bagi saya." },
 ];
 
 export const WALK_LIMIT_OPTIONS: { value: WalkLimit; label: string; description: string }[] = [

@@ -6,8 +6,10 @@
 import { apiRequest } from "./apiClient";
 
 // Label sama dengan chip kriteria di layar hasil ("Tenang", bukan "Nyaman").
-// Nilai baru (mis. "sehat", Hari 2) cukup ditambah di sini & di backend.
-export const PRIORITIES = ["cepat", "murah", "tenang"] as const;
+// "sehat" ditambahkan Hari 2 (harus sama dengan backend lib/validation.ts) —
+// hanya disimpan + konteks TOTO; TIDAK ada chip "Sehat" dan urutan hasil
+// tidak berubah.
+export const PRIORITIES = ["cepat", "murah", "tenang", "sehat"] as const;
 export type Priority = (typeof PRIORITIES)[number];
 export const WALK_LIMITS = ["dekat", "sedang", "jauh"] as const;
 export type WalkLimit = (typeof WALK_LIMITS)[number];

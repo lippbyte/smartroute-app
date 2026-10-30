@@ -152,9 +152,9 @@ export type AssistantAskRequest = z.infer<typeof AssistantAskRequestSchema>;
 // berbahasa Indonesia karena app menampilkannya langsung di bawah field.
 
 // Label disamakan dengan chip kriteria di layar hasil ("Tenang", bukan
-// "Nyaman" — keputusan Task 0 no. 2a). Nilai baru (mis. "sehat", Hari 2)
-// cukup ditambahkan di array ini.
-export const PRIORITIES = ["cepat", "murah", "tenang"] as const;
+// "Nyaman" — keputusan Task 0 no. 2a). "sehat" ditambahkan Hari 2 Task 4:
+// hanya disimpan + konteks TOTO, belum mengubah urutan hasil.
+export const PRIORITIES = ["cepat", "murah", "tenang", "sehat"] as const;
 export const WALK_LIMITS = ["dekat", "sedang", "jauh"] as const;
 // Sama dengan chip moda di layar hasil (Bus/KRL/MRT/LRT).
 export const AVOIDABLE_MODES = ["bus", "krl", "mrt", "lrt"] as const;

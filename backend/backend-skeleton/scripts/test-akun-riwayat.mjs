@@ -237,6 +237,17 @@ async function main() {
   );
   check("T5c riwayat terbaru dulu", t5list.json?.[0]?.id === t5.json?.id);
 
+  // --- Hari 2 Task 4: prioritas "sehat".
+  const sehat = await call("PUT", "/me/preferences", { token: tokenA2, body: { priority: "sehat", walk_limit: "sedang", avoid_modes: [] } });
+  const meSehat = await call("GET", "/me", { token: tokenA2 });
+  check("H4a simpan & baca prioritas 'sehat'", sehat.status === 200 && meSehat.json?.preferences?.priority === "sehat", `HTTP ${sehat.status}`);
+  const asing = await call("PUT", "/me/preferences", { token: tokenA2, body: { priority: "hijau" } });
+  check("H4b prioritas asing ('hijau') -> 400", asing.status === 400, `HTTP ${asing.status}`);
+  const regSehat = await call("POST", "/auth/register", {
+    body: { email: `uji-sehat-${tag}@contoh.test`, password: randomBytes(12).toString("base64url"), name: "Uji Sehat", preferences: { priority: "sehat" } },
+  });
+  check("H4c daftar langsung dengan prioritas 'sehat' -> 201", regSehat.status === 201 && regSehat.json?.user?.preferences?.priority === "sehat", `HTTP ${regSehat.status}`);
+
   mkdirSync(path.dirname(STATE_FILE), { recursive: true });
   writeFileSync(
     STATE_FILE,
