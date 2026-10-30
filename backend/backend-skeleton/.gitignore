@@ -1,3 +1,6 @@
 node_modules/
 dist/
 .env
+# Hari 1: database akun/riwayat (hash password, data pribadi) + file WAL-nya,
+# dan kredensial akun demo hasil scripts/seed-demo-account.ts.
+data/

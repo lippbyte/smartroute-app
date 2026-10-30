@@ -137,3 +137,93 @@ export const AssistantAskRequestSchema = z.object({
 });
 
 export type AssistantAskRequest = z.infer<typeof AssistantAskRequestSchema>;
+
+// Hari 1 Task 1/3: akun, preferensi, riwayat, rating. Pesan galat per field
+// berbahasa Indonesia karena app menampilkannya langsung di bawah field.
+
+// Label disamakan dengan chip kriteria di layar hasil ("Tenang", bukan
+// "Nyaman" — keputusan Task 0 no. 2a). Nilai baru (mis. "sehat", Hari 2)
+// cukup ditambahkan di array ini.
+export const PRIORITIES = ["cepat", "murah", "tenang"] as const;
+export const WALK_LIMITS = ["dekat", "sedang", "jauh"] as const;
+// Sama dengan chip moda di layar hasil (Bus/KRL/MRT/LRT).
+export const AVOIDABLE_MODES = ["bus", "krl", "mrt", "lrt"] as const;
+export const ACCESSIBILITY_NEEDS = ["kursi_roda", "low_vision", "tunarungu", "kognitif", "lansia_anak"] as const;
+
+// Hari 1 hanya DISIMPAN — belum memengaruhi routing/scoring backend.
+// TODO:verifikasi cara menerapkan walk_limit & avoid_modes tanpa mengubah
+// scoring /routes.
+export const PreferencesSchema = z
+  .object({
+    priority: z.enum(PRIORITIES).nullable().optional(),
+    walk_limit: z.enum(WALK_LIMITS).nullable().optional(),
+    avoid_modes: z.array(z.enum(AVOIDABLE_MODES)).max(AVOIDABLE_MODES.length).optional(),
+  })
+  .strict();
+
+export type Preferences = z.infer<typeof PreferencesSchema>;
+
+// Data pribadi sensitif: hanya diterima bersama persetujuan eksplisit.
+export const AccessibilitySchema = z.object({
+  needs: z.array(z.enum(ACCESSIBILITY_NEEDS)).min(1, "Pilih minimal satu kebutuhan.").max(ACCESSIBILITY_NEEDS.length),
+  consent: z.literal(true, "Persetujuan wajib dicentang untuk menyimpan data ini."),
+});
+
+export const RegisterRequestSchema = z.object({
+  email: z.email("Format email tidak valid.").max(254, "Email terlalu panjang."),
+  password: z.string().min(8, "Kata sandi minimal 8 karakter.").max(200, "Kata sandi terlalu panjang."),
+  name: z.string().trim().min(1, "Nama wajib diisi.").max(60, "Nama maksimal 60 karakter."),
+  preferences: PreferencesSchema.optional(),
+  accessibility: AccessibilitySchema.optional(),
+});
+
+export const LoginRequestSchema = z.object({
+  email: z.string().min(1, "Email wajib diisi.").max(254),
+  password: z.string().min(1, "Kata sandi wajib diisi.").max(200),
+});
+
+const MinuteRangeSchema = z
+  .object({ min: z.number().int().nonnegative(), max: z.number().int().nonnegative() })
+  .refine((r) => r.min <= r.max, "min tidak boleh lebih besar dari max.");
+
+export const TripCreateRequestSchema = z
+  .object({
+    // Pengenal dari app untuk kirim ulang yang aman (idempoten per pengguna).
+    client_ref: z.string().min(8).max(64).optional(),
+    origin_label: z.string().trim().min(1).max(200),
+    destination_label: z.string().trim().min(1).max(200),
+    route_summary: z.object({
+      legs: z
+        .array(
+          z.object({
+            mode: z.string().min(1).max(30),
+            service: z.string().max(80).optional(),
+            from: z.string().max(200),
+            to: z.string().max(200),
+          }),
+        )
+        .min(1)
+        .max(20),
+      transfers: z.number().int().min(0).max(20),
+      walking_distance_m: z.number().min(0).max(100_000),
+    }),
+    predicted_min_range: MinuteRangeSchema.nullable(),
+    actual_duration_min: z.number().int().min(0).max(24 * 60).nullable(),
+    duration_basis: z.enum(["aktual", "estimasi"]),
+    fare_total: z.number().int().min(0).max(1_000_000),
+    co2_estimate_g: z.number().int().min(0).nullable().optional(), // diisi Hari 2
+  })
+  // "Jangan pernah melabeli estimasi sebagai aktual" — ditegakkan di server
+  // juga, bukan hanya di app.
+  .refine(
+    (t) => (t.duration_basis === "aktual") === (t.actual_duration_min !== null),
+    "actual_duration_min wajib diisi bila duration_basis 'aktual', dan wajib null bila 'estimasi'.",
+  );
+
+export const RatingRequestSchema = z.object({
+  stars: z.number().int().min(1, "Rating harus 1–5.").max(5, "Rating harus 1–5."),
+  eta_accurate: z.boolean().nullable().optional(),
+  transfer_risk_accurate: z.boolean().nullable().optional(),
+  crowd_accurate: z.boolean().nullable().optional(),
+  message: z.string().trim().max(500, "Pesan maksimal 500 karakter.").nullable().optional(),
+});
