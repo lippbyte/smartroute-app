@@ -88,6 +88,17 @@ function openDatabase(): DatabaseSync {
     );
     CREATE INDEX IF NOT EXISTS toto_usage_user_time ON toto_usage(user_id, asked_at);
     CREATE INDEX IF NOT EXISTS toto_usage_time ON toto_usage(asked_at);
+
+    -- Hari 2 Task 2: pagar pemakaian IQAir (satu baris per panggilan keluar)
+    -- dan nilai terakhir yang sukses (cadangan bila API gagal). Di DB supaya
+    -- restart backend tidak mengosongkan hitungan maupun cadangan.
+    CREATE TABLE IF NOT EXISTS iqair_calls (called_at INTEGER NOT NULL);
+    CREATE INDEX IF NOT EXISTS iqair_calls_time ON iqair_calls(called_at);
+    CREATE TABLE IF NOT EXISTS air_quality_last (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      payload_json TEXT NOT NULL,
+      fetched_at INTEGER NOT NULL
+    );
   `);
   return db;
 }

@@ -10,6 +10,7 @@ import authRouter from "./routes/auth";
 import meRouter from "./routes/me";
 import tripsRouter from "./routes/trips";
 import emissionFactorsRouter from "./routes/emissionFactors";
+import airQualityRouter from "./routes/airQuality";
 
 const app = express();
 
@@ -46,6 +47,7 @@ app.use(authRouter);
 app.use(meRouter);
 app.use(tripsRouter);
 app.use(emissionFactorsRouter);
+app.use(airQualityRouter);
 
 // Penutup: galat yang lolos (mis. body JSON rusak dari express.json)
 // dibalas JSON tanpa stack trace — default Express mengirim halaman HTML
