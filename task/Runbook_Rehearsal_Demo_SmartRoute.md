@@ -79,6 +79,7 @@ Talking point "tarif flat" kembali cocok dengan #1. Catatan lama (21 Sep) yang m
 ### 2b. Layar Masuk saat app dibuka (sejak Hari 1)
 
 - App yang belum pernah dibuka di perangkat itu menampilkan layar **Masuk**. Untuk demo fitur inti, ketuk **"Lanjut sebagai tamu"**. Pilihan ini diingat, jadi tidak ditanya lagi di pembukaan berikutnya.
+- **TOTO (Skenario 4) wajib masuk** sejak Hari 1: tamu hanya melihat ajakan "Masuk untuk memakai TOTO". Akun demo punya batas lebih tinggi (bawaan 100 pertanyaan/jam; pengguna biasa 30/jam; semua pengguna 300/hari). Kalau TOTO menolak karena batas di tengah rehearsal, naikkan **tanpa restart** dengan menulis `backend/backend-skeleton/data/toto-limits.json`, mis. `{ "daily_cap": 500, "demo_hourly_limit": 200 }`.
 - Untuk demo riwayat/TOTO, masuk dengan **akun demo**. Buat sekali dengan `npm run seed:demo` di `backend/backend-skeleton`. Kredensialnya ada di `backend/backend-skeleton/data/demo-account.local.json` (tidak di-commit; jangan ditampilkan di layar/projector).
 
 ## 3. Rencana Cadangan (Fallback)

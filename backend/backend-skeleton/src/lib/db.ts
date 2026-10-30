@@ -14,8 +14,11 @@ import { DatabaseSync } from "node:sqlite";
 
 const DEFAULT_DB_PATH = path.join(__dirname, "..", "..", "data", "smartroute.db");
 
+// Diekspor: file konfigurasi pendamping (mis. data/toto-limits.json) ditaruh
+// di folder yang sama dengan database.
+export const dbPath = process.env.DB_PATH || DEFAULT_DB_PATH;
+
 function openDatabase(): DatabaseSync {
-  const dbPath = process.env.DB_PATH || DEFAULT_DB_PATH;
   mkdirSync(path.dirname(dbPath), { recursive: true });
   const db = new DatabaseSync(dbPath);
   db.exec("PRAGMA journal_mode = WAL;");
@@ -75,6 +78,16 @@ function openDatabase(): DatabaseSync {
       message TEXT,
       created_at TEXT NOT NULL
     );
+
+    -- Hari 1 Task 4: satu baris per percobaan memanggil TOTO (LLM), dasar
+    -- batas per jam per pengguna dan batas global harian. Di DB, bukan
+    -- memori, supaya restart backend tidak mengosongkan hitungan.
+    CREATE TABLE IF NOT EXISTS toto_usage (
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      asked_at INTEGER NOT NULL -- epoch ms
+    );
+    CREATE INDEX IF NOT EXISTS toto_usage_user_time ON toto_usage(user_id, asked_at);
+    CREATE INDEX IF NOT EXISTS toto_usage_time ON toto_usage(asked_at);
   `);
   return db;
 }

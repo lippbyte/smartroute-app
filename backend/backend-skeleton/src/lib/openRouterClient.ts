@@ -12,7 +12,10 @@
 // model on OpenRouter is `anthropic/claude-haiku-4.5`, so that's the
 // default here in the task's spirit ("murah & cepat"); still overridable
 // via OPENROUTER_MODEL if a cheaper/faster tier becomes preferable later.
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+// OPENROUTER_URL hanya untuk UJI (Hari 1 Task 4): mengarahkan panggilan ke
+// provider tiruan lokal supaya payload akhir bisa ditangkap & diperiksa
+// (scripts/test-toto-privacy.mjs). Produksi/demo: biarkan kosong.
+const OPENROUTER_URL = process.env.OPENROUTER_URL || "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_MODEL = "anthropic/claude-haiku-4.5";
 
 // A hung request would otherwise block POST /assistant/ask indefinitely —

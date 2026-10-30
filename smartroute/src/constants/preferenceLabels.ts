@@ -48,11 +48,17 @@ export const STORED_ONLY_NOTE =
 export const ACCESSIBILITY_DEV_NOTE =
   "Penyesuaian rute untuk profil ini sedang dikembangkan. SmartRoute belum bisa menjamin rute yang ditampilkan aksesibel.";
 
-// TODO:verifikasi — teks persetujuan final ditetapkan tim (disarankan
-// ditinjau satu orang di luar tim). Isinya harus tetap benar terhadap kode:
-// data hanya disimpan di backend SmartRoute, TIDAK dikirim ke provider AI
-// (lihat backend services/users.ts & Task 4), dan bisa dihapus lewat
-// DELETE /me/accessibility.
+// Status klaim di teks ini terhadap kode (diperbarui Hari 1 Task 4):
+// - "tidak dikirim ke layanan AI (TOTO)": TERVERIFIKASI — uji
+//   backend scripts/test-toto-privacy.mjs (P2) menangkap payload akhir ke
+//   provider untuk akun dengan 5 kebutuhan aksesibilitas dan memastikan
+//   tidak ada kode/label/kata aksesibilitas di dalamnya; backend hanya
+//   mengirim nama panggilan + prioritas (routes/assistant.ts).
+// - "bisa dihapus kapan saja di Profil": TERVERIFIKASI — DELETE
+//   /me/accessibility mengosongkan kolom di database (uji T3d).
+// TODO:verifikasi — tinggal KATA-KATA final oleh tim (disarankan ditinjau
+// satu orang di luar tim). Bila teks diubah, klaimnya harus tetap benar
+// terhadap dua poin di atas.
 export const ACCESSIBILITY_CONSENT_TEXT =
   "Saya setuju SmartRoute menyimpan kebutuhan aksesibilitas yang saya pilih di akun saya, untuk mengembangkan rute yang lebih sesuai. " +
   "Data ini tidak dikirim ke layanan AI (TOTO) dan tidak dibagikan ke pihak lain. Saya bisa menghapusnya kapan saja di Profil.";

@@ -13,7 +13,7 @@ export function invalidRequest(res: Response, error: ZodError, message: string) 
   return res.status(400).json({ error: "invalid_request", message, fields });
 }
 
-export function tooManyRequests(res: Response, retryAfterSec: number, message: string) {
+export function tooManyRequests(res: Response, retryAfterSec: number, message: string, code = "rate_limited") {
   res.setHeader("Retry-After", String(retryAfterSec));
-  return res.status(429).json({ error: "rate_limited", message, retry_after_sec: retryAfterSec });
+  return res.status(429).json({ error: code, message, retry_after_sec: retryAfterSec });
 }

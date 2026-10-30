@@ -13,8 +13,16 @@ import ScreenBackground from "@/components/ScreenBackground";
 // apa pun). Kalau jawabannya soal halte di sekitar, backend mengembalikan
 // daftar halte yang ditampilkan sebagai kartu dengan tombol "Jalan ke sini" /
 // "Berangkat dari sini".
+//
+// Hari 1 Task 4: TOTO hanya untuk pengguna yang masuk (melindungi kredit
+// OpenRouter). Penjaga ada DI LAYAR INI (AssistantRoute di bawah), jadi
+// kedua pintu masuk — tombol di Beranda dan item SideMenu — serta tautan
+// langsung ke /assistant tertutup sekaligus. Tamu melihat ajakan masuk;
+// komponen chat (GPS, panggilan backend) tidak dirender sama sekali.
 import AssistantAnswerText from "@/components/assistant/AssistantAnswerText";
+import PrimaryButton from "@/components/form/PrimaryButton";
 import Text from "@/components/Text";
+import { useAuth } from "@/context/AuthContext";
 import StopActionButtons from "@/components/transit/StopActionButtons";
 import {
   MODE_COLOR,
@@ -22,11 +30,7 @@ import {
   MODE_LABEL,
   formatDistance,
 } from "@/components/transit/transitMode";
-import {
-  AssistantAskError,
-  AssistantTurn,
-  askAssistant,
-} from "@/services/assistantService";
+import { AssistantTurn, askAssistant } from "@/services/assistantService";
 import { NearbyStop } from "@/services/nearbyStopsService";
 import { getCurrentCoordinate } from "@/utils/currentLocation";
 import { Coordinate, geocodePlace } from "@/utils/geocode";
@@ -213,7 +217,48 @@ function StopCard({ stop, userLocation }: { stop: NearbyStop; userLocation: Coor
 
 type LocationStatus = "locating" | "ready" | "unavailable";
 
-export default function AssistantScreen() {
+export default function AssistantRoute() {
+  const { status, token } = useAuth();
+  if (status === "loading") return <ScreenBackground>{null}</ScreenBackground>;
+  if (status !== "signedIn" || !token) return <TotoSignInPrompt />;
+  return <AssistantScreen token={token} />;
+}
+
+function TotoSignInPrompt() {
+  const router = useRouter();
+  return (
+    <ScreenBackground>
+      <View className="flex-1 justify-center px-5 gap-5">
+        <View className="bg-surface rounded-3xl px-5 py-6 gap-4 border border-line">
+          <View
+            className="w-16 h-16 rounded-full items-center justify-center self-center"
+            style={{ backgroundColor: "#EEF2FF" }}
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+          >
+            <Ionicons name="chatbubble-ellipses" size={32} color="#0F3FC1" />
+          </View>
+          <Text className="text-ink text-2xl text-center" weight="bold" accessibilityRole="header">
+            Masuk untuk memakai TOTO
+          </Text>
+          <Text className="text-ink-2 text-[15px] text-center" style={{ lineHeight: 22 }}>
+            TOTO, asisten AI SmartRoute, khusus untuk pengguna yang sudah masuk supaya layanannya tetap tersedia
+            untuk semua. Pencarian rute, peta kepadatan, dan halte terdekat tetap bisa dipakai tanpa akun.
+          </Text>
+          <PrimaryButton label="Masuk" onPress={() => router.push("/login")} />
+          <PrimaryButton label="Daftar" variant="outline" onPress={() => router.push("/register")} />
+        </View>
+        <PrimaryButton
+          label="Kembali"
+          variant="ghost-light"
+          onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
+        />
+      </View>
+    </ScreenBackground>
+  );
+}
+
+function AssistantScreen({ token }: { token: string }) {
   const router = useRouter();
   const [input, setInput] = useState("");
   const [entries, setEntries] = useState<ChatEntry[]>([]);
@@ -248,7 +293,7 @@ export default function AssistantScreen() {
       // "dari sini ke X" tanpa GPS tidak punya titik asal sama sekali.
       const routeQuery = parsed && (parsed.originText !== null || userLocation) ? parsed : null;
       const route = routeQuery ? await resolveRouteQuery(routeQuery, userLocation) : null;
-      const reply = await askAssistant(question, {
+      const reply = await askAssistant(token, question, {
         userLocation,
         origin: route?.originCoord,
         destination: route?.destinationCoord,
@@ -278,10 +323,10 @@ export default function AssistantScreen() {
                 role: "assistant",
                 status: "error",
                 forQuestion: question,
-                message:
-                  err instanceof AssistantAskError || err instanceof Error
-                    ? err.message
-                    : "Gagal mendapat jawaban dari asisten.",
+                // ApiError membawa pesan siap tampil: batas per jam/harian
+                // (429), sesi berakhir (401 — AuthContext sekaligus
+                // mengarahkan ke Masuk), timeout, atau jaringan putus.
+                message: err instanceof Error ? err.message : "Gagal mendapat jawaban dari asisten.",
               }
             : e,
         ),
