@@ -11,8 +11,25 @@
 //
 // Overlay biasa saat mount (lihat _layout.tsx), bukan route: tidak masuk
 // riwayat navigasi dan tidak pernah tampil dua kali dalam satu sesi.
+//
+// Hari 2 Task 5: judul teks diganti LOGO RESMI (PNG putih transparan,
+// assets/images/logo-smartroute-white.png — PNG, bukan SVG: lihat laporan
+// Hari 2, modul native react-native-svg belum pasti ada di Dev Client).
+// Logo berada di atas tiang Monas yang berpola, jadi di belakangnya ada
+// "lingkaran gelap radial": beberapa lingkaran konsentris semi-transparan
+// (tanpa pustaka gradien/native). Lingkaran ikut memudar MASUK bersama logo,
+// jadi frame pertama overlay identik dengan splash native (tanpa kedip).
+// Latar tetap #001C43 (sama dengan splash native — keputusan Khalifa).
+// Durasi animasi tidak berubah.
 import { useEffect, useRef } from "react";
-import { Animated, Easing, Image, StyleSheet, Text, View } from "react-native";
+import { Animated, Easing, Image, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+
+const LOGO = require("@/assets/images/logo-smartroute-white.png");
+const LOGO_ASPECT = 909 / 200; // ukuran berkas setelah ruang kosong dipotong
+// Lingkaran luar -> dalam: makin ke tengah makin gelap. 7 lapis tipis
+// (bukan 4 tebal) supaya tepinya tidak tampak sebagai pita bertingkat —
+// dicek lewat pratinjau gambar di atas splash-background.png.
+const BACKDROP_RINGS = [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4];
 
 const TEXT_IN_DELAY_MS = 200;
 const TEXT_IN_MS = 750;
@@ -25,6 +42,9 @@ interface SplashIntroProps {
 }
 
 export default function SplashIntro({ onFinish }: SplashIntroProps) {
+  const { width } = useWindowDimensions();
+  const logoWidth = Math.min(300, width - 72);
+  const backdrop = logoWidth * 1.15;
   const title = useRef(new Animated.Value(0)).current;
   const tagline = useRef(new Animated.Value(0)).current;
   const overlay = useRef(new Animated.Value(1)).current;
@@ -77,8 +97,26 @@ export default function SplashIntro({ onFinish }: SplashIntroProps) {
       {/* Tepat di tengah: flex center pada seluruh layar, padding sama di
           keempat sisi supaya teks panjang tidak menempel ke tepi. */}
       <View style={styles.center}>
+        {/* Lingkaran gelap di belakang logo — memudar masuk bersama logo. */}
+        <Animated.View pointerEvents="none" style={[styles.backdropWrap, { opacity: title }]}>
+          {BACKDROP_RINGS.map((scale) => (
+            <View
+              key={scale}
+              style={[
+                styles.ring,
+                { width: backdrop * scale, height: backdrop * scale, borderRadius: (backdrop * scale) / 2 },
+              ]}
+            />
+          ))}
+        </Animated.View>
         <Animated.View style={rise(title, 14)}>
-          <Text style={styles.title}>Smart Route AI</Text>
+          <Image
+            source={LOGO}
+            style={{ width: logoWidth, height: logoWidth / LOGO_ASPECT }}
+            resizeMode="contain"
+            accessibilityRole="image"
+            accessibilityLabel="SmartRoute"
+          />
         </Animated.View>
         <Animated.View style={rise(tagline, 10)}>
           <Text style={styles.tagline}>Navigate Smarter. Travel Better.</Text>
@@ -95,19 +133,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
-    gap: 6,
+    gap: 10,
+  },
+  backdropWrap: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  // Navy lebih gelap dari latar, ditumpuk 7 lapis -> efek radial.
+  ring: {
+    position: "absolute",
+    backgroundColor: "rgba(0, 12, 32, 0.13)",
   },
   // Font variabel yang dimuat di _layout.tsx hanya "Plus-Jakarta-Sans";
   // komponen Text app memetakan tebal ke keluarga "-Bold" yang tidak
   // dimuat (di web jatuh ke serif), jadi di sini pakai Text RN langsung.
-  title: {
-    fontFamily: "Plus-Jakarta-Sans",
-    color: "#FFFFFF",
-    fontSize: 28,
-    fontWeight: "700",
-    textAlign: "center",
-    letterSpacing: 0.2,
-  },
   tagline: {
     fontFamily: "Plus-Jakarta-Sans",
     color: "#E2E8F0",
