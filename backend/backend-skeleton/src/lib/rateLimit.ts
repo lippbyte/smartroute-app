@@ -14,15 +14,38 @@ export class SlidingWindowLimiter {
     private readonly windowMs: number,
   ) {}
 
+  private recent(key: string, now: number): number[] {
+    const recent = (this.hits.get(key) ?? []).filter((t) => now - t < this.windowMs);
+    if (recent.length) this.hits.set(key, recent);
+    else this.hits.delete(key);
+    return recent;
+  }
+
   /** Catat satu percobaan. `allowed: false` kalau percobaan ini melewati batas. */
   hit(key: string, now: number = Date.now()): { allowed: boolean; retryAfterSec: number } {
-    const recent = (this.hits.get(key) ?? []).filter((t) => now - t < this.windowMs);
+    const blocked = this.check(key, now);
+    if (!blocked.allowed) return blocked;
+    this.record(key, now);
+    return blocked;
+  }
+
+  /** Cek tanpa mencatat — untuk pola "hanya kegagalan yang dihitung"
+   *  (login): check() dulu, record() hanya bila percobaan gagal. */
+  check(key: string, now: number = Date.now()): { allowed: boolean; retryAfterSec: number } {
+    const recent = this.recent(key, now);
     if (recent.length >= this.limit) {
-      this.hits.set(key, recent);
       return { allowed: false, retryAfterSec: Math.ceil((recent[0] + this.windowMs - now) / 1000) };
     }
+    return { allowed: true, retryAfterSec: 0 };
+  }
+
+  record(key: string, now: number = Date.now()): void {
+    const recent = this.recent(key, now);
     recent.push(now);
     this.hits.set(key, recent);
-    return { allowed: true, retryAfterSec: 0 };
+  }
+
+  reset(key: string): void {
+    this.hits.delete(key);
   }
 }

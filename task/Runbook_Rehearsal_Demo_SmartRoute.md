@@ -58,6 +58,24 @@
 - [ ] 3 video Model 0 (2 stock terbaik + 1 video Jakarta) sudah di-load di device presentasi, bukan streaming dari cloud.
 - [ ] Koneksi internet cadangan (hotspot HP) siap kalau WiFi venue bermasalah.
 
+### 2a. Reset cepat hazard Skenario 1 (restart backend)
+
+**Restart backend = cara tercepat mereset hazard Skenario 1.** Laporan kepadatan (crowd report) hanya disimpan di **memori** backend, jadi restart langsung menghapus semua laporan aktif, termasuk laporan Monas dari Skenario 2. Hasil Skenario 1 kembali sama dengan rehearsal, tanpa menunggu 15 menit.
+
+- **Yang TIDAK ikut terhapus:** akun, riwayat perjalanan, dan rating (sejak Hari 1 tersimpan di file SQLite `backend/backend-skeleton/data/smartroute.db`). Pengguna yang sedang masuk di app tetap masuk.
+- **Cara restart yang aman** (hanya proses backend di port 3000, bukan semua proses `node`, karena itu ikut mematikan Metro):
+  ```powershell
+  (Get-NetTCPConnection -LocalPort 3000 -State Listen).OwningProcess | % { taskkill /PID $_ /T /F }
+  cd backend/backend-skeleton; npm run dev
+  ```
+  Tunggu baris `Server listening on http://localhost:3000`, lalu cek `/health`. Tunnel ngrok tidak perlu di-restart.
+- Klaster halte dimuat ulang beberapa detik setelah start. Kalau mau aman, jalankan satu pencarian dummy dulu sebelum mengulang Skenario 1 di depan audiens.
+
+### 2b. Layar Masuk saat app dibuka (sejak Hari 1)
+
+- App yang belum pernah dibuka di perangkat itu menampilkan layar **Masuk**. Untuk demo fitur inti, ketuk **"Lanjut sebagai tamu"**. Pilihan ini diingat, jadi tidak ditanya lagi di pembukaan berikutnya.
+- Untuk demo riwayat/TOTO, masuk dengan **akun demo**. Buat sekali dengan `npm run seed:demo` di `backend/backend-skeleton`. Kredensialnya ada di `backend/backend-skeleton/data/demo-account.local.json` (tidak di-commit; jangan ditampilkan di layar/projector).
+
 ## 3. Rencana Cadangan (Fallback)
 
 - **Video rekaman lengkap seluruh alur** (5 skenario di atas, direkam end-to-end sekali jalan mulus) — diputar kalau ada kegagalan teknis live. Ini eksplisit diminta PRD, belum ada sampai sekarang.

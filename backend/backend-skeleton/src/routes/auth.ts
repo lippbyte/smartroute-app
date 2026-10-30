@@ -9,9 +9,16 @@ import { createUser, EmailTakenError, findUserForLogin, getUserById } from "../s
 
 const router = Router();
 
-// Per IP, dihitung SETIAP percobaan (berhasil maupun gagal) — 10/menit.
+// Login: 10 KEGAGALAN/menit per pasangan IP+email. Login berhasil tidak
+// dihitung (dan menghapus hitungan gagal pasangan itu). Berkunci IP+email,
+// bukan IP saja, supaya banyak pengguna di balik satu IP (tunnel, NAT
+// kampus/kantor) tidak saling mengunci. Konsekuensinya: menebak satu
+// password ke banyak email dari satu IP tidak dibatasi di sini —
+// TODO:verifikasi perlu tidaknya batas longgar per IP sebelum produksi.
 const loginLimiter = new SlidingWindowLimiter(10, 60 * 1000);
 const registerLimiter = new SlidingWindowLimiter(10, 60 * 1000);
+
+const loginKey = (ip: string | undefined, email: string) => `${ip ?? "unknown"}|${email.trim().toLowerCase()}`;
 
 // Sama persis untuk "email tidak terdaftar" dan "kata sandi salah".
 const LOGIN_FAILED_MESSAGE = "Email atau kata sandi salah.";
@@ -53,13 +60,16 @@ router.post("/auth/register", async (req, res) => {
 });
 
 router.post("/auth/login", async (req, res) => {
-  const limit = loginLimiter.hit(req.ip ?? "unknown");
+  const parsed = LoginRequestSchema.safeParse(req.body);
+  if (!parsed.success) return invalidRequest(res, parsed.error, "Email dan kata sandi wajib diisi.");
+
+  // Dicek SEBELUM password diperiksa: selama terkunci, password benar pun
+  // ditolak — kalau tidak, penebak tetap mendapat jawaban benar/salah.
+  const key = loginKey(req.ip, parsed.data.email);
+  const limit = loginLimiter.check(key);
   if (!limit.allowed) {
     return tooManyRequests(res, limit.retryAfterSec, "Terlalu banyak percobaan masuk. Coba lagi dalam 1 menit.");
   }
-
-  const parsed = LoginRequestSchema.safeParse(req.body);
-  if (!parsed.success) return invalidRequest(res, parsed.error, "Email dan kata sandi wajib diisi.");
 
   try {
     const found = findUserForLogin(parsed.data.email);
@@ -67,8 +77,10 @@ router.post("/auth/login", async (req, res) => {
       ? await verifyPassword(parsed.data.password, found.passwordHash)
       : (await burnPasswordCheck(parsed.data.password), false);
     if (!found || !ok) {
+      loginLimiter.record(key);
       return res.status(401).json({ error: "invalid_credentials", message: LOGIN_FAILED_MESSAGE });
     }
+    loginLimiter.reset(key);
     const session = createSession(found.id);
     return res.status(200).json({ ...session, user: getUserById(found.id) });
   } catch (err) {

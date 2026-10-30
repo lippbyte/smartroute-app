@@ -4,6 +4,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import SplashIntro from "@/components/SplashIntro";
+import { AuthProvider } from "@/context/AuthContext";
 import "../../global.css";
 
 // Latar navigator OPAK (biru malam splash). Gambar latar dipasang per
@@ -48,20 +49,24 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={APP_THEME}>
-      <View style={{ flex: 1, backgroundColor: "#001C43" }}>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: "#001C43" },
-          }}
-        >
-          <Stack.Screen name="(tabs)" />
-        </Stack>
-        {/* Intro di ATAS app yang sudah dirender, supaya fade-out-nya
-            langsung memperlihatkan Beranda, bukan layar kosong. */}
-        {showIntro && <SplashIntro onFinish={() => setShowIntro(false)} />}
-      </View>
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider value={APP_THEME}>
+        <View style={{ flex: 1, backgroundColor: "#001C43" }}>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: "#001C43" },
+            }}
+          >
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="login" />
+            <Stack.Screen name="register" />
+          </Stack>
+          {/* Intro di ATAS app yang sudah dirender, supaya fade-out-nya
+              langsung memperlihatkan Beranda, bukan layar kosong. */}
+          {showIntro && <SplashIntro onFinish={() => setShowIntro(false)} />}
+        </View>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }

@@ -12,8 +12,13 @@ import tripsRouter from "./routes/trips";
 
 const app = express();
 
-// HP mengakses lewat tunnel ngrok (proxy di loopback): tanpa ini req.ip
-// selalu 127.0.0.1, jadi batas login per IP akan dibagi semua pengguna.
+// HP mengakses lewat tunnel (agen ngrok / klien localtunnel berjalan di
+// laptop ini, jadi koneksinya datang dari loopback). Tanpa ini req.ip selalu
+// 127.0.0.1 dan batas login dibagi semua pengguna tunnel. "loopback" hanya
+// memercayai X-Forwarded-For dari hop loopback: Express membaca entri paling
+// kanan yang ditambahkan agen tunnel, jadi XFF palsu kiriman klien tidak
+// bisa dipakai menyamar. Terverifikasi untuk ngrok (Hari 1 Task 2);
+// TODO:verifikasi localtunnel mengirim X-Forwarded-For.
 app.set("trust proxy", "loopback");
 
 app.use((req, res, next) => {

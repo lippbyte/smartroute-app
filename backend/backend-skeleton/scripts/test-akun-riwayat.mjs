@@ -183,17 +183,79 @@ async function main() {
   );
 }
 
-async function ratelimit() {
+// Login dari "IP" tertentu: request lokal (loopback) dengan X-Forwarded-For
+// dipercaya backend (trust proxy loopback) — mensimulasikan klien berbeda di
+// balik satu tunnel.
+async function loginAs(base, ip, email, password) {
+  const res = await fetch(`${base}/auth/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "ngrok-skip-browser-warning": "1",
+      ...(ip ? { "X-Forwarded-For": ip } : {}),
+    },
+    body: JSON.stringify({ email, password }),
+  });
+  await res.text();
+  return res.status;
+}
+
+async function failNTimes(base, ip, email, n) {
   const statuses = [];
-  for (let i = 0; i < 11; i++) {
-    const r = await call("POST", "/auth/login", { body: { email: "rate-limit@contoh.test", password: "salah-sekali-123" } });
-    statuses.push(r.status);
+  for (let i = 0; i < n; i++) statuses.push(await loginAs(base, ip, email, "salah-sekali-123"));
+  return statuses;
+}
+
+// Fase ratelimit: batas login 10 KEGAGALAN/menit per IP+email.
+//   node scripts/test-akun-riwayat.mjs <baseUrl> ratelimit [tunnelUrl]
+async function ratelimit() {
+  const TUNNEL = process.argv[4];
+  const tag = randomBytes(4).toString("hex");
+  const victim = `rl-${tag}@contoh.test`;
+
+  const s = await failNTimes(BASE, "203.0.113.10", victim, 11);
+  check("2c 11 login gagal cepat (IP+email sama): 10x 401 lalu 429", s.slice(0, 10).every((x) => x === 401) && s[10] === 429, s.join(","));
+  check("2d email lain dari IP yang sama tidak ikut terkunci", (await loginAs(BASE, "203.0.113.10", `lain-${tag}@contoh.test`, "x")) === 401);
+  check("2e email sama dari IP lain tidak ikut terkunci", (await loginAs(BASE, "203.0.113.20", victim, "x")) === 401);
+
+  // Akun nyata: password BENAR pun ditolak selama terkunci; login berhasil
+  // tidak dihitung (12x berhasil tetap 200).
+  const acct = { email: `rl-ok-${tag}@contoh.test`, password: randomBytes(12).toString("base64url"), name: "Uji RL" };
+  await call("POST", "/auth/register", { body: acct });
+  const okStatuses = [];
+  for (let i = 0; i < 12; i++) okStatuses.push(await loginAs(BASE, "203.0.113.30", acct.email, acct.password));
+  check("2f 12 login BERHASIL berturut-turut tidak terkena batas", okStatuses.every((x) => x === 200), okStatuses.join(","));
+  await failNTimes(BASE, "203.0.113.30", acct.email, 10);
+  check("2g selama terkunci, password benar pun -> 429", (await loginAs(BASE, "203.0.113.30", acct.email, acct.password)) === 429);
+
+  // XFF palsu dari klien tidak bisa dipakai lolos: hop terakhir (yang
+  // ditambahkan proxy tepercaya) yang menentukan.
+  const spoofed = await failNTimes(BASE, "198.51.100.1, 203.0.113.40", `sp-${tag}@contoh.test`, 10);
+  const after = await loginAs(BASE, "198.51.100.99, 203.0.113.40", `sp-${tag}@contoh.test`, "x");
+  check("2h ganti entri XFF paling kiri tidak membuka kunci", spoofed.every((x) => x === 401) && after === 429, `ke-11: ${after}`);
+
+  if (TUNNEL) {
+    // Lewat tunnel sungguhan: agen ngrok menambahkan IP publik laptop ini
+    // ke XFF. Kalau trust proxy salah, req.ip = 127.0.0.1 = sama dengan
+    // request lokal tanpa XFF, dan email ini akan ikut terkunci di lokal.
+    const viaTunnel = `tn-${tag}@contoh.test`;
+    const t = await failNTimes(TUNNEL, null, viaTunnel, 11);
+    check("2i lewat tunnel: 10x 401 lalu 429", t.slice(0, 10).every((x) => x === 401) && t[10] === 429, t.join(","));
+    // Bukti positif: ambil X-Forwarded-For yang BENAR-BENAR diteruskan agen
+    // ngrok ke backend (API inspeksi lokal agen, port 4040), lalu pastikan
+    // pasangan IP itu + email itu yang terkunci.
+    const inspect = await (await fetch("http://127.0.0.1:4040/api/requests/http?limit=50")).json();
+    const forwardedIp = inspect.requests
+      .find((r) => r.request.uri === "/auth/login")
+      ?.request.headers["X-Forwarded-For"]?.[0];
+    check("2j agen tunnel meneruskan X-Forwarded-For", !!forwardedIp, forwardedIp ? "ada" : "tidak ada");
+    if (forwardedIp) {
+      const sameClient = await loginAs(BASE, forwardedIp, viaTunnel, "x");
+      check("2k kunci tunnel tercatat pada IP klien asli (IP itu + email itu -> 429)", sameClient === 429, `HTTP ${sameClient}`);
+      const otherClient = await loginAs(BASE, "203.0.113.50", viaTunnel, "x");
+      check("2l pengguna lain di balik tunnel yang sama tidak terkunci", otherClient === 401, `HTTP ${otherClient}`);
+    }
   }
-  check(
-    "2c 11 percobaan login cepat: 10x 401 lalu 429",
-    statuses.slice(0, 10).every((s) => s === 401) && statuses[10] === 429,
-    statuses.join(","),
-  );
 }
 
 async function persist() {

@@ -1,7 +1,16 @@
 import CustomTabBar from "@/components/CustomTabBar";
-import { Tabs } from "expo-router";
+import { useAuth } from "@/context/AuthContext";
+import { Redirect, Tabs } from "expo-router";
 
 export default function TabsLayout() {
+  // Hari 1 Task 2: belum masuk DAN belum memilih tamu -> layar Masuk (yang
+  // selalu menawarkan "Lanjut sebagai tamu"). Tamu & pengguna masuk lewat.
+  // Juga menangkap sesi yang berakhir di tengah pemakaian. Selama sesi
+  // tersimpan dibaca (sekejap), intro splash masih menutupi layar.
+  const { status } = useAuth();
+  if (status === "loading") return null;
+  if (status === "signedOut") return <Redirect href="/login" />;
+
   return (
     <Tabs
       tabBar={(props) => <CustomTabBar {...props} />}
