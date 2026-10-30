@@ -205,6 +205,38 @@ async function main() {
     check("T3d DELETE /me/accessibility mengosongkan kolom di database", row?.accessibility_json === null && row?.accessibility_consent_at === null);
   }
 
+  // --- Task 5: payload berbentuk persis seperti tripService.buildTripInput
+  // di app (client_ref "nav-<waktu36>-<acak8>", label moda tampilan).
+  const navRef = `nav-${Date.now().toString(36)}-${randomBytes(4).toString("hex")}`;
+  const appTrip = {
+    client_ref: navRef,
+    origin_label: "Blok M",
+    destination_label: "Kota",
+    route_summary: {
+      legs: [
+        { mode: "Walk", from: "Blok M", to: "Halte Blok M" },
+        { mode: "TransJakarta", service: "1", from: "Halte Blok M", to: "Halte Kota" },
+        { mode: "Walk", from: "Halte Kota", to: "Kota" },
+      ],
+      transfers: 0,
+      walking_distance_m: 412,
+    },
+    predicted_min_range: { min: 92, max: 106 },
+    actual_duration_min: null,
+    duration_basis: "estimasi",
+    fare_total: 3500,
+  };
+  const t5 = await call("POST", "/trips", { token: tokenA2, body: appTrip });
+  const t5again = await call("POST", "/trips", { token: tokenA2, body: appTrip });
+  const t5list = await call("GET", "/trips", { token: tokenA2 });
+  const t5row = t5list.json?.find((t) => t.id === t5.json?.id);
+  check("T5a payload app tersimpan; 'Coba simpan lagi' (client_ref sama) tidak dobel", t5.status === 201 && t5again.status === 200 && t5again.json?.id === t5.json?.id && t5list.json?.filter((t) => t.id === t5.json?.id).length === 1);
+  check(
+    "T5b rentang prediksi, basis, tarif, dan leg kembali utuh",
+    JSON.stringify(t5row?.predicted_min_range) === '{"min":92,"max":106}' && t5row?.duration_basis === "estimasi" && t5row?.actual_duration_min === null && t5row?.fare_total === 3500 && t5row?.route_summary?.legs?.[1]?.service === "1" && t5row?.co2_estimate_g === null,
+  );
+  check("T5c riwayat terbaru dulu", t5list.json?.[0]?.id === t5.json?.id);
+
   mkdirSync(path.dirname(STATE_FILE), { recursive: true });
   writeFileSync(
     STATE_FILE,
@@ -292,9 +324,10 @@ async function persist() {
   const me = await call("GET", "/me", { token: state.a.token });
   check("5a setelah restart: token & akun A masih berlaku", me.status === 200 && me.json?.email === state.a.email, `HTTP ${me.status}`);
   const trips = await call("GET", "/trips", { token: state.a.token });
+  const tripA = trips.json?.find((t) => t.id === state.a.tripId);
   check(
     "5b setelah restart: riwayat + rating A masih ada",
-    trips.status === 200 && trips.json?.[0]?.id === state.a.tripId && trips.json?.[0]?.rating?.stars === 4,
+    trips.status === 200 && tripA?.rating?.stars === 4,
     `${trips.json?.length} entri`,
   );
   const tripsB = await call("GET", "/trips", { token: state.b.token });
