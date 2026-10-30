@@ -71,6 +71,7 @@ import { decodePolyline } from "../lib/polyline";
 import { tjRouteCategory, tjRouteFareIdr } from "./tjRouteCategory";
 import { computeReliabilityForItinerary } from "./reliability";
 import { computeRecommendationScore } from "./recommendationScore";
+import { estimateCo2 } from "./emissionFactors";
 
 // "+ buffer sekitar 15%" per the task brief, representing schedule
 // uncertainty rather than a false single precise number.
@@ -408,6 +409,10 @@ function buildRouteCandidate(
       crowd_level: crowdLevel,
       reliability,
     }),
+    // Hari 2 Task 1: estimasi CO₂ — HANYA field tambahan. Dihitung dari
+    // jarak per leg OTP2, tidak masuk skor/urutan/dedupe. Bila ada leg tanpa
+    // jarak, field dihilangkan (tidak ditebak).
+    ...(estimateCo2(legs) ?? {}),
   };
 }
 

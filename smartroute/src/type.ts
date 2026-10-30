@@ -53,6 +53,18 @@ export interface RouteItem {
   // rentang ini untuk Ringkasan Perjalanan & riwayat ("Prediksi A–B mnt").
   // Optional: RouteItem lama/mock tidak punya.
   travel_time_range?: { min: number; max: number };
+  // Hari 2: estimasi CO₂ dari backend (gram, dibulatkan puluhan). Optional:
+  // tidak ada bila backend tidak bisa menghitung (leg tanpa jarak) atau
+  // RouteItem lama. Selalu ditampilkan berlabel "Estimasi".
+  co2?: {
+    estimate_g: number;
+    by_mode: Record<string, number>;
+    car_g: number;
+    motorcycle_g: number;
+    /** Jarak proksi pembanding = jumlah jarak semua leg (m). */
+    comparator_distance_m: number;
+    factors_version: string;
+  };
   cost_idr: number;
   transfers: number;
   walking_distance_m: number;

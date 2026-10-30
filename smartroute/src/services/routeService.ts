@@ -55,6 +55,14 @@ export interface BackendRouteCandidate {
   transfer_count: number;
   walking_distance_m: number;
   cost_idr: number;
+  // Hari 2: estimasi CO₂ (opsional, additive) — lihat emissionFactors.ts di backend.
+  co2_estimate_g?: number;
+  co2_by_mode?: Record<string, number>;
+  co2_car_g?: number;
+  co2_motorcycle_g?: number;
+  co2_comparator_distance_m?: number;
+  co2_basis?: "estimasi";
+  co2_factors_version?: string;
   // Task Backend-04 — diisi backend kalau ada laporan kepadatan aktif untuk
   // halte yang dilewati rute (15 menit terakhir), undefined kalau belum ada.
   crowd_level?: "low" | "moderate" | "high";
@@ -232,6 +240,22 @@ export function adaptToLegacyShape(
     })),
     travel_time_minutes: candidate.travel_time_minutes.min,
     travel_time_range: { min: candidate.travel_time_minutes.min, max: candidate.travel_time_minutes.max },
+    // Hari 2: hanya diteruskan bila backend mengirim paket CO₂ lengkap —
+    // tidak pernah diisi tebakan.
+    co2:
+      candidate.co2_estimate_g != null &&
+      candidate.co2_car_g != null &&
+      candidate.co2_motorcycle_g != null &&
+      candidate.co2_comparator_distance_m != null
+        ? {
+            estimate_g: candidate.co2_estimate_g,
+            by_mode: candidate.co2_by_mode ?? {},
+            car_g: candidate.co2_car_g,
+            motorcycle_g: candidate.co2_motorcycle_g,
+            comparator_distance_m: candidate.co2_comparator_distance_m,
+            factors_version: candidate.co2_factors_version ?? "",
+          }
+        : undefined,
     cost_idr: candidate.cost_idr,
     transfers: candidate.transfer_count,
     walking_distance_m: candidate.walking_distance_m,

@@ -66,6 +66,17 @@ export interface RouteCandidate {
   // crowd_level/reliability di atas) karena rumusnya sudah punya nilai
   // netral untuk tiap komponen yang datanya belum ada.
   recommendation_score: number;
+  // Hari 2 Task 1: estimasi CO₂ (ADDITIVE, semua opsional) — lihat
+  // services/emissionFactors.ts untuk faktor & sumbernya. Gram, dibulatkan
+  // ke puluhan. Tidak dipakai untuk skor atau urutan.
+  co2_estimate_g?: number;
+  co2_by_mode?: Partial<Record<RouteLeg["mode"], number>>;
+  co2_car_g?: number;
+  co2_motorcycle_g?: number;
+  // Jarak proksi pembanding mobil/motor = jumlah jarak semua leg (m).
+  co2_comparator_distance_m?: number;
+  co2_basis?: "estimasi";
+  co2_factors_version?: string;
 }
 
 export interface RouteRecommendation {

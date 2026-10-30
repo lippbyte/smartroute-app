@@ -83,6 +83,16 @@ const RouteCandidateSchema = z.object({
   // like crowd_level/reliability above) — the formula defines a neutral
   // fallback for every component, so there's always a number to give.
   recommendation_score: z.number(),
+  // Hari 2 Task 1: WAJIB didaftarkan di sini — z.object membuang kunci yang
+  // tidak dikenal, jadi tanpa baris-baris ini field CO₂ hilang diam-diam
+  // sebelum respons dikirim. Semua opsional (additive).
+  co2_estimate_g: z.number().nonnegative().optional(),
+  co2_by_mode: z.partialRecord(z.enum(["WALK", "BUS", "RAIL", "SUBWAY", "TRAM"]), z.number().nonnegative()).optional(),
+  co2_car_g: z.number().nonnegative().optional(),
+  co2_motorcycle_g: z.number().nonnegative().optional(),
+  co2_comparator_distance_m: z.number().nonnegative().optional(),
+  co2_basis: z.literal("estimasi").optional(),
+  co2_factors_version: z.string().optional(),
 });
 
 export const RouteRecommendationSchema = z.object({

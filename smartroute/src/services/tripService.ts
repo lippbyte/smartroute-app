@@ -34,7 +34,7 @@ export interface Trip {
   actual_duration_min: number | null;
   duration_basis: DurationBasis;
   fare_total: number;
-  co2_estimate_g: number | null; // diisi Hari 2 — sampai itu selalu null
+  co2_estimate_g: number | null; // estimasi; null untuk perjalanan sebelum Hari 2 / rute tanpa data
   rating: TripRating | null;
 }
 
@@ -47,6 +47,7 @@ export interface TripInput {
   actual_duration_min: number | null;
   duration_basis: DurationBasis;
   fare_total: number;
+  co2_estimate_g: number | null;
 }
 
 export interface RatingInput {
@@ -100,6 +101,8 @@ export function buildTripInput(args: {
     actual_duration_min: actualMinutes,
     duration_basis: actualMinutes !== null ? "aktual" : "estimasi",
     fare_total: Math.round(route.cost_idr),
+    // Hari 2: estimasi backend apa adanya (null bila rute tidak membawanya).
+    co2_estimate_g: route.co2 ? Math.round(route.co2.estimate_g) : null,
   };
 }
 
