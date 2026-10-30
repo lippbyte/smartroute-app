@@ -176,10 +176,39 @@ async function main() {
   const afterLogout = await call("GET", "/me", { token: regAcc.json?.token });
   check("E8 keluar mencabut token (GET /me -> 401)", logoutC.status === 204 && afterLogout.status === 401, `HTTP ${logoutC.status}/${afterLogout.status}`);
 
+  // --- Task 3: preferensi terbaca ulang setelah keluar & masuk lagi
+  const fullPrefs = { priority: "cepat", walk_limit: "jauh", avoid_modes: ["bus", "lrt"] };
+  await call("PUT", "/me/preferences", { token: tokenA, body: fullPrefs });
+  await call("POST", "/auth/logout", { token: tokenA });
+  const relogin = await call("POST", "/auth/login", { body: { email: a.email, password: a.password } });
+  const meRelogin = await call("GET", "/me", { token: relogin.json?.token });
+  check(
+    "T3a preferensi lengkap terbaca ulang setelah keluar & masuk lagi",
+    JSON.stringify(meRelogin.json?.preferences) === JSON.stringify(fullPrefs),
+    JSON.stringify(meRelogin.json?.preferences),
+  );
+  const tokenA2 = relogin.json?.token;
+  const skipAllPrefs = await call("PUT", "/me/preferences", { token: tokenA2, body: {} });
+  check("T3b preferensi kosong (onboarding dilewati) diterima -> 200", skipAllPrefs.status === 200, `HTTP ${skipAllPrefs.status}`);
+  const badMode = await call("PUT", "/me/preferences", { token: tokenA2, body: { avoid_modes: ["angkot"] } });
+  check("T3c moda tidak dikenal -> 400", badMode.status === 400, `HTTP ${badMode.status}`);
+
+  // Hapus aksesibilitas benar-benar menghapus di backend: dicek langsung di
+  // file database (hanya bila BASE lokal & memakai DB default).
+  await call("PUT", "/me/accessibility", { token: tokenA2, body: { needs: ["low_vision"], consent: true } });
+  await call("DELETE", "/me/accessibility", { token: tokenA2 });
+  if (/localhost|127\.0\.0\.1/.test(BASE) && !process.env.DB_PATH) {
+    const { DatabaseSync } = await import("node:sqlite");
+    const dbFile = new DatabaseSync(path.join(import.meta.dirname, "..", "data", "smartroute.db"), { readOnly: true });
+    const row = dbFile.prepare("SELECT accessibility_json, accessibility_consent_at FROM users WHERE email = ?").get(a.email);
+    dbFile.close();
+    check("T3d DELETE /me/accessibility mengosongkan kolom di database", row?.accessibility_json === null && row?.accessibility_consent_at === null);
+  }
+
   mkdirSync(path.dirname(STATE_FILE), { recursive: true });
   writeFileSync(
     STATE_FILE,
-    JSON.stringify({ a: { ...a, token: tokenA, tripId: tripA.json?.id }, b: { ...b, token: tokenB, tripId: tripB.json?.id } }, null, 2),
+    JSON.stringify({ a: { ...a, token: tokenA2, tripId: tripA.json?.id }, b: { ...b, token: tokenB, tripId: tripB.json?.id } }, null, 2),
   );
 }
 

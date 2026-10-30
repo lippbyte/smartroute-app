@@ -1,7 +1,26 @@
+// Kartu Preferensi di Profil. Hari 1 Task 3: data asli dari akun (dulu
+// opsi statis "Hemat / Maks. Transit / Moda Favorit" yang tidak tersimpan
+// di mana pun). Label & catatan sama dengan onboarding
+// (constants/preferenceLabels.ts). Mengubah prioritas TIDAK mengubah chip
+// default di layar hasil — tetap "Semua" (keputusan 2a).
+import { ToggleChip } from "@/components/form/ChoiceControls";
+import {
+  AVOID_MODE_OPTIONS,
+  labelOf,
+  PRIORITY_NOTE,
+  PRIORITY_OPTIONS,
+  STORED_ONLY_NOTE,
+  WALK_LIMIT_OPTIONS,
+} from "@/constants/preferenceLabels";
+import { useAuth } from "@/context/AuthContext";
+import { ApiError } from "@/services/apiClient";
+import * as authService from "@/services/authService";
+import type { AvoidableMode, Priority, UserPreferences, WalkLimit } from "@/services/authService";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Animated,
   Easing,
   Modal,
@@ -20,12 +39,7 @@ interface PreferenceItemProps {
   showBorder?: boolean;
 }
 
-interface PreferenceOption {
-  id: string;
-  label: string;
-  value: string;
-  options: string[];
-}
+const NONE_LABEL = "Belum dipilih";
 
 // ─── Baris Preferensi ─────────────────────────────────────────
 function PreferenceItem({
@@ -37,9 +51,12 @@ function PreferenceItem({
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${label}: ${value}. Ketuk untuk mengubah.`}
       className={`flex-row justify-between items-center py-3.5 active:opacity-60 ${
         showBorder ? "border-b border-line" : ""
       }`}
+      style={{ minHeight: 48 }}
     >
       <Text className="text-ink-2 text-sm font-medium">{label}</Text>
       <View className="flex-row items-center gap-1.5 flex-1 justify-end ml-4">
@@ -194,77 +211,120 @@ function OptionModal({
 }
 
 // ─── Komponen Utama ───────────────────────────────────────────
+type ModalKind = "priority" | "walk";
+
+const MODAL_CONFIG: Record<ModalKind, { title: string; options: { value: string; label: string }[] }> = {
+  priority: { title: "Prioritas utama", options: PRIORITY_OPTIONS },
+  walk: { title: "Batas jalan kaki", options: WALK_LIMIT_OPTIONS },
+};
+
 export default function PreferenceCard() {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [activePreference, setActivePreference] =
-    useState<PreferenceOption | null>(null);
+  const { status, user, token, replaceUser } = useAuth();
+  const [modal, setModal] = useState<ModalKind | null>(null);
+  // Judul/pilihan modal dipertahankan selama animasi tutup (lihat OptionModal).
+  const [lastModal, setLastModal] = useState<ModalKind>("priority");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const [preferences, setPreferences] = useState<PreferenceOption[]>([
-    {
-      id: "1",
-      label: "Prioritas Utama",
-      value: "Hemat",
-      options: ["Hemat", "Cepat", "Nyaman"],
-    },
-    {
-      id: "2",
-      label: "Maks. Transit",
-      value: "1x",
-      options: ["Tanpa Transit", "1x", "2x", "Tidak Batas"],
-    },
-    {
-      id: "3",
-      label: "Moda Favorit",
-      value: "MRT",
-      options: ["MRT", "TransJakarta", "KRL", "Angkot", "Semua"],
-    },
-    {
-      id: "4",
-      label: "Maks. Jalan Kaki",
-      value: "10 Menit",
-      options: ["5 Menit", "10 Menit", "15 Menit", "20 Menit"],
-    },
-  ]);
-
-  const handlePress = (item: PreferenceOption) => {
-    setActivePreference(item);
-    setModalVisible(true);
-  };
-
-  const handleSelect = (selectedValue: string) => {
-    if (!activePreference) return;
-    setPreferences((prev) =>
-      prev.map((p) =>
-        p.id === activePreference.id ? { ...p, value: selectedValue } : p,
-      ),
+  if (status !== "signedIn" || !user || !token) {
+    return (
+      <View className="bg-surface w-full px-5 py-4 rounded-2xl border border-line gap-1">
+        <Text className="text-ink font-bold text-lg">Preferensi</Text>
+        <Text className="text-ink-2 text-sm">
+          Masuk untuk menyimpan prioritas perjalanan, batas jalan kaki, dan moda yang ingin dihindari.
+        </Text>
+      </View>
     );
+  }
+
+  const prefs = user.preferences;
+  const current: Required<UserPreferences> = {
+    priority: prefs.priority ?? null,
+    walk_limit: prefs.walk_limit ?? null,
+    avoid_modes: prefs.avoid_modes ?? [],
   };
+
+  const save = async (patch: Partial<UserPreferences>) => {
+    setSaving(true);
+    setError(null);
+    try {
+      replaceUser(await authService.updatePreferences(token, { ...current, ...patch }));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Gagal menyimpan preferensi. Coba lagi.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openModal = (kind: ModalKind) => {
+    setLastModal(kind);
+    setModal(kind);
+  };
+
+  const config = MODAL_CONFIG[lastModal];
+  const selectedLabel =
+    (lastModal === "priority" ? labelOf(PRIORITY_OPTIONS, current.priority) : labelOf(WALK_LIMIT_OPTIONS, current.walk_limit)) ??
+    NONE_LABEL;
+
+  const handleSelect = (label: string) => {
+    const value = config.options.find((o) => o.label === label)?.value ?? null;
+    if (lastModal === "priority") void save({ priority: value as Priority | null });
+    else void save({ walk_limit: value as WalkLimit | null });
+  };
+
+  const toggleMode = (m: AvoidableMode) =>
+    void save({
+      avoid_modes: current.avoid_modes.includes(m) ? current.avoid_modes.filter((x) => x !== m) : [...current.avoid_modes, m],
+    });
 
   return (
     <View className="bg-surface w-full px-5 py-4 rounded-2xl border border-line">
-      <Text className="text-ink font-bold text-lg mb-1">
-        Preferensi
-      </Text>
-
-      <View className="w-full">
-        {preferences.map((item, index) => (
-          <PreferenceItem
-            key={item.id}
-            label={item.label}
-            value={item.value}
-            showBorder={index !== preferences.length - 1}
-            onPress={() => handlePress(item)}
-          />
-        ))}
+      <View className="flex-row items-center justify-between mb-1">
+        <Text className="text-ink font-bold text-lg">Preferensi</Text>
+        {saving && <ActivityIndicator size="small" color="#0F3FC1" accessibilityLabel="Menyimpan preferensi" />}
       </View>
 
+      <View className="w-full">
+        <PreferenceItem
+          label="Prioritas utama"
+          value={labelOf(PRIORITY_OPTIONS, current.priority) ?? NONE_LABEL}
+          onPress={() => openModal("priority")}
+        />
+        <Text className="text-ink-2 text-xs pt-2 pb-1">{PRIORITY_NOTE}</Text>
+        <PreferenceItem
+          label="Batas jalan kaki"
+          value={labelOf(WALK_LIMIT_OPTIONS, current.walk_limit) ?? NONE_LABEL}
+          onPress={() => openModal("walk")}
+        />
+        <View className="py-3.5 gap-2.5">
+          <Text className="text-ink-2 text-sm font-medium">Moda yang ingin dihindari</Text>
+          <View className="flex-row flex-wrap gap-2">
+            {AVOID_MODE_OPTIONS.map((o) => (
+              <ToggleChip
+                key={o.value}
+                label={o.label}
+                selected={current.avoid_modes.includes(o.value)}
+                onPress={() => toggleMode(o.value)}
+              />
+            ))}
+          </View>
+        </View>
+        <Text className="text-ink-2 text-xs">{STORED_ONLY_NOTE}</Text>
+      </View>
+
+      {error && (
+        <Text className="text-sm mt-2" style={{ color: "#B91C1C" }} accessibilityRole="alert">
+          {error}
+        </Text>
+      )}
+
       <OptionModal
-        visible={modalVisible}
-        title={activePreference?.label ?? ""}
-        options={activePreference?.options ?? []}
-        selectedValue={activePreference?.value ?? ""}
+        visible={modal !== null}
+        title={config.title}
+        options={[...config.options.map((o) => o.label), NONE_LABEL]}
+        selectedValue={selectedLabel}
         onSelect={handleSelect}
-        onClose={() => setModalVisible(false)}
+        onClose={() => setModal(null)}
       />
     </View>
   );

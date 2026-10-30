@@ -45,7 +45,9 @@ export default function RegisterScreen() {
     setSubmitting(true);
     try {
       await signUp({ name: values.name.trim(), email: values.email, password: values.password });
-      leave();
+      // Task 3: lanjut ke onboarding preferensi (semua langkahnya bisa
+      // dilewati). replace: tombol back tidak kembali ke form Daftar.
+      router.replace("/onboarding");
     } catch (err) {
       if (err instanceof ApiError) {
         const serverFields: Partial<Record<Field, string>> = {};
