@@ -138,7 +138,13 @@ export default function TripSummary({ route, originName, destinationName, actual
                   .join(" · ")}
                 {` untuk jarak proksi ${(route.co2.comparator_distance_m / 1000).toFixed(1).replace(".", ",")} km.`}
               </Text>
-              <Pressable onPress={() => router.push("/co2-info")} accessibilityRole="link" hitSlop={6} className="self-start">
+              <Pressable
+                onPress={() => router.push("/co2-info")}
+                accessibilityRole="link"
+                accessibilityLabel="Tentang angka CO₂ ini"
+                hitSlop={6}
+                className="self-start"
+              >
                 <Text className="text-xs underline" weight="semibold" style={{ color: "#0F3FC1" }}>
                   Tentang angka ini
                 </Text>

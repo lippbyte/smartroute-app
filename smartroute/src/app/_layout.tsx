@@ -4,6 +4,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import SplashIntro from "@/components/SplashIntro";
+import { AssistiveSettingsProvider } from "@/context/AssistiveSettingsContext";
 import { AuthProvider } from "@/context/AuthContext";
 import "../../global.css";
 
@@ -50,6 +51,7 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
+      <AssistiveSettingsProvider>
       <ThemeProvider value={APP_THEME}>
         <View style={{ flex: 1, backgroundColor: "#001C43" }}>
           <Stack
@@ -70,6 +72,7 @@ export default function RootLayout() {
           {showIntro && <SplashIntro onFinish={() => setShowIntro(false)} />}
         </View>
       </ThemeProvider>
+      </AssistiveSettingsProvider>
     </AuthProvider>
   );
 }

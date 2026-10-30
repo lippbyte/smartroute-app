@@ -1,5 +1,6 @@
 import AccessibilityCard from "@/components/AccessibilityCard";
 import AccountCard from "@/components/AccountCard";
+import AssistiveSettingsCard from "@/components/AssistiveSettingsCard";
 import HistoryCard from "@/components/HistoryCard";
 import PreferenceCard from "@/components/PreferenceCard";
 import ScreenBackground from "@/components/ScreenBackground";
@@ -22,6 +23,7 @@ export default function AccountScreen() {
         <AccountCard />
         <PreferenceCard />
         <AccessibilityCard />
+        <AssistiveSettingsCard />
         <HistoryCard />
       </ScrollView>
     </ScreenBackground>

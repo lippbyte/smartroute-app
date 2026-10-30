@@ -348,6 +348,8 @@ export default function Index() {
         {/* Tombol Action Utama */}
         <Pressable
           onPress={handleSearch}
+          accessibilityRole="button"
+          accessibilityLabel="Cari rute terbaik"
           className="w-full bg-[#018959] py-3.5 rounded-2xl flex-row items-center justify-center gap-2 active:opacity-80"
         >
           <Ionicons name="search" size={20} color="#FFFFFF" />
@@ -364,6 +366,8 @@ export default function Index() {
         {/* Task App-01: entry point ke layar peta kepadatan (web-only) */}
         <Pressable
           onPress={() => router.push("/crowd-map")}
+          accessibilityRole="button"
+          accessibilityLabel="Peta Kepadatan. Lihat halte yang lagi padat berdasarkan laporan pengguna."
           className="w-full bg-surface rounded-2xl p-4 flex-row items-center gap-3 active:opacity-80 border border-line"
         >
           <View className="bg-brand-blue/10 p-2.5 rounded-xl">
@@ -385,6 +389,8 @@ export default function Index() {
             atas (batasan eksplisit task), mirip pola kartu Peta Kepadatan. */}
         <Pressable
           onPress={() => router.push("/nearby-stops")}
+          accessibilityRole="button"
+          accessibilityLabel="Halte Terdekat. Cari halte TransJakarta, MRT, LRT, dan JakLingko di sekitar Anda."
           className="w-full bg-surface rounded-2xl p-4 flex-row items-center gap-3 active:opacity-80 border border-line"
         >
           <View className="bg-brand-blue/10 p-2.5 rounded-xl">
@@ -404,6 +410,8 @@ export default function Index() {
         {/* Task App-22: entry point ke TOTO (Asisten AI). */}
         <Pressable
           onPress={() => router.push("/assistant")}
+          accessibilityRole="button"
+          accessibilityLabel="TOTO, asisten AI. Tanya halte terdekat, rute, dan tarif."
           className="w-full bg-surface rounded-2xl p-4 flex-row items-center gap-3 active:opacity-80 border border-line relative"
         >
           <View className="bg-primary-emerald/15 p-2.5 rounded-xl">

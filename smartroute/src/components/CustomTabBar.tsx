@@ -71,6 +71,10 @@ export default function CustomTabBar({ state, descriptors, navigation }: any) {
             <Pressable
               key={route.key}
               onPress={onPress}
+              // Hari 3: pembaca layar mengumumkan nama tab & tab yang aktif.
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isFocused }}
+              accessibilityLabel={typeof item.label === "string" ? item.label : route.name}
               className="items-center justify-center flex-1 py-1 active:opacity-70"
             >
               {isFocused ? item.active : item.inactive}

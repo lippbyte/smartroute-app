@@ -10,8 +10,12 @@
 //   arah Y" lalu "Turun di Z · N halte lagi" saat naik transit.
 // - Langkah berpindah OTOMATIS saat GPS tiba di ujung leg; tombol manual
 //   tetap ada (untuk demo tanpa bergerak).
+import NavAlert, { type NavAlertContent } from "@/components/navigate/NavAlert";
 import NavBanner from "@/components/navigate/NavBanner";
 import NavigateMap, { NavigateMapHandle } from "@/components/navigate/NavigateMap";
+import SimpleNavView from "@/components/navigate/SimpleNavView";
+import { useAssistive } from "@/context/AssistiveSettingsContext";
+import { plainStep } from "@/utils/simpleSteps";
 import type { MapSegment, MapStop } from "@/components/navigate/navigateMapTypes";
 import NavPanel from "@/components/navigate/NavPanel";
 import TripSummary from "@/components/navigate/TripSummary";
@@ -25,7 +29,13 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { LayoutChangeEvent, Pressable, View } from "react-native";
+import { AccessibilityInfo, LayoutChangeEvent, Pressable, Vibration, View } from "react-native";
+
+// Hari 3 Task 2: peringatan teks besar tampil sekian lama lalu hilang sendiri.
+const NAV_ALERT_MS = 7000;
+// Pola getar (Android: jeda, getar, jeda, getar; iOS mengabaikan pola dan
+// bergetar sekali). Izin VIBRATE ada di manifest (audit Hari 3 Task 0c).
+const VIBRATE_PATTERN = [0, 400, 200, 400];
 
 // Tiba di ujung leg (pindah ke langkah berikutnya). Transit lebih longgar:
 // GPS di dalam kereta/bus sering meleset lebih jauh.
@@ -69,6 +79,30 @@ export default function NavigateScreen() {
   const wasAwayFromDestinationRef = useRef(false);
   const [actualMinutes, setActualMinutes] = useState<number | null>(null);
   const clientRefRef = useRef(newClientRef());
+
+  // Hari 3 Task 2: bantuan aksesibilitas (semua bawaan mati -> layar sama
+  // persis seperti sebelumnya). bigAlerts: kejadian yang dipicu GPS (pindah
+  // langkah, tiba) ditandai teks besar + getar, tanpa suara. simpleNav: satu
+  // langkah per layar tanpa peta.
+  const { settings: assistive } = useAssistive();
+  const bigAlertsRef = useRef(assistive.bigAlerts.on);
+  bigAlertsRef.current = assistive.bigAlerts.on;
+  const [navAlert, setNavAlert] = useState<NavAlertContent | null>(null);
+  const notify = (content: NavAlertContent) => {
+    if (!bigAlertsRef.current) return;
+    setNavAlert(content);
+    try {
+      Vibration.vibrate(VIBRATE_PATTERN);
+    } catch {
+      // Getar tidak tersedia (mis. web/izin): teks besar tetap tampil.
+    }
+    AccessibilityInfo.announceForAccessibility(`${content.title}. ${content.detail}`);
+  };
+  useEffect(() => {
+    if (!navAlert) return;
+    const t = setTimeout(() => setNavAlert(null), NAV_ALERT_MS);
+    return () => clearTimeout(t);
+  }, [navAlert]);
 
   const legs = stored?.route.legs ?? [];
 
@@ -178,11 +212,17 @@ export default function NavigateScreen() {
         }
         setIsFollowingUser(false);
         setIsFinished(true);
+        notify({ kind: "arrived", title: "Anda sudah tiba", detail: stored?.destinationName ?? leg.to });
       }
       return;
     }
     const radius = isWalkLeg(leg) ? WALK_LEG_END_RADIUS_M : TRANSIT_LEG_END_RADIUS_M;
-    if (dist <= radius) setCurrentLegIndex((i) => Math.min(i + 1, legs.length - 1));
+    if (dist <= radius) {
+      const nextIndex = Math.min(currentLegIndex + 1, legs.length - 1);
+      setCurrentLegIndex(nextIndex);
+      const next = plainStep(legs[nextIndex], nextIndex === legs.length - 1);
+      notify({ kind: "step", title: next.title, detail: next.detail });
+    }
   }, [userLocation, leg, currentLegIndex, legs.length, isFinished]);
 
   // --- Sisa waktu & jarak (leg aktif dihitung sebagian sesuai posisi GPS) ---
@@ -234,21 +274,44 @@ export default function NavigateScreen() {
   }
 
   const focusCoords = segments[currentLegIndex]?.coords ?? [];
+  // Hari 3: Mode sederhana menggantikan peta + banner + panel (deteksi GPS,
+  // pindah langkah otomatis, dan trigger 75 m tetap berjalan di atas).
+  const simple = assistive.simpleNav.on;
+  const nextOrFinish = () => {
+    if (currentLegIndex >= legs.length - 1) {
+      setIsFollowingUser(false);
+      setIsFinished(true);
+    } else goToLeg(currentLegIndex + 1);
+  };
 
   return (
     <View className="flex-1 bg-[#18181B]">
-      <NavigateMap
-        ref={mapRef}
-        segments={segments}
-        stops={stops}
-        activeLegIndex={currentLegIndex}
-        focusCoords={focusCoords}
-        userLocation={userLocation}
-        isFollowingUser={isFollowingUser}
-        padding={{ top: bannerHeight + 48, bottom: panelHeight }}
-      />
+      {!simple && (
+        <NavigateMap
+          ref={mapRef}
+          segments={segments}
+          stops={stops}
+          activeLegIndex={currentLegIndex}
+          focusCoords={focusCoords}
+          userLocation={userLocation}
+          isFollowingUser={isFollowingUser}
+          padding={{ top: bannerHeight + 48, bottom: panelHeight }}
+        />
+      )}
 
-      {!isFinished && (
+      {simple && !isFinished && (
+        <SimpleNavView
+          legs={legs}
+          currentLegIndex={currentLegIndex}
+          progress={progress}
+          remainingMin={remainingMin}
+          onPrev={() => goToLeg(currentLegIndex - 1)}
+          onNext={nextOrFinish}
+          onExit={() => (router.canGoBack() ? router.back() : handleGoHome())}
+        />
+      )}
+
+      {!isFinished && !simple && (
         <NavBanner
           leg={leg}
           nextLeg={legs[currentLegIndex + 1] ?? null}
@@ -260,7 +323,7 @@ export default function NavigateScreen() {
 
       {/* Tombol ikuti-GPS di kanan, tepat di atas kartu progres (tinggi
           kartu diukur dinamis, bukan angka tebakan — Task App-17). */}
-      {!isFinished && (
+      {!isFinished && !simple && (
         <View className="absolute right-4 z-10" style={{ bottom: panelHeight + 14 }}>
           <Pressable
             onPress={() => {
@@ -283,7 +346,7 @@ export default function NavigateScreen() {
         </View>
       )}
 
-      {!isFinished && (
+      {!isFinished && !simple && (
         <NavPanel
           route={stored.route}
           currentLegIndex={currentLegIndex}
@@ -292,12 +355,7 @@ export default function NavigateScreen() {
           remainingM={remainingM}
           onSelectLeg={goToLeg}
           onPrev={() => goToLeg(currentLegIndex - 1)}
-          onNext={() => {
-            if (currentLegIndex >= legs.length - 1) {
-              setIsFollowingUser(false);
-              setIsFinished(true);
-            } else goToLeg(currentLegIndex + 1);
-          }}
+          onNext={nextOrFinish}
           onExit={() => (router.canGoBack() ? router.back() : handleGoHome())}
           onLayout={(e: LayoutChangeEvent) => setPanelHeight(e.nativeEvent.layout.height)}
         />
@@ -313,6 +371,9 @@ export default function NavigateScreen() {
           onGoHome={handleGoHome}
         />
       )}
+
+      {/* Hari 3: peringatan teks besar (hanya bila bantuan aktif). */}
+      {navAlert && <NavAlert alert={navAlert} onDismiss={() => setNavAlert(null)} />}
     </View>
   );
 }

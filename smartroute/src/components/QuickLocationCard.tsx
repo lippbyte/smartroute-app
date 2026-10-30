@@ -28,6 +28,10 @@ export default function QuickLocationCard({
     <Pressable
       onPress={onPress}
       onLongPress={onLongPress}
+      // Hari 3: label pembaca layar (judul + lokasi tersimpan / belum diatur).
+      accessibilityRole="button"
+      accessibilityLabel={savedLabel ? `${title}: ${savedLabel}` : `${title}, belum diatur`}
+      accessibilityHint={savedLabel ? "Ketuk untuk memakai sebagai tujuan. Tahan untuk mengubah." : "Ketuk untuk mengatur lokasi."}
       className="bg-surface flex-1 rounded-2xl items-center justify-center p-5 shadow-card active:opacity-70"
     >
       <Ionicons

@@ -4,8 +4,12 @@
 // jadi root screen di dalam Stack milik route/_layout.tsx, bukan flat
 // sibling dengan route/[id].tsx di dalam Tabs navigator. Lihat komentar di
 // route/_layout.tsx untuk alasan lengkapnya.
+import A11yInfoSheet from "@/components/A11yInfoSheet";
 import AirQualityCard from "@/components/AirQualityCard";
 import BadgeInfoSheet from "@/components/BadgeInfoSheet";
+import { useAssistive } from "@/context/AssistiveSettingsContext";
+import { a11yBanner, confidenceDisplay } from "@/utils/a11yDisplay";
+import { formatDistance } from "@/utils/navInstructions";
 import ScreenBackground from "@/components/ScreenBackground";
 import Text from "@/components/Text";
 import TopNav from "@/components/TopNav";
@@ -33,6 +37,7 @@ import {
   Modal,
   Pressable,
   ScrollView,
+  Switch,
   View,
 } from "react-native";
 
@@ -77,12 +82,18 @@ const RouteOptionCard = ({
   destinationName,
   badge,
   onBadgePress,
+  emphasizeWalk,
+  onA11yPress,
 }: {
   item: RouteItem;
   originName: string;
   destinationName: string;
   badge?: RouteBadge;
   onBadgePress?: (badge: RouteBadge) => void;
+  /** Hari 3: bantuan "Tonjolkan jalan kaki & transfer" (lansia/membawa anak). */
+  emphasizeWalk?: boolean;
+  /** Hari 3: buka rincian info aksesibilitas kursi roda rute ini. */
+  onA11yPress?: (item: RouteItem) => void;
 }) => {
   const router = useRouter();
   const typeLabel = getRouteTypeLabel(item);
@@ -191,6 +202,30 @@ const RouteOptionCard = ({
         )}
       </View>
 
+      {/* Hari 3: "Tonjolkan jalan kaki & transfer" — hanya bila bantuan itu
+          aktif; tanpa itu kartu sama persis seperti Hari 2. */}
+      {emphasizeWalk && (
+        <View
+          className="flex-row flex-wrap gap-x-4 gap-y-1 rounded-lg px-3 py-2"
+          style={{ backgroundColor: "#EEF2FF" }}
+          accessible
+          accessibilityLabel={`Jalan kaki total ${formatDistance(item.walking_distance_m)}, ${item.transfers} kali transit`}
+        >
+          <View className="flex-row items-center gap-1.5">
+            <Ionicons name="walk" size={18} color="#1E3A8A" />
+            <Text className="text-sm" weight="bold" style={{ color: "#1E3A8A" }}>
+              Jalan kaki {formatDistance(item.walking_distance_m)}
+            </Text>
+          </View>
+          <View className="flex-row items-center gap-1.5">
+            <Ionicons name="swap-horizontal" size={18} color="#1E3A8A" />
+            <Text className="text-sm" weight="bold" style={{ color: "#1E3A8A" }}>
+              {item.transfers === 0 ? "Tanpa transit" : `${item.transfers}x transit`}
+            </Text>
+          </View>
+        </View>
+      )}
+
       <View className="flex-row justify-between items-center gap-3 pt-1 border-t border-line">
         <View className="flex-1 flex-row flex-wrap gap-x-3 gap-y-1">
           <View className="flex-row items-center gap-1">
@@ -224,6 +259,26 @@ const RouteOptionCard = ({
               </Text>
             </View>
           )}
+          {/* Hari 3: tingkat kelengkapan data kursi roda (hanya saat "Tampilkan
+              info aksesibilitas" aktif). Ketuk -> rincian per titik. */}
+          {item.accessibility && (() => {
+            const d = confidenceDisplay(item.accessibility);
+            return (
+              <Pressable
+                onPress={() => onA11yPress?.(item)}
+                hitSlop={6}
+                accessibilityRole="button"
+                accessibilityLabel={`${d.label}. Ketuk untuk rincian per halte.`}
+                className="flex-row items-center gap-1 rounded-md px-2 py-1"
+                style={{ backgroundColor: d.bg }}
+              >
+                <Ionicons name={d.icon} size={13} color={d.fg} />
+                <Text className="text-xs" weight="semibold" style={{ color: d.fg }}>
+                  {d.label}
+                </Text>
+              </Pressable>
+            );
+          })()}
         </View>
         <Text className="text-sm font-semibold text-ink shrink-0" numberOfLines={1}>
           {formatRupiah(item.cost_idr)}
@@ -416,6 +471,15 @@ export default function RouteScreen() {
   // tanpa lencana udara, tanpa galat) dan lencana yang sedang dijelaskan.
   const [air, setAir] = useState<AirQuality | null>(null);
   const [badgeInfo, setBadgeInfo] = useState<RouteBadge | null>(null);
+  // Hari 3 Task 2: toggle "Tampilkan info aksesibilitas" — hanya muncul bila
+  // bantuan itu aktif (diusulkan dari profil kursi roda atau dinyalakan di
+  // Profil); saat muncul, posisinya menyala dan bisa dimatikan. Tanpa
+  // bantuan itu, request & tampilan sama persis seperti Hari 2.
+  const { settings: assistive } = useAssistive();
+  const showA11yToggle = assistive.showA11yInfo.on;
+  const [a11yOn, setA11yOn] = useState(true);
+  const withAccessibility = showA11yToggle && a11yOn;
+  const [a11yRoute, setA11yRoute] = useState<RouteItem | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -460,6 +524,7 @@ export default function RouteScreen() {
           { lat: destCoord.latitude, lng: destCoord.longitude },
           departureTimeParam,
           modeFilter.backendModes,
+          withAccessibility,
         );
         if (cancelled) return;
         setApiResponse(
@@ -492,6 +557,7 @@ export default function RouteScreen() {
     destinationCoordParam,
     departureTimeParam,
     modeKey,
+    withAccessibility,
   ]);
 
   const filteredRoutes = (apiResponse?.routes ?? [])
@@ -662,6 +728,48 @@ export default function RouteScreen() {
           <>
           {/* Hari 2: info udara ringkas + tautan penjelasan angka CO₂. */}
           <AirQualityCard air={air} compact />
+          {/* Hari 3: toggle info aksesibilitas + pernyataan jujur. */}
+          {showA11yToggle && (
+            <View className="bg-surface rounded-2xl border border-line px-4 py-3 gap-2">
+              <Pressable
+                onPress={() => setA11yOn((v) => !v)}
+                accessibilityRole="switch"
+                accessibilityState={{ checked: a11yOn }}
+                accessibilityLabel="Tampilkan info aksesibilitas"
+                className="flex-row items-center justify-between gap-3"
+                style={{ minHeight: 44 }}
+              >
+                <Text className="text-ink text-sm flex-1" weight="bold">
+                  Tampilkan info aksesibilitas
+                </Text>
+                <Switch
+                  value={a11yOn}
+                  onValueChange={setA11yOn}
+                  trackColor={{ false: "#A3A3A3", true: "#0F3FC1" }}
+                  thumbColor="#FFFFFF"
+                  accessibilityElementsHidden
+                  importantForAccessibility="no"
+                />
+              </Pressable>
+              {a11yOn && apiResponse && (() => {
+                const banner = a11yBanner(apiResponse.routes);
+                return (
+                  <>
+                    <Text className="text-ink-2 text-xs" style={{ lineHeight: 17 }}>
+                      {banner.general} Status halte menurut data GTFS; urutan rute tidak diubah.
+                    </Text>
+                    {banner.allLow && (
+                      <View className="rounded-xl p-2.5" style={{ backgroundColor: "#FEF2F2", borderWidth: 1, borderColor: "#FCA5A5" }} accessibilityRole="alert">
+                        <Text className="text-xs" style={{ color: "#7F1D1D", lineHeight: 17 }}>
+                          {banner.allLow}
+                        </Text>
+                      </View>
+                    )}
+                  </>
+                );
+              })()}
+            </View>
+          )}
           {filteredRoutes.some((r) => r.co2) && (
             <Pressable onPress={() => router.push("/co2-info")} accessibilityRole="link" hitSlop={6} className="self-start flex-row items-center gap-1">
               <Ionicons name="information-circle-outline" size={14} color="#E2E8F0" />
@@ -685,6 +793,8 @@ export default function RouteScreen() {
                 destinationName={apiResponse!.destination.name}
                 badge={badges[item.route_id]}
                 onBadgePress={setBadgeInfo}
+                emphasizeWalk={assistive.emphasizeWalk.on}
+                onA11yPress={setA11yRoute}
               />
             </Animated.View>
           ))}
@@ -693,6 +803,7 @@ export default function RouteScreen() {
       </ScrollView>
 
       <BadgeInfoSheet badge={badgeInfo} onClose={() => setBadgeInfo(null)} />
+      <A11yInfoSheet route={a11yRoute} onClose={() => setA11yRoute(null)} />
 
       <FilterSheet
         visible={isFilterOpen}

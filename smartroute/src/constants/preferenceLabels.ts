@@ -49,8 +49,10 @@ export const PRIORITY_NOTE =
   "Disimpan di akun Anda dan dipakai TOTO untuk memahami kebutuhan Anda. Daftar hasil pencarian rute tetap ditampilkan seperti biasa.";
 export const STORED_ONLY_NOTE =
   "Disimpan di akun Anda untuk pengembangan berikutnya. Saat ini belum mengubah hasil pencarian rute.";
+// Hari 3: diperbarui — sebagian bantuan sudah bekerja (lihat kartu
+// "Tampilan & bantuan" di Profil), penyesuaian RUTE belum.
 export const ACCESSIBILITY_DEV_NOTE =
-  "Penyesuaian rute untuk profil ini sedang dikembangkan. SmartRoute belum bisa menjamin rute yang ditampilkan aksesibel.";
+  "Sudah tersedia: info status halte dari data GTFS dan pengaturan tampilan & peringatan. Penyesuaian rute masih dikembangkan — SmartRoute belum bisa menjamin rute yang ditampilkan aksesibel.";
 
 // Status klaim di teks ini terhadap kode (diperbarui Hari 1 Task 4):
 // - "tidak dikirim ke layanan AI (TOTO)": TERVERIFIKASI — uji

@@ -36,6 +36,8 @@ export default function RouteDetailScreen() {
         </Text>
         <Pressable
           onPress={() => router.navigate("/")}
+          accessibilityRole="button"
+          accessibilityLabel="Ke Beranda"
           className="bg-brand-blue px-5 py-2.5 rounded-xl mt-2"
         >
           <Text className="text-white font-bold">Ke Beranda</Text>
@@ -180,6 +182,8 @@ export default function RouteDetailScreen() {
                 params: { id: routeData.route_id },
               })
             }
+            accessibilityRole="button"
+            accessibilityLabel="Mulai navigasi"
             className="flex-1 items-center py-4 rounded-xl bg-brand-blue active:opacity-90"
           >
             <Text className="text-md text-white font-bold">
