@@ -94,6 +94,18 @@ function openDatabase(): DatabaseSync {
     -- restart backend tidak mengosongkan hitungan maupun cadangan.
     CREATE TABLE IF NOT EXISTS iqair_calls (called_at INTEGER NOT NULL);
     CREATE INDEX IF NOT EXISTS iqair_calls_time ON iqair_calls(called_at);
+    -- Hari 3 Task 4: masukan dari layar "Tentang & Masukan". user_id NULL =
+    -- tamu. IP TIDAK disimpan (hanya dipakai di memori untuk rate limit).
+    CREATE TABLE IF NOT EXISTS feedback (
+      id TEXT PRIMARY KEY,
+      user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+      client_ref TEXT UNIQUE,
+      category TEXT NOT NULL,
+      message TEXT NOT NULL,
+      app_version TEXT,
+      created_at TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS air_quality_last (
       id INTEGER PRIMARY KEY CHECK (id = 1),
       payload_json TEXT NOT NULL,

@@ -265,6 +265,17 @@ export const TripCreateRequestSchema = z
     "actual_duration_min wajib diisi bila duration_basis 'aktual', dan wajib null bila 'estimasi'.",
   );
 
+// Hari 3 Task 4: POST /feedback.
+export const FEEDBACK_CATEGORIES = ["saran_fitur", "rute_tidak_tepat", "tarif", "aksesibilitas", "lainnya"] as const;
+
+export const FeedbackRequestSchema = z.object({
+  category: z.enum(FEEDBACK_CATEGORIES, "Pilih kategori masukan."),
+  message: z.string().trim().min(1, "Pesan wajib diisi.").max(500, "Pesan maksimal 500 karakter."),
+  // Pengenal draf dari app: kirim ulang setelah jaringan gagal tidak dobel.
+  client_ref: z.string().min(8).max(64).optional(),
+  app_version: z.string().max(20).optional(),
+});
+
 export const RatingRequestSchema = z.object({
   stars: z.number().int().min(1, "Rating harus 1–5.").max(5, "Rating harus 1–5."),
   eta_accurate: z.boolean().nullable().optional(),

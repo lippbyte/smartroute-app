@@ -15,6 +15,7 @@ const ITEMS: Array<{ label: string; icon: keyof typeof Ionicons.glyphMap; href: 
   { label: "Halte Terdekat", icon: "navigate-outline", href: "/nearby-stops" },
   { label: "Semua Halte", icon: "location-outline", href: "/all-stops-map" },
   { label: "TOTO · Asisten AI", icon: "chatbubble-ellipses-outline", href: "/assistant" },
+  { label: "Tentang & Masukan", icon: "information-circle-outline", href: "/about" },
 ];
 
 interface Props {

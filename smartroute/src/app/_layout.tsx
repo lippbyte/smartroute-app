@@ -67,6 +67,7 @@ export default function RootLayout() {
             <Stack.Screen name="trip/[id]" />
             <Stack.Screen name="co2-info" />
             <Stack.Screen name="trip-pass" />
+            <Stack.Screen name="about" />
           </Stack>
           {/* Intro di ATAS app yang sudah dirender, supaya fade-out-nya
               langsung memperlihatkan Beranda, bukan layar kosong. */}

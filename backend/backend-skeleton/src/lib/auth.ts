@@ -111,6 +111,16 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
+/** Hari 3 Task 4: autentikasi OPSIONAL — id pengguna bila token valid,
+ *  null bila tidak ada token atau token tidak berlaku (diperlakukan sebagai
+ *  tamu, bukan ditolak). */
+export function optionalUserId(req: Request): string | null {
+  const token = bearerToken(req);
+  if (!token) return null;
+  const session = resolveSession(token);
+  return typeof session === "object" ? session.userId : null;
+}
+
 export function authedUserId(res: Response): string {
   return res.locals.userId as string;
 }
