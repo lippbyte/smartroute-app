@@ -43,6 +43,16 @@ export interface ReliabilityInfo {
   delay_risk?: number;
 }
 
+// Hari 3: mencerminkan backend services/accessibility.ts.
+export type AccessibilityConfidence = "tinggi" | "sedang" | "rendah" | "tidak_diketahui";
+export interface AccessibilityPoint {
+  stop_id: string | null;
+  name: string;
+  role: "naik" | "turun" | "transfer";
+  mode: string;
+  status: "bisa" | "tidak_bisa" | "tidak_diketahui";
+}
+
 export interface RouteItem {
   route_id: string;
   rank: number;
@@ -64,6 +74,15 @@ export interface RouteItem {
     /** Jarak proksi pembanding = jumlah jarak semua leg (m). */
     comparator_distance_m: number;
     factors_version: string;
+  };
+  // Hari 3: info aksesibilitas kursi roda dari data GTFS — hanya ada bila
+  // "Tampilkan info aksesibilitas" aktif. Bukan jaminan; lihat
+  // backend services/accessibility.ts.
+  accessibility?: {
+    confidence: AccessibilityConfidence;
+    summary: string;
+    points: AccessibilityPoint[];
+    trip_data: "lengkap" | "sebagian" | "tidak_ada";
   };
   cost_idr: number;
   transfers: number;

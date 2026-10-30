@@ -77,7 +77,12 @@ export interface OtpPlace {
   // alighting, or transfer point) — null for a plain walk endpoint like the
   // raw origin/destination coordinate. Used by Task Backend-04 to match leg
   // endpoints against crowd reports; not exposed on the public RouteLeg.
-  stop: { gtfsId: string } | null;
+  stop: {
+    gtfsId: string;
+    // Hari 3 Task 1: hanya diminta bila info aksesibilitas diaktifkan
+    // (POSSIBLE | NOT_POSSIBLE | NO_INFORMATION dari wheelchair_boarding GTFS).
+    wheelchairBoarding?: string | null;
+  } | null;
 }
 
 export interface OtpLeg {
@@ -101,6 +106,9 @@ export interface OtpLeg {
   // Untuk navigasi: arah kendaraan ("Lebak Bulus"), bentuk jalur (polyline
   // terenkode Google, presisi 5), dan belokan untuk leg jalan kaki.
   headsign: string | null;
+  // Hari 3 Task 1: hanya diminta bila info aksesibilitas diaktifkan
+  // (wheelchair_accessible GTFS; di semua feed saat ini 0% terisi).
+  trip?: { wheelchairAccessible: string | null } | null;
   legGeometry: { points: string } | null;
   steps: Array<{
     distance: number;
@@ -134,7 +142,14 @@ export interface OtpRoutingError {
 // Filter moda ditambahkan hanya kalau diminta: OTP2 2.10 crash kalau argumen
 // `modes` dikirim null ("modesArgs is null"), jadi tanpa filter argumennya
 // harus benar-benar hilang dari query, bukan diisi null.
-function planQuery(withModes: boolean): string {
+//
+// Hari 3 Task 1 (opsi C, keputusan Khalifa): data kursi roda HANYA dibaca
+// (field tambahan), TIDAK memakai preferensi routing kursi roda OTP2 — di
+// data saat ini preferensi itu membuat S1/S3/S2 kosong (NO_TRANSIT_CONNECTION)
+// karena wheelchair_accessible trip 0% terisi. Tanpa flag, query identik
+// dengan sebelumnya.
+function planQuery(withModes: boolean, withAccessibility = false): string {
+  const stopFields = withAccessibility ? "gtfsId wheelchairBoarding" : "gtfsId";
   return `
   query PlanRoute(
     $originLat: CoordinateValue!
@@ -171,10 +186,10 @@ function planQuery(withModes: boolean): string {
             mode
             duration
             distance
-            from { name lat lon stop { gtfsId } }
-            to { name lat lon stop { gtfsId } }
+            from { name lat lon stop { ${stopFields} } }
+            to { name lat lon stop { ${stopFields} } }
             route { shortName longName gtfsId }
-            headsign
+            headsign${withAccessibility ? "\n            trip { wheelchairAccessible }" : ""}
             legGeometry { points }
             intermediateStops { gtfsId name lat lon }
             steps { distance relativeDirection absoluteDirection streetName lat lon }
@@ -217,10 +232,12 @@ export async function planTrip(
   earliestDeparture: string,
   // Mode transit OTP2 yang boleh dipakai (mis. ["RAIL"]); undefined = semua.
   // Leg jalan kaki tetap selalu diizinkan untuk akses/transfer.
-  transitModes?: string[]
+  transitModes?: string[],
+  // Hari 3: baca data kursi roda halte/perjalanan (field saja, bukan filter).
+  withAccessibility = false
 ): Promise<PlanTripResult> {
   const withModes = !!transitModes?.length;
-  const data = await postGraphQL<PlanConnectionResponse>(planQuery(withModes), {
+  const data = await postGraphQL<PlanConnectionResponse>(planQuery(withModes, withAccessibility), {
     originLat: origin.lat,
     originLon: origin.lng,
     originLabel,

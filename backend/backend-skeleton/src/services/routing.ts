@@ -72,6 +72,7 @@ import { tjRouteCategory, tjRouteFareIdr } from "./tjRouteCategory";
 import { computeReliabilityForItinerary } from "./reliability";
 import { computeRecommendationScore } from "./recommendationScore";
 import { estimateCo2 } from "./emissionFactors";
+import { assessAccessibility } from "./accessibility";
 
 // "+ buffer sekitar 15%" per the task brief, representing schedule
 // uncertainty rather than a false single precise number.
@@ -334,7 +335,8 @@ function buildRouteCandidate(
   it: OtpItinerary,
   index: number,
   usedIds: Set<string>,
-  atSecs: number
+  atSecs: number,
+  withAccessibility = false
 ): RouteCandidate {
   const legs: RouteLeg[] = it.legs.map((l) => ({
     mode: l.mode as RouteLeg["mode"], // validated against the schema before the response leaves the service
@@ -413,6 +415,9 @@ function buildRouteCandidate(
     // jarak per leg OTP2, tidak masuk skor/urutan/dedupe. Bila ada leg tanpa
     // jarak, field dihilangkan (tidak ditebak).
     ...(estimateCo2(legs) ?? {}),
+    // Hari 3 Task 1: info kursi roda (opt-in) — anotasi saja, tidak masuk
+    // skor/urutan/dedupe.
+    ...(withAccessibility ? assessAccessibility(it) : {}),
   };
 }
 
@@ -423,11 +428,15 @@ export async function computeRouteRecommendation(
   // same as before this task (AC: default behavior must not change).
   departureTime?: string,
   // Filter moda transit OTP2; undefined/kosong = semua moda.
-  modes?: string[]
+  modes?: string[],
+  // Hari 3 Task 1: ["kursi_roda"] = tambahkan info aksesibilitas per
+  // kandidat (anotasi; hasil & urutan tidak berubah). Kosong = perilaku lama.
+  accessibility?: string[]
 ): Promise<RouteRecommendation> {
   const originLabel = formatCoordLabel(origin);
   const destLabel = formatCoordLabel(destination);
   const effectiveDeparture = departureTime ?? nowInJakartaIso();
+  const withAccessibility = !!accessibility?.includes("kursi_roda");
 
   const { itineraries, routingErrors } = await planTrip(
     origin,
@@ -435,7 +444,8 @@ export async function computeRouteRecommendation(
     originLabel,
     destLabel,
     effectiveDeparture,
-    modes
+    modes,
+    withAccessibility
   );
 
   const unreachableSide = findUnreachableSide(routingErrors);
@@ -463,7 +473,7 @@ export async function computeRouteRecommendation(
     );
     for (const dominant of used) {
       const others = [...TRANSIT_MODES].filter((m) => m !== dominant);
-      const extra = await planTrip(origin, destination, originLabel, destLabel, effectiveDeparture, others);
+      const extra = await planTrip(origin, destination, originLabel, destLabel, effectiveDeparture, others, withAccessibility);
       pool = pool.concat(extra.itineraries);
       candidates = dedupeItineraries(pool);
       if (candidates.length >= MAX_CANDIDATES) break;
@@ -473,7 +483,7 @@ export async function computeRouteRecommendation(
   const atSecs = jakartaTimeOfDaySeconds(effectiveDeparture);
   const usedIds = new Set<string>();
   const routes = candidates
-    .map((it, index) => buildRouteCandidate(it, index, usedIds, atSecs))
+    .map((it, index) => buildRouteCandidate(it, index, usedIds, atSecs, withAccessibility))
     // Task Backend-06 AC: routes[] ordered by recommendation_score,
     // highest (most recommended) first.
     .sort((a, b) => b.recommendation_score - a.recommendation_score)

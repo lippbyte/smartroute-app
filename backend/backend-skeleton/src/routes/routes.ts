@@ -13,7 +13,8 @@ router.post("/routes", async (req, res) => {
       error: "invalid_request",
       message:
         "Body harus berisi origin dan destination, masing-masing { lat, lng } yang valid. " +
-        "departure_time opsional, kalau diisi harus ISO 8601 dengan offset zona waktu (mis. 2026-09-10T20:17:00+07:00).",
+        "departure_time opsional, kalau diisi harus ISO 8601 dengan offset zona waktu (mis. 2026-09-10T20:17:00+07:00). " +
+        'accessibility opsional, hanya ["kursi_roda"].',
       details: parsedBody.error.flatten(),
     });
   }
@@ -23,7 +24,8 @@ router.post("/routes", async (req, res) => {
       parsedBody.data.origin,
       parsedBody.data.destination,
       parsedBody.data.departure_time,
-      parsedBody.data.modes
+      parsedBody.data.modes,
+      parsedBody.data.accessibility
     );
 
     // Belt-and-suspenders: even though we built this object ourselves, it

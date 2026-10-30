@@ -26,6 +26,9 @@ export const RoutesRequestSchema = z.object({
   // OTP2 ini yang boleh dipakai; jalan kaki selalu boleh. Kosong/tidak ada =
   // semua moda, sama seperti sebelum filter ini ada.
   modes: z.array(z.enum(["BUS", "RAIL", "SUBWAY", "TRAM"])).optional(),
+  // Hari 3 Task 1: info aksesibilitas opt-in. Hanya "kursi_roda"; nilai lain
+  // -> 400. Tidak dikirim = perilaku lama persis.
+  accessibility: z.array(z.enum(["kursi_roda"])).max(1).optional(),
 });
 
 export type RoutesRequest = z.infer<typeof RoutesRequestSchema>;
@@ -93,6 +96,23 @@ const RouteCandidateSchema = z.object({
   co2_comparator_distance_m: z.number().nonnegative().optional(),
   co2_basis: z.literal("estimasi").optional(),
   co2_factors_version: z.string().optional(),
+  // Hari 3 Task 1: info aksesibilitas (opt-in) — WAJIB didaftarkan di sini,
+  // kalau tidak dibuang Zod sebelum respons dikirim (pelajaran Hari 2).
+  accessibility_confidence: z.enum(["tinggi", "sedang", "rendah", "tidak_diketahui"]).optional(),
+  accessibility_summary: z.string().optional(),
+  accessibility_points: z
+    .array(
+      z.object({
+        stop_id: z.string().nullable(),
+        name: z.string(),
+        role: z.enum(["naik", "turun", "transfer"]),
+        mode: z.string(),
+        status: z.enum(["bisa", "tidak_bisa", "tidak_diketahui"]),
+      }),
+    )
+    .optional(),
+  accessibility_trip_data: z.enum(["lengkap", "sebagian", "tidak_ada"]).optional(),
+  accessibility_basis: z.literal("data_gtfs").optional(),
 });
 
 export const RouteRecommendationSchema = z.object({

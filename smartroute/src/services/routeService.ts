@@ -5,7 +5,7 @@
 // See backend/Task_Integration_01_Frontend_Backend.md for the task this
 // implements.
 
-import { ApiResponse, CrowdInfo, Leg, RouteItem } from "@/type";
+import { AccessibilityConfidence, AccessibilityPoint, ApiResponse, CrowdInfo, Leg, RouteItem } from "@/type";
 import { fetchWithTimeout, RequestTimeoutError } from "@/utils/withTimeout";
 import { API_BASE_URL } from "./apiConfig";
 import { LEG_MODES, legModeFromBackend } from "@/components/transit/legModes";
@@ -63,6 +63,12 @@ export interface BackendRouteCandidate {
   co2_comparator_distance_m?: number;
   co2_basis?: "estimasi";
   co2_factors_version?: string;
+  // Hari 3: info aksesibilitas kursi roda (hanya bila diminta).
+  accessibility_confidence?: AccessibilityConfidence;
+  accessibility_summary?: string;
+  accessibility_points?: AccessibilityPoint[];
+  accessibility_trip_data?: "lengkap" | "sebagian" | "tidak_ada";
+  accessibility_basis?: "data_gtfs";
   // Task Backend-04 — diisi backend kalau ada laporan kepadatan aktif untuk
   // halte yang dilewati rute (15 menit terakhir), undefined kalau belum ada.
   crowd_level?: "low" | "moderate" | "high";
@@ -107,6 +113,9 @@ export async function fetchRealRoutes(
   departureTime?: string,
   // Filter moda transit (lihat MODE_FILTERS di legModes.ts); undefined = semua.
   modes?: string[],
+  // Hari 3: true = minta info aksesibilitas kursi roda per kandidat (anotasi
+  // saja — hasil & urutan tidak berubah). false/undefined = request lama persis.
+  withAccessibility?: boolean,
 ): Promise<RouteRecommendation> {
   let res: Response;
   try {
@@ -118,6 +127,7 @@ export async function fetchRealRoutes(
         destination,
         ...(departureTime ? { departure_time: departureTime } : {}),
         ...(modes?.length ? { modes } : {}),
+        ...(withAccessibility ? { accessibility: ["kursi_roda"] } : {}),
       }),
       timeoutMs: ROUTES_TIMEOUT_MS,
       timeoutMessage:
@@ -256,6 +266,15 @@ export function adaptToLegacyShape(
             factors_version: candidate.co2_factors_version ?? "",
           }
         : undefined,
+    // Hari 3: diteruskan hanya bila backend mengirimnya (toggle aktif).
+    accessibility: candidate.accessibility_confidence
+      ? {
+          confidence: candidate.accessibility_confidence,
+          summary: candidate.accessibility_summary ?? "",
+          points: candidate.accessibility_points ?? [],
+          trip_data: candidate.accessibility_trip_data ?? "tidak_ada",
+        }
+      : undefined,
     cost_idr: candidate.cost_idr,
     transfers: candidate.transfer_count,
     walking_distance_m: candidate.walking_distance_m,

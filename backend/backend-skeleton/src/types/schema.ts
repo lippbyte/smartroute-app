@@ -77,6 +77,20 @@ export interface RouteCandidate {
   co2_comparator_distance_m?: number;
   co2_basis?: "estimasi";
   co2_factors_version?: string;
+  // Hari 3 Task 1: info aksesibilitas kursi roda (opt-in, ADDITIVE) — lihat
+  // services/accessibility.ts. Hanya ada bila request mengirim
+  // accessibility: ["kursi_roda"]. Tidak dipakai untuk skor atau urutan.
+  accessibility_confidence?: "tinggi" | "sedang" | "rendah" | "tidak_diketahui";
+  accessibility_summary?: string;
+  accessibility_points?: Array<{
+    stop_id: string | null;
+    name: string;
+    role: "naik" | "turun" | "transfer";
+    mode: string;
+    status: "bisa" | "tidak_bisa" | "tidak_diketahui";
+  }>;
+  accessibility_trip_data?: "lengkap" | "sebagian" | "tidak_ada";
+  accessibility_basis?: "data_gtfs";
 }
 
 export interface RouteRecommendation {
