@@ -84,7 +84,11 @@ function openDatabase(): DatabaseSync {
     -- memori, supaya restart backend tidak mengosongkan hitungan.
     CREATE TABLE IF NOT EXISTS toto_usage (
       user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      asked_at INTEGER NOT NULL -- epoch ms
+      asked_at INTEGER NOT NULL, -- epoch ms
+      -- Hari 4 Task 1: 1 = provider pasti tidak menagih (401, 5xx, jaringan
+      -- putus sebelum terhubung, tanpa kunci) -> tidak dihitung batas per
+      -- jam pengguna, TETAP dihitung batas global harian.
+      refunded INTEGER NOT NULL DEFAULT 0
     );
     CREATE INDEX IF NOT EXISTS toto_usage_user_time ON toto_usage(user_id, asked_at);
     CREATE INDEX IF NOT EXISTS toto_usage_time ON toto_usage(asked_at);
@@ -112,6 +116,10 @@ function openDatabase(): DatabaseSync {
       fetched_at INTEGER NOT NULL
     );
   `);
+  // Hari 4 Task 1: DB yang dibuat sebelum kolom refunded ada — CREATE TABLE
+  // IF NOT EXISTS tidak mengubah tabel lama, jadi kolomnya ditambahkan di sini.
+  const totoColumns = (db.prepare("PRAGMA table_info(toto_usage)").all() as { name: string }[]).map((c) => c.name);
+  if (!totoColumns.includes("refunded")) db.exec("ALTER TABLE toto_usage ADD COLUMN refunded INTEGER NOT NULL DEFAULT 0;");
   return db;
 }
 

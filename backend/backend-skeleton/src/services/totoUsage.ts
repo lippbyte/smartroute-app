@@ -12,6 +12,9 @@
 //   nilai .env; hapus file untuk kembali ke .env.
 // Yang dihitung adalah PERCOBAAN memanggil LLM (dicatat sebelum panggilan),
 // bukan hanya yang berhasil — pendekatan konservatif untuk biaya.
+// Hari 4 Task 1: percobaan yang PASTI tidak ditagih provider (lihat
+// isUnbilledFailure di openRouterClient) dikembalikan ke kuota per jam
+// pengguna lewat refundTotoQuota; batas global harian tetap menghitungnya.
 import { statSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { db, dbPath } from "../lib/db";
@@ -86,7 +89,7 @@ function startOfWibDay(now: number): number {
 }
 
 export type TotoQuota =
-  | { allowed: true }
+  | { allowed: true; usageId: number }
   | { allowed: false; reason: "daily_cap_reached" | "hourly_limit_reached"; limit: number; retryAfterSec: number };
 
 /**
@@ -105,14 +108,19 @@ export function consumeTotoQuota(userId: string, email: string, now: number = Da
 
   const hourly = limits.demo_emails.includes(email.toLowerCase()) ? limits.demo_hourly_limit : limits.hourly_limit;
   const row = db
-    .prepare("SELECT COUNT(*) AS c, MIN(asked_at) AS oldest FROM toto_usage WHERE user_id = ? AND asked_at > ?")
+    .prepare("SELECT COUNT(*) AS c, MIN(asked_at) AS oldest FROM toto_usage WHERE user_id = ? AND asked_at > ? AND refunded = 0")
     .get(userId, now - HOUR_MS) as { c: number; oldest: number | null };
   if (row.c >= hourly) {
     return { allowed: false, reason: "hourly_limit_reached", limit: hourly, retryAfterSec: Math.ceil(((row.oldest ?? now) + HOUR_MS - now) / 1000) };
   }
 
-  db.prepare("INSERT INTO toto_usage (user_id, asked_at) VALUES (?, ?)").run(userId, now);
+  const inserted = db.prepare("INSERT INTO toto_usage (user_id, asked_at) VALUES (?, ?)").run(userId, now);
   // Bersih-bersih ringan: baris > 2 hari tidak dipakai batas mana pun.
   db.prepare("DELETE FROM toto_usage WHERE asked_at < ?").run(now - 2 * DAY_MS);
-  return { allowed: true };
+  return { allowed: true, usageId: Number(inserted.lastInsertRowid) };
+}
+
+/** Kembalikan satu percobaan ke kuota per jam pengguna (bukan harian). */
+export function refundTotoQuota(usageId: number): void {
+  db.prepare("UPDATE toto_usage SET refunded = 1 WHERE rowid = ?").run(usageId);
 }

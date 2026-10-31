@@ -7,9 +7,9 @@ import { authedUserId, requireAuth } from "../lib/auth";
 import { tooManyRequests } from "../lib/respond";
 import { AssistantAskRequestSchema, PRIORITIES } from "../lib/validation";
 import { askAssistant, sanitizeNickname, type AssistantProfile } from "../services/assistant";
-import { consumeTotoQuota } from "../services/totoUsage";
+import { consumeTotoQuota, refundTotoQuota } from "../services/totoUsage";
 import { getUserById } from "../services/users";
-import { OpenRouterConfigError, OpenRouterRequestError } from "../lib/openRouterClient";
+import { isUnbilledFailure, OpenRouterConfigError, OpenRouterRequestError } from "../lib/openRouterClient";
 
 const router = Router();
 
@@ -73,7 +73,12 @@ router.post("/assistant/ask", requireAuth, async (req, res) => {
     // the user the assistant is down, NEVER a fabricated fallback answer
     // and never a generic unlabeled 500.
     if (err instanceof OpenRouterConfigError || err instanceof OpenRouterRequestError) {
-      console.error("Asisten LLM gagal:", err.message, err instanceof OpenRouterRequestError ? err.cause : undefined);
+      // Hari 4 Task 1: kegagalan yang pasti tidak ditagih tidak memakan
+      // kuota per jam pengguna (batas harian global tetap menghitungnya).
+      const refunded = isUnbilledFailure(err);
+      if (refunded) refundTotoQuota(quota.usageId);
+      const kind = err instanceof OpenRouterRequestError ? `${err.kind}${err.status ? ` ${err.status}` : ""}` : "config";
+      console.error(`Asisten LLM gagal [${kind}${refunded ? ", kuota dikembalikan" : ""}]:`, err.message, err instanceof OpenRouterRequestError ? err.cause ?? "" : "");
       return res.status(502).json({
         error: "assistant_unavailable",
         message: "Layanan asisten sedang tidak tersedia. Coba lagi sebentar lagi.",

@@ -49,11 +49,56 @@ export class OpenRouterConfigError extends Error {
   }
 }
 
+// Hari 4 Task 1: jenis kegagalan, dasar keputusan pengembalian kuota TOTO.
+//   connect      tidak pernah terhubung ke provider (DNS gagal, ditolak,
+//                tak terjangkau) -> permintaan pasti tidak sampai
+//   network      koneksi putus SETELAH mungkin terkirim (mis. ECONNRESET)
+//   timeout      provider tidak menjawab dalam REQUEST_TIMEOUT_MS
+//   http         status HTTP non-2xx dari provider (lihat `status`)
+//   bad_response balasan 2xx tapi bukan JSON / tanpa jawaban / berisi error
+export type OpenRouterFailureKind = "connect" | "network" | "timeout" | "http" | "bad_response";
+
 export class OpenRouterRequestError extends Error {
-  constructor(message: string, readonly cause?: unknown) {
+  constructor(
+    message: string,
+    readonly cause?: unknown,
+    readonly kind: OpenRouterFailureKind = "bad_response",
+    readonly status?: number,
+  ) {
     super(message);
     this.name = "OpenRouterRequestError";
   }
+}
+
+// Kode galat Node/undici saat koneksi BELUM terbentuk.
+const CONNECT_PHASE_CODES = new Set([
+  "ENOTFOUND",
+  "EAI_AGAIN",
+  "ECONNREFUSED",
+  "ENETUNREACH",
+  "EHOSTUNREACH",
+  "ENETDOWN",
+  "UND_ERR_CONNECT_TIMEOUT",
+]);
+
+function causeCode(err: unknown): string | undefined {
+  // fetch Node: TypeError("fetch failed") dengan cause { code }, kadang
+  // AggregateError berisi beberapa percobaan alamat (IPv4/IPv6).
+  const cause = (err as { cause?: { code?: string; errors?: { code?: string }[] } })?.cause;
+  return cause?.code ?? cause?.errors?.find((e) => e?.code)?.code;
+}
+
+/**
+ * Kegagalan yang PASTI tidak ditagih provider: tanpa kunci (tidak ada
+ * panggilan), 401 (kunci ditolak sebelum diproses), 5xx (provider gagal),
+ * atau jaringan putus sebelum terhubung. Waktu habis, putus di tengah,
+ * 4xx lain, dan balasan aneh TIDAK — bisa jadi sudah diproses & ditagih.
+ */
+export function isUnbilledFailure(err: unknown): boolean {
+  if (err instanceof OpenRouterConfigError) return true;
+  if (!(err instanceof OpenRouterRequestError)) return false;
+  if (err.kind === "connect") return true;
+  return err.kind === "http" && err.status !== undefined && (err.status === 401 || err.status >= 500);
 }
 
 export interface ChatMessage {
@@ -103,26 +148,38 @@ export async function askOpenRouter(messages: ChatMessage[]): Promise<string> {
     });
   } catch (err) {
     const isTimeout = err instanceof Error && err.name === "AbortError";
+    if (isTimeout) {
+      throw new OpenRouterRequestError(`OpenRouter tidak merespons dalam ${REQUEST_TIMEOUT_MS}ms (timeout)`, err, "timeout");
+    }
+    const code = causeCode(err);
     throw new OpenRouterRequestError(
-      isTimeout
-        ? `OpenRouter tidak merespons dalam ${REQUEST_TIMEOUT_MS}ms (timeout)`
-        : `Tidak bisa menghubungi OpenRouter di ${OPENROUTER_URL}`,
-      err
+      `Tidak bisa menghubungi OpenRouter di ${OPENROUTER_URL}${code ? ` (${code})` : ""}`,
+      err,
+      code && CONNECT_PHASE_CODES.has(code) ? "connect" : "network",
     );
   } finally {
     clearTimeout(timeoutHandle);
   }
 
-  let body: OpenRouterSuccessBody & OpenRouterErrorBody;
+  let body: (OpenRouterSuccessBody & OpenRouterErrorBody) | null = null;
+  let parseError: unknown = null;
   try {
     body = (await response.json()) as OpenRouterSuccessBody & OpenRouterErrorBody;
   } catch (err) {
-    throw new OpenRouterRequestError("Respons OpenRouter bukan JSON yang valid", err);
+    parseError = err;
   }
 
-  if (!response.ok || body.error) {
-    const detail = body.error?.message ?? `HTTP ${response.status} ${response.statusText}`;
-    throw new OpenRouterRequestError(`OpenRouter mengembalikan error: ${detail}`);
+  // Status HTTP lebih dulu: halaman galat 5xx dari proxy di depan provider
+  // sering bukan JSON, tapi tetap kegagalan provider (bukan balasan aneh).
+  if (!response.ok) {
+    const detail = body?.error?.message ?? `HTTP ${response.status} ${response.statusText}`;
+    throw new OpenRouterRequestError(`OpenRouter mengembalikan error: ${detail}`, parseError ?? undefined, "http", response.status);
+  }
+  if (!body) {
+    throw new OpenRouterRequestError("Respons OpenRouter bukan JSON yang valid", parseError);
+  }
+  if (body.error) {
+    throw new OpenRouterRequestError(`OpenRouter mengembalikan error: ${body.error.message ?? "tanpa pesan"}`);
   }
 
   const content = body.choices?.[0]?.message?.content;
