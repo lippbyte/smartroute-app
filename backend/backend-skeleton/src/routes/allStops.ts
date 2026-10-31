@@ -10,6 +10,7 @@ import { Router } from "express";
 import { ALL_MODES, findAllStops } from "../services/allStops";
 import { TransitMode } from "../services/nearbyStops";
 import { OtpGraphQLError, OtpUnavailableError } from "../lib/otpClient";
+import { routingUnavailable } from "../lib/respond";
 
 const router = Router();
 
@@ -43,13 +44,8 @@ router.get("/all-stops", async (req, res) => {
     // OTP2 disentuh) dan OTP2 lagi mati, seluruh request gagal — mrt/lrt
     // statis tidak dicoba dipisah-tampilkan karena frontend selalu minta
     // gabungan dalam satu request, bukan per-moda.
-    if (err instanceof OtpUnavailableError) {
-      return res.status(502).json({ error: "otp2_unavailable", message: err.message });
-    }
-    if (err instanceof OtpGraphQLError) {
-      console.error("OTP2 GraphQL errors:", err.errors);
-      return res.status(502).json({ error: "otp2_graphql_error", message: err.message });
-    }
+    if (err instanceof OtpUnavailableError) return routingUnavailable(res, err, "GET /all-stops", "otp2_unavailable");
+    if (err instanceof OtpGraphQLError) return routingUnavailable(res, err, "GET /all-stops", "otp2_graphql_error");
     console.error("Unexpected error in GET /all-stops:", err);
     return res.status(500).json({ error: "internal_error", message: "Terjadi kesalahan internal." });
   }

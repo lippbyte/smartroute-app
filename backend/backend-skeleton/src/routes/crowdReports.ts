@@ -8,6 +8,7 @@ import {
   listActiveCrowdReports,
 } from "../services/crowdDensity";
 import { getOtpStopInfo, OtpGraphQLError, OtpUnavailableError } from "../lib/otpClient";
+import { routingUnavailable } from "../lib/respond";
 
 const router = Router();
 
@@ -72,13 +73,8 @@ router.get("/crowd-reports", async (_req, res) => {
   } catch (err) {
     // Same error shapes/status codes as POST /routes (otpClient.ts) — this
     // endpoint now depends on OTP2 being reachable too, same as routing.
-    if (err instanceof OtpUnavailableError) {
-      return res.status(502).json({ error: "otp2_unavailable", message: err.message });
-    }
-    if (err instanceof OtpGraphQLError) {
-      console.error("OTP2 GraphQL errors:", err.errors);
-      return res.status(502).json({ error: "otp2_graphql_error", message: err.message });
-    }
+    if (err instanceof OtpUnavailableError) return routingUnavailable(res, err, "GET /crowd-reports", "otp2_unavailable");
+    if (err instanceof OtpGraphQLError) return routingUnavailable(res, err, "GET /crowd-reports", "otp2_graphql_error");
     console.error("Unexpected error in GET /crowd-reports:", err);
     return res.status(500).json({ error: "internal_error", message: "Terjadi kesalahan internal." });
   }

@@ -4,6 +4,7 @@
 // identity at all.
 import { Router } from "express";
 import { searchOtpStops, OtpGraphQLError, OtpUnavailableError } from "../lib/otpClient";
+import { routingUnavailable } from "../lib/respond";
 import { searchStations } from "../services/stationSearch";
 
 const router = Router();
@@ -24,13 +25,8 @@ router.get("/stops/search", async (req, res) => {
     const stops = await searchOtpStops(query);
     return res.status(200).json(stops);
   } catch (err) {
-    if (err instanceof OtpUnavailableError) {
-      return res.status(502).json({ error: "otp2_unavailable", message: err.message });
-    }
-    if (err instanceof OtpGraphQLError) {
-      console.error("OTP2 GraphQL errors:", err.errors);
-      return res.status(502).json({ error: "otp2_graphql_error", message: err.message });
-    }
+    if (err instanceof OtpUnavailableError) return routingUnavailable(res, err, "GET /stops/search", "otp2_unavailable");
+    if (err instanceof OtpGraphQLError) return routingUnavailable(res, err, "GET /stops/search", "otp2_graphql_error");
     console.error("Unexpected error in GET /stops/search:", err);
     return res.status(500).json({ error: "internal_error", message: "Terjadi kesalahan internal." });
   }
@@ -47,7 +43,7 @@ router.get("/stations/search", async (req, res) => {
     return res.status(200).json(await searchStations(query));
   } catch (err) {
     if (err instanceof OtpUnavailableError || err instanceof OtpGraphQLError) {
-      return res.status(502).json({ error: "otp2_unavailable", message: err.message });
+      return routingUnavailable(res, err, "GET /stations/search", "otp2_unavailable");
     }
     console.error("Unexpected error in GET /stations/search:", err);
     return res.status(500).json({ error: "internal_error", message: "Terjadi kesalahan internal." });

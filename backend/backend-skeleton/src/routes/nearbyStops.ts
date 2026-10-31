@@ -10,6 +10,7 @@ import {
   findNearbyStops,
 } from "../services/nearbyStops";
 import { OtpGraphQLError, OtpUnavailableError } from "../lib/otpClient";
+import { routingUnavailable } from "../lib/respond";
 
 const router = Router();
 
@@ -58,13 +59,8 @@ router.get("/nearby-stops", async (req, res) => {
     // total saat ini kalau OTP2 tidak terjangkau (getAllOtpStops() dipanggil
     // duluan). Error jelas, bukan 500 generik, sama seperti endpoint lain
     // yang bergantung OTP2.
-    if (err instanceof OtpUnavailableError) {
-      return res.status(502).json({ error: "otp2_unavailable", message: err.message });
-    }
-    if (err instanceof OtpGraphQLError) {
-      console.error("OTP2 GraphQL errors:", err.errors);
-      return res.status(502).json({ error: "otp2_graphql_error", message: err.message });
-    }
+    if (err instanceof OtpUnavailableError) return routingUnavailable(res, err, "GET /nearby-stops", "otp2_unavailable");
+    if (err instanceof OtpGraphQLError) return routingUnavailable(res, err, "GET /nearby-stops", "otp2_graphql_error");
     console.error("Unexpected error in GET /nearby-stops:", err);
     return res.status(500).json({ error: "internal_error", message: "Terjadi kesalahan internal." });
   }
