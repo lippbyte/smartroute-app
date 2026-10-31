@@ -6,8 +6,7 @@
 // implements.
 
 import { AccessibilityConfidence, AccessibilityPoint, ApiResponse, CrowdInfo, FareItem, Leg, RouteItem } from "@/type";
-import { fetchWithTimeout, RequestTimeoutError } from "@/utils/withTimeout";
-import { API_BASE_URL } from "./apiConfig";
+import { apiRequest, UNAVAILABLE_MESSAGE } from "./apiClient";
 import { LEG_MODES, legModeFromBackend } from "@/components/transit/legModes";
 
 // Latensi POST /routes terukur 2–19 detik (OTP2 menghitung beberapa kandidat
@@ -119,46 +118,24 @@ export async function fetchRealRoutes(
   // saja — hasil & urutan tidak berubah). false/undefined = request lama persis.
   withAccessibility?: boolean,
 ): Promise<RouteRecommendation> {
-  let res: Response;
+  // Hari 4 Task 1: lewat apiClient — pemetaan galat terpusat (jaringan,
+  // waktu habis, balasan bukan JSON dari tunnel, 5xx -> pesan generik;
+  // detail teknis hanya ke console). Body request tidak berubah.
   try {
-    res = await fetchWithTimeout(`${API_BASE_URL}/routes`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    return await apiRequest<RouteRecommendation>("POST", "/routes", {
+      body: {
         origin,
         destination,
         ...(departureTime ? { departure_time: departureTime } : {}),
         ...(modes?.length ? { modes } : {}),
         ...(withAccessibility ? { accessibility: ["kursi_roda"] } : {}),
-      }),
+      },
       timeoutMs: ROUTES_TIMEOUT_MS,
-      timeoutMessage:
-        "Pencarian rute lebih dari 30 detik dan dihentikan. Coba lagi, atau periksa koneksi ke backend.",
+      timeoutMessage: "Pencarian rute terlalu lama dan dihentikan. Coba lagi.",
     });
   } catch (err) {
-    if (err instanceof RequestTimeoutError) throw new RouteFetchError(err.message, err);
-    throw new RouteFetchError(
-      `Tidak bisa menghubungi backend di ${API_BASE_URL}. Pastikan server backend jalan dan base URL sudah benar (device fisik butuh IP LAN, bukan localhost).`,
-      err,
-    );
+    throw new RouteFetchError(err instanceof Error ? err.message : UNAVAILABLE_MESSAGE, err);
   }
-
-  let body: unknown;
-  try {
-    body = await res.json();
-  } catch (err) {
-    throw new RouteFetchError("Response backend bukan JSON yang valid.", err);
-  }
-
-  if (!res.ok) {
-    const message =
-      body && typeof body === "object" && "message" in body
-        ? String((body as { message?: unknown }).message)
-        : `Backend mengembalikan status ${res.status}.`;
-    throw new RouteFetchError(message);
-  }
-
-  return body as RouteRecommendation;
 }
 
 // ---- TEMPORARY SHIM — hapus begitu tim frontend update type.ts langsung ke

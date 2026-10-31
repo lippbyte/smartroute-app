@@ -4,9 +4,8 @@
 // /nearby-stops endpoint from Task Backend-11. Pola fetch-wrapper sama
 // persis dengan crowdService.ts (custom Error subclass, cek network-error
 // vs status non-ok, dst) supaya konsisten satu gaya di seluruh services/.
-import { API_BASE_URL } from "./apiConfig";
+import { apiRequest, UNAVAILABLE_MESSAGE } from "./apiClient";
 import { TransitMode } from "@/components/transit/transitMode";
-import { fetchWithTimeout, RequestTimeoutError } from "@/utils/withTimeout";
 
 // Kueri radius kecil, dijawab cepat oleh backend.
 const NEARBY_TIMEOUT_MS = 8_000;
@@ -52,36 +51,15 @@ export async function fetchNearbyStops(
   });
   if (radiusM !== undefined) params.set("radius", String(radiusM));
 
-  let res: Response;
+  // Hari 4 Task 1: pemetaan galat terpusat (apiClient).
   try {
-    res = await fetchWithTimeout(`${API_BASE_URL}/nearby-stops?${params.toString()}`, {
+    return await apiRequest<NearbyStop[]>("GET", `/nearby-stops?${params.toString()}`, {
       timeoutMs: NEARBY_TIMEOUT_MS,
-      timeoutMessage: "Pencarian halte terdekat timeout. Coba lagi.",
+      timeoutMessage: "Pencarian halte terdekat terlalu lama. Coba lagi.",
     });
   } catch (err) {
-    if (err instanceof RequestTimeoutError) throw new NearbyStopsFetchError(err.message, err);
-    throw new NearbyStopsFetchError(
-      `Tidak bisa menghubungi backend di ${API_BASE_URL}. Pastikan server backend jalan.`,
-      err,
-    );
+    throw new NearbyStopsFetchError(err instanceof Error ? err.message : UNAVAILABLE_MESSAGE, err);
   }
-
-  let body: unknown;
-  try {
-    body = await res.json();
-  } catch (err) {
-    throw new NearbyStopsFetchError("Response backend bukan JSON yang valid.", err);
-  }
-
-  if (!res.ok) {
-    const message =
-      body && typeof body === "object" && "message" in body
-        ? String((body as { message?: unknown }).message)
-        : `Backend mengembalikan status ${res.status}.`;
-    throw new NearbyStopsFetchError(message);
-  }
-
-  return body as NearbyStop[];
 }
 
 // Perluasan dari Task App-15 (diminta user langsung): SEMUA halte se-Jakarta
@@ -105,34 +83,13 @@ export async function fetchAllStops(modes?: TransitMode[]): Promise<TransitStop[
   if (modes && modes.length > 0) params.set("modes", modes.join(","));
   const query = params.toString();
 
-  let res: Response;
+  // Hari 4 Task 1: pemetaan galat terpusat (apiClient).
   try {
-    res = await fetchWithTimeout(`${API_BASE_URL}/all-stops${query ? `?${query}` : ""}`, {
+    return await apiRequest<TransitStop[]>("GET", `/all-stops${query ? `?${query}` : ""}`, {
       timeoutMs: ALL_STOPS_TIMEOUT_MS,
-      timeoutMessage: "Memuat daftar halte timeout. Coba lagi.",
+      timeoutMessage: "Memuat daftar halte terlalu lama. Coba lagi.",
     });
   } catch (err) {
-    if (err instanceof RequestTimeoutError) throw new NearbyStopsFetchError(err.message, err);
-    throw new NearbyStopsFetchError(
-      `Tidak bisa menghubungi backend di ${API_BASE_URL}. Pastikan server backend jalan.`,
-      err,
-    );
+    throw new NearbyStopsFetchError(err instanceof Error ? err.message : UNAVAILABLE_MESSAGE, err);
   }
-
-  let body: unknown;
-  try {
-    body = await res.json();
-  } catch (err) {
-    throw new NearbyStopsFetchError("Response backend bukan JSON yang valid.", err);
-  }
-
-  if (!res.ok) {
-    const message =
-      body && typeof body === "object" && "message" in body
-        ? String((body as { message?: unknown }).message)
-        : `Backend mengembalikan status ${res.status}.`;
-    throw new NearbyStopsFetchError(message);
-  }
-
-  return body as TransitStop[];
 }

@@ -7,6 +7,12 @@
 // - kalau server menolak token (401), AuthContext diberi tahu lewat
 //   onSessionInvalid supaya pengguna diarahkan ke layar Masuk dengan pesan
 //   jelas, bukan gagal diam-diam di layar mana pun yang sedang terbuka.
+//
+// Hari 4 Task 1: SATU-SATUNYA tempat pemetaan galat ke pesan pengguna —
+// dipakai layar lama (rute, kepadatan, halte) maupun baru. Jaringan putus,
+// waktu habis, balasan bukan JSON (mis. halaman galat tunnel ngrok saat
+// backend/agen mati), dan 5xx -> pesan generik; detail teknis (URL, status)
+// hanya ke console. Pesan 4xx dari backend (validasi) tetap diteruskan.
 import { fetchWithTimeout, RequestTimeoutError } from "@/utils/withTimeout";
 import { API_BASE_URL } from "./apiConfig";
 
@@ -14,6 +20,7 @@ const DEFAULT_TIMEOUT_MS = 10_000;
 
 export const NETWORK_ERROR_MESSAGE =
   "Tidak bisa menghubungi server. Periksa koneksi internet Anda, lalu coba lagi.";
+export const UNAVAILABLE_MESSAGE = "Layanan sedang tidak tersedia. Coba lagi sebentar lagi.";
 
 export class ApiError extends Error {
   constructor(
@@ -46,14 +53,18 @@ interface RequestOptions {
   timeoutMs?: number;
   /** Pesan bila waktu habis, menjelaskan operasinya ("Masuk...", "Menyimpan..."). */
   timeoutMessage: string;
+  /** Pembatalan oleh pemanggil (mis. pengguna lanjut mengetik). Galat
+   *  pembatalan diteruskan apa adanya, bukan dipetakan. */
+  signal?: AbortSignal;
 }
 
 export async function apiRequest<T>(method: string, path: string, options: RequestOptions): Promise<T> {
-  const { token, body, timeoutMs = DEFAULT_TIMEOUT_MS, timeoutMessage } = options;
+  const { token, body, timeoutMs = DEFAULT_TIMEOUT_MS, timeoutMessage, signal } = options;
 
   let res: Response;
   try {
     res = await fetchWithTimeout(`${API_BASE_URL}${path}`, {
+      signal,
       method,
       headers: {
         Accept: "application/json",
@@ -68,7 +79,12 @@ export async function apiRequest<T>(method: string, path: string, options: Reque
       timeoutMessage,
     });
   } catch (err) {
-    if (err instanceof RequestTimeoutError) throw new ApiError(err.message, 0, "timeout");
+    if (signal?.aborted) throw err; // dibatalkan pemanggil — bukan galat
+    if (err instanceof RequestTimeoutError) {
+      console.warn(`[api] ${method} ${path}: waktu habis setelah ${timeoutMs} ms`);
+      throw new ApiError(err.message, 0, "timeout");
+    }
+    console.warn(`[api] ${method} ${API_BASE_URL}${path}: tidak terjangkau`, err);
     throw new ApiError(NETWORK_ERROR_MESSAGE, 0, "network");
   }
 
@@ -78,13 +94,12 @@ export async function apiRequest<T>(method: string, path: string, options: Reque
   try {
     parsed = await res.json();
   } catch {
-    // Bukan JSON: biasanya halaman galat tunnel (backend mati di balik
-    // ngrok) — bagi pengguna itu sama dengan server tidak terjangkau.
-    throw new ApiError(
-      res.status >= 500 ? NETWORK_ERROR_MESSAGE : `Server mengembalikan jawaban yang tidak dikenali (${res.status}).`,
-      res.status >= 500 ? 0 : res.status,
-      "bad_response",
-    );
+    // Bukan JSON: halaman galat tunnel (502 saat backend mati di balik
+    // ngrok, 404 "endpoint offline" saat agen ngrok mati) atau proxy lain —
+    // bagi pengguna itu sama dengan server tidak terjangkau, apa pun
+    // statusnya. Detail hanya ke console.
+    console.warn(`[api] ${method} ${API_BASE_URL}${path}: balasan bukan JSON (HTTP ${res.status})`);
+    throw new ApiError(NETWORK_ERROR_MESSAGE, 0, "bad_response");
   }
 
   if (!res.ok) {
@@ -93,7 +108,13 @@ export async function apiRequest<T>(method: string, path: string, options: Reque
     if (res.status === 401 && token && (code === "session_expired" || code === "unauthorized")) {
       sessionInvalidHandler?.(code);
     }
-    throw new ApiError(b.message ?? `Server mengembalikan status ${res.status}.`, res.status, code, b.fields ?? {});
+    if (res.status >= 500) {
+      // 5xx: pesan backend sudah generik (Hari 4), tapi pesan cadangan pun
+      // tidak boleh memuat status/URL.
+      console.warn(`[api] ${method} ${path}: HTTP ${res.status} ${code}`);
+      throw new ApiError(b.message || UNAVAILABLE_MESSAGE, res.status, code);
+    }
+    throw new ApiError(b.message ?? "Permintaan tidak bisa diproses. Coba lagi.", res.status, code, b.fields ?? {});
   }
 
   return parsed as T;

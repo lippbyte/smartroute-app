@@ -6,8 +6,7 @@
 // apa pun — hanya data asli dari endpoint Backend-07").
 // See backend/Task_App_01_Crowd_Overview_Map.md for the task this implements.
 
-import { fetchWithTimeout, RequestTimeoutError } from "@/utils/withTimeout";
-import { API_BASE_URL } from "./apiConfig";
+import { apiRequest, UNAVAILABLE_MESSAGE } from "./apiClient";
 
 const CROWD_TIMEOUT_MS = 10_000;
 // Dipanggil dari input yang diketik user — batas lebih pendek supaya saran
@@ -44,36 +43,15 @@ export class CrowdOverviewFetchError extends Error {
  * Backend-07), bukan data yang hilang/bug.
  */
 export async function fetchCrowdOverview(): Promise<CrowdOverviewStop[]> {
-  let res: Response;
+  // Hari 4 Task 1: pemetaan galat terpusat (apiClient).
   try {
-    res = await fetchWithTimeout(`${API_BASE_URL}/crowd-reports`, {
+    return await apiRequest<CrowdOverviewStop[]>("GET", "/crowd-reports", {
       timeoutMs: CROWD_TIMEOUT_MS,
-      timeoutMessage: "Memuat peta kepadatan timeout. Coba lagi.",
+      timeoutMessage: "Memuat peta kepadatan terlalu lama. Coba lagi.",
     });
   } catch (err) {
-    if (err instanceof RequestTimeoutError) throw new CrowdOverviewFetchError(err.message, err);
-    throw new CrowdOverviewFetchError(
-      `Tidak bisa menghubungi backend di ${API_BASE_URL}. Pastikan server backend jalan.`,
-      err,
-    );
+    throw new CrowdOverviewFetchError(err instanceof Error ? err.message : UNAVAILABLE_MESSAGE, err);
   }
-
-  let body: unknown;
-  try {
-    body = await res.json();
-  } catch (err) {
-    throw new CrowdOverviewFetchError("Response backend bukan JSON yang valid.", err);
-  }
-
-  if (!res.ok) {
-    const message =
-      body && typeof body === "object" && "message" in body
-        ? String((body as { message?: unknown }).message)
-        : `Backend mengembalikan status ${res.status}.`;
-    throw new CrowdOverviewFetchError(message);
-  }
-
-  return body as CrowdOverviewStop[];
 }
 
 // Mirrors backend/backend-skeleton/src/lib/otpClient.ts's OtpStop, returned
@@ -109,35 +87,20 @@ export async function searchStops(
   query: string,
   signal?: AbortSignal,
 ): Promise<StopSearchResult[]> {
-  let res: Response;
+  // Hari 4 Task 1: pemetaan galat terpusat (apiClient). Pembatalan oleh
+  // signal diteruskan apa adanya — apiClient mengecek signal.aborted
+  // langsung, bukan bentuk galat (di Hermes, fetch yang di-abort tidak
+  // selalu melempar "AbortError"; temuan uji device fisik Task App-12).
   try {
-    res = await fetchWithTimeout(
-      `${API_BASE_URL}/stops/search?q=${encodeURIComponent(query)}`,
-      {
-        signal,
-        timeoutMs: STOP_SEARCH_TIMEOUT_MS,
-        timeoutMessage: "Pencarian halte timeout. Coba ketik lagi.",
-      },
-    );
+    return await apiRequest<StopSearchResult[]>("GET", `/stops/search?q=${encodeURIComponent(query)}`, {
+      signal,
+      timeoutMs: STOP_SEARCH_TIMEOUT_MS,
+      timeoutMessage: "Pencarian halte terlalu lama. Coba ketik lagi.",
+    });
   } catch (err) {
-    if (err instanceof RequestTimeoutError) throw new StopSearchError(err.message, err);
-    // Cek signal.aborted langsung, bukan .name === "AbortError" — di
-    // native (Hermes), fetch yang di-abort tidak selalu melempar error
-    // berbentuk itu (beda dari spec Fetch web). Signal adalah fakta
-    // langsung, bukan tebakan dari bentuk error yang bisa beda-beda
-    // antar platform. Ditemukan lewat testing device fisik (Task App-12).
     if (signal?.aborted) throw err;
-    throw new StopSearchError(
-      `Tidak bisa menghubungi backend di ${API_BASE_URL}.`,
-      err,
-    );
+    throw new StopSearchError(err instanceof Error ? err.message : UNAVAILABLE_MESSAGE, err);
   }
-
-  if (!res.ok) {
-    throw new StopSearchError(`Backend mengembalikan status ${res.status}.`);
-  }
-
-  return (await res.json()) as StopSearchResult[];
 }
 
 export class CrowdReportSubmitError extends Error {
@@ -160,33 +123,14 @@ export async function submitCrowdReport(
   stopId: string,
   level: CrowdLevel,
 ): Promise<void> {
-  let res: Response;
+  // Hari 4 Task 1: pemetaan galat terpusat (apiClient).
   try {
-    res = await fetchWithTimeout(`${API_BASE_URL}/crowd-reports`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ stop_id: stopId, level }),
+    await apiRequest("POST", "/crowd-reports", {
+      body: { stop_id: stopId, level },
       timeoutMs: CROWD_TIMEOUT_MS,
-      timeoutMessage: "Mengirim laporan kepadatan timeout. Coba lagi.",
+      timeoutMessage: "Mengirim laporan kepadatan terlalu lama. Coba lagi.",
     });
   } catch (err) {
-    if (err instanceof RequestTimeoutError) throw new CrowdReportSubmitError(err.message, err);
-    throw new CrowdReportSubmitError(
-      `Tidak bisa menghubungi backend di ${API_BASE_URL}.`,
-      err,
-    );
-  }
-
-  if (!res.ok) {
-    let message = `Backend mengembalikan status ${res.status}.`;
-    try {
-      const body = await res.json();
-      if (body && typeof body === "object" && "message" in body) {
-        message = String((body as { message?: unknown }).message);
-      }
-    } catch {
-      // body bukan JSON — pakai pesan default di atas.
-    }
-    throw new CrowdReportSubmitError(message);
+    throw new CrowdReportSubmitError(err instanceof Error ? err.message : UNAVAILABLE_MESSAGE, err);
   }
 }

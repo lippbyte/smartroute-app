@@ -21,6 +21,7 @@ import {
   fetchRealRoutes,
   RouteFetchError,
 } from "@/services/routeService";
+import { UNAVAILABLE_MESSAGE } from "@/services/apiClient";
 import { putRoute } from "@/services/routeStore";
 import { ApiResponse, RouteItem } from "@/type";
 import { formatRupiah } from "@/utils/currency";
@@ -467,6 +468,8 @@ export default function RouteScreen() {
   const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // Hari 4 Task 1: dinaikkan tombol "Coba Lagi" untuk mengulang pencarian.
+  const [retryKey, setRetryKey] = useState(0);
   // Hari 2 Task 3: kualitas udara (null = tidak tersedia -> tanpa kartu &
   // tanpa lencana udara, tanpa galat) dan lencana yang sedang dijelaskan.
   const [air, setAir] = useState<AirQuality | null>(null);
@@ -538,7 +541,7 @@ export default function RouteScreen() {
         setErrorMessage(
           err instanceof RouteFetchError || err instanceof Error
             ? err.message
-            : "Gagal memuat rute dari backend.",
+            : UNAVAILABLE_MESSAGE,
         );
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -558,6 +561,7 @@ export default function RouteScreen() {
     departureTimeParam,
     modeKey,
     withAccessibility,
+    retryKey,
   ]);
 
   const filteredRoutes = (apiResponse?.routes ?? [])
@@ -694,7 +698,7 @@ export default function RouteScreen() {
           <View className="items-center gap-3 py-10">
             <ActivityIndicator size="large" color="#018959" />
             <Text className="text-surface-2 text-sm">
-              Mencari rute dari backend...
+              Mencari rute...
             </Text>
           </View>
         ) : errorMessage ? (
@@ -703,6 +707,15 @@ export default function RouteScreen() {
             <Text className="text-white text-sm text-center">
               {errorMessage}
             </Text>
+            {/* Hari 4 Task 1: ulangi pencarian yang sama (efek di atas). */}
+            <Pressable
+              onPress={() => setRetryKey((k) => k + 1)}
+              accessibilityRole="button"
+              accessibilityLabel="Coba lagi mencari rute"
+              className="bg-brand-blue px-5 py-2.5 rounded-xl mt-2"
+            >
+              <Text className="text-white font-bold">Coba Lagi</Text>
+            </Pressable>
           </View>
         ) : apiResponse && apiResponse.routes.length === 0 ? (
           <View className="items-center gap-3 py-10 px-4">

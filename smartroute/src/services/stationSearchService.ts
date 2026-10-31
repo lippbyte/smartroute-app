@@ -3,8 +3,7 @@
 // melayani). Ditampilkan di atas saran alamat Nominatim, ala Google Maps.
 import { LEG_MODES, legModeFromBackend } from "@/components/transit/legModes";
 import { PlaceSuggestion } from "@/utils/geocode";
-import { fetchWithTimeout } from "@/utils/withTimeout";
-import { API_BASE_URL } from "./apiConfig";
+import { apiRequest } from "./apiClient";
 
 const STATION_SEARCH_TIMEOUT_MS = 8_000;
 const MAX_ROUTES_SHOWN = 6;
@@ -53,15 +52,12 @@ export async function searchStationSuggestions(
   query: string,
   signal?: AbortSignal,
 ): Promise<PlaceSuggestion[]> {
-  const res = await fetchWithTimeout(
-    `${API_BASE_URL}/stations/search?q=${encodeURIComponent(query.trim())}`,
-    {
-      signal,
-      timeoutMs: STATION_SEARCH_TIMEOUT_MS,
-      timeoutMessage: "Pencarian halte timeout.",
-    },
-  );
-  if (!res.ok) throw new Error(`Pencarian halte gagal: ${res.status}`);
-  const stations = (await res.json()) as BackendStation[];
+  // Hari 4 Task 1: pemetaan galat terpusat (apiClient); pembatalan oleh
+  // signal diteruskan apa adanya.
+  const stations = await apiRequest<BackendStation[]>("GET", `/stations/search?q=${encodeURIComponent(query.trim())}`, {
+    signal,
+    timeoutMs: STATION_SEARCH_TIMEOUT_MS,
+    timeoutMessage: "Pencarian halte terlalu lama.",
+  });
   return stations.map(toSuggestion);
 }
