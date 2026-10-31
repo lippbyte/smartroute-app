@@ -13,6 +13,7 @@ import { adaptToLegacyShape, fetchRealRoutes } from "../src/services/routeServic
 import { a11yBanner } from "../src/utils/a11yDisplay";
 import { formatCo2, percentVs } from "../src/utils/co2Format";
 import { computeRouteBadges } from "../src/utils/routeBadges";
+import { formatRange } from "../src/utils/tripFormat";
 import type { RouteItem } from "../src/type";
 
 const argAt = process.argv[2] ?? "2026-09-21T07:30:00+07:00";
@@ -39,6 +40,8 @@ async function scenario(id: string, from: [number, number], to: [number, number]
       badge: badges[r.route_id]?.label ?? null,
       score10: r.recommendation_score != null ? Math.round(r.recommendation_score * 10) : null,
       card_minutes: r.travel_time_minutes,
+      // Teks menit di kartu hasil (sama dengan app/(tabs)/route/index.tsx).
+      card_text: formatRange(r.travel_time_range) ?? `${r.travel_time_minutes} mnt`,
       range: r.travel_time_range ? `${r.travel_time_range.min}–${r.travel_time_range.max}` : null,
       clock: `${clock(r.legs[0]?.depart_at)}–${clock(r.legs.at(-1)?.arrive_at)}`,
       transfers: r.transfers,
@@ -74,7 +77,7 @@ for (const r of results) {
   console.log(`\n== ${r.id} (${r.ms} ms, berangkat ${r.departure_time})`);
   for (const c of r.cards) {
     console.log(
-      `  #${r.cards.indexOf(c) + 1} ${c.route_id} [${c.label}${c.badge ? ` · ${c.badge}` : ""}] ${c.score10}/10 · kartu ${c.card_minutes} mnt (${c.clock}) · rentang ${c.range} · ${c.transfers}x transit · Rp${c.cost_idr} · ${c.co2} · reliabilitas ${c.reliability_pct}% · kenyamanan ${c.comfort_pct}%${c.crowd ? ` · crowd ${c.crowd}` : ""}`,
+      `  #${r.cards.indexOf(c) + 1} ${c.route_id} [${c.label}${c.badge ? ` · ${c.badge}` : ""}] ${c.score10}/10 · kartu ${c.card_text} (${c.clock}) · ${c.transfers}x transit · Rp${c.cost_idr} · ${c.co2} · reliabilitas ${c.reliability_pct}% · kenyamanan ${c.comfort_pct}%${c.crowd ? ` · crowd ${c.crowd}` : ""}`,
     );
     console.log(`      tarif: ${c.fares.join(" | ")}`);
     if (c.a11y) console.log(`      a11y: ${c.a11y}`);

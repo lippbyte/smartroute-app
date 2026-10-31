@@ -6,6 +6,8 @@
 
 > **Status hari ini (31 Okt):** kunci OpenRouter **kedaluwarsa**, jadi TOTO belum bisa didemokan. Kunci IQAir **tidak ada**, jadi kartu udara dan lencana udara ("Aktif sehat"/"Minim paparan") tidak tampil; lencana "Paling hijau" (CO₂) tetap tampil. Keduanya menunggu Khalifa. Semua yang lain PASS di preflight.
 
+> **Kode DIBEKUKAN sejak 31 Okt 2026 (keputusan Khalifa).** Yang boleh masuk hanya perbaikan yang menghalangi demo, masing-masing dengan uji dan regresi `/routes`. Tidak ada tag atau merge ke `main` sebelum hasil uji HP dari Khalifa.
+
 Semua kalimat di kolom **"Kalimat kunci"** berstatus **perlu ditinjau presenter**: itu usulan, bukan naskah final.
 
 ---
@@ -40,28 +42,28 @@ Durasi per segmen adalah **target**. Latensi sistem sudah diukur, tetapi waktu b
 - **Tekan:** Dari "Blok M", Ke "Kota" (pilih dari saran) → Cari.
 - **Harus muncul (4 kartu):**
 
-| # | Rute | Label | Skor | Kartu | Transit | Tarif | CO₂ (estimasi) |
+| # | Rute | Label | Skor | Kartu (rentang ETA) | Transit | Tarif | CO₂ (estimasi) |
 |---|---|---|---|---|---|---|---|
-| 1 | Bus Koridor **1** | Murah | 6/10 | 92 mnt | 0x | Rp3.500 | ≈ 480 g · −81% vs mobil sendirian |
-| 2 | **M+1** (MRT lalu Koridor 1) | Nyaman · lencana **Paling hijau** | 5/10 | 75 mnt | 1x | Rp11.500 | ≈ 380 g · −85% |
-| 3 | M+Cikarang+Bogor | Nyaman | 5/10 | 64 mnt | 2x | Rp10.000 | ≈ 630 g · −81% |
-| 4 | M+Bogor | Nyaman | 4/10 | 74 mnt | 1x | Rp11.000 | ≈ 380 g · −86% |
+| 1 | Bus Koridor **1** | Murah | 6/10 | 92–106 mnt | 0x | Rp3.500 | ≈ 480 g · −81% vs mobil sendirian |
+| 2 | **M+1** (MRT lalu Koridor 1) | Nyaman · lencana **Paling hijau** | 5/10 | 75–87 mnt | 1x | Rp11.500 | ≈ 380 g · −85% |
+| 3 | M+Cikarang+Bogor | Nyaman | 5/10 | 64–74 mnt | 2x | Rp10.000 | ≈ 630 g · −81% |
+| 4 | M+Bogor | Nyaman | 4/10 | 74–86 mnt | 1x | Rp11.000 | ≈ 380 g · −86% |
 
-- **Ketuk kartu #1 → Detail:** "92 Menit", **Reliabilitas (Tepat Waktu) 90%**. Bandingkan dengan #3 (tercepat, 2 transit): reliabilitas **50%**. Itulah "risiko transfer" yang bisa ditunjukkan.
-- **Penting, jangan salah tunjuk:** kartu hasil dan Detail menampilkan **satu angka** (batas bawah, mis. 92 mnt). **Rentang** (92–106 mnt) baru tampil di **Trip Pass** ("Estimasi 92–106 mnt"), **Ringkasan Perjalanan**, dan **Riwayat** ("Prediksi A–B mnt"). Rentang ini ditunjukkan di segmen 6. Menampilkan rentang di kartu hasil adalah keputusan Khalifa (bukan perbaikan Hari 4).
+- **Rentang ETA langsung di kartu** (sejak keputusan Khalifa 31 Okt), mis. "92–106 mnt · 07:30–09:01". Diuji di layar 320/360/412 px dan dengan nama lokasi sangat panjang: tidak terpotong.
+- **Ketuk kartu #1 → Detail:** kotak "Menit" di Detail masih **satu angka** (92, batas bawah), dan **Reliabilitas (Tepat Waktu) 90%**. Bandingkan dengan #3 (tercepat, 2 transit): reliabilitas **50%**. Itulah "risiko transfer" yang bisa ditunjukkan. Tunjuk rentang di kartu hasil, bukan di Detail.
 - "Tingkat Kenyamanan" di Detail tertulis **"Data belum tersedia"**: memang belum ada datanya. Jangan diklaim.
-- **Kalimat kunci** *(perlu ditinjau presenter)*: "Rute tercepat belum tentu yang kami sarankan. Yang 64 menit punya dua kali transit dan reliabilitasnya 50%, sedangkan bus langsung 92 menit, Rp3.500, tanpa transit."
+- **Kalimat kunci** *(perlu ditinjau presenter)*: "Kami tidak menjanjikan satu angka: bus langsung 92 sampai 106 menit, Rp3.500, tanpa transit. Rute tercepat, 64 sampai 74 menit, punya dua kali transit dan reliabilitasnya hanya 50%."
 - **Cadangan:** pencarian > 10 dtk → backend/OTP2 dingin; tunggu sekali (batas app 30 dtk). Kalau muncul "Layanan sedang tidak tersedia. Coba lagi sebentar lagi." → ketuk **Coba Lagi**. Masih gagal → petugas teknis menjalankan preflight; presenter lanjut ke video S1.
 - **⚠ Urutan wajib:** S1 **sebelum** S2. Jangan ulang S1 dalam 15 menit sesudah S2 tanpa restart backend (laporan Monas menggeser S1: #1 menjadi M+Cikarang+Bogor).
 
 ### Segmen 3 — S2 Pasar Baru → Lebak Bulus, laporan Monas membalik rekomendasi (2:00)
 - **Tekan (1):** Dari "Pasar Baru", Ke "Lebak Bulus" → Cari.
-- **Harus muncul (sebelum):** #1 **2+1+M** (bus via Monas, lalu MRT), 76 mnt, 2x transit, Rp17.500, skor 5/10.
+- **Harus muncul (sebelum):** #1 **2+1+M** (bus via Monas, lalu MRT), 76–88 mnt, 2x transit, Rp17.500, skor 5/10.
 - **Tekan (2):** kembali ke Beranda → **Peta Kepadatan** → **Lapor** → cari "Monumen Nasional" (muncul beberapa entri; pilih yang mana saja, semua peron digabung) → **Padat**.
 - **Tekan (3):** cari ulang Pasar Baru → Lebak Bulus.
 - **Harus muncul (sesudah):** rute via Monas **2+1+M turun ke #4** dengan label **PADAT** dan skor turun 5 → 3/10. Rute #1 berganti ke rute **KRL lalu MRT**:
-  - Senin 07:30: **Bogor+Cikarang+M**, 73 mnt, Rp17.000.
-  - Sabtu 20.07: **Bogor+M**, 77 mnt, Rp17.000, lencana Paling hijau.
+  - Senin 07:30: **Bogor+Cikarang+M**, 73–84 mnt, Rp17.000.
+  - Sabtu 20.07: **Bogor+M**, 77–89 mnt, Rp17.000, lencana Paling hijau.
 - **Kalimat kunci** *(perlu ditinjau presenter)*: "Satu laporan pengguna bahwa halte Monas padat langsung mengubah rekomendasi. Rute via Monas turun ke paling bawah dan diberi label padat."
 - **Cadangan:** urutan tidak berbalik → kemungkinan ada laporan sisa gladi atau jam berbeda. Petugas teknis restart backend (bagian 4), presenter memutar video S2. **Wajib ada video S2 cadangan.**
 
@@ -81,13 +83,13 @@ Durasi per segmen adalah **target**. Latensi sistem sudah diukur, tetapi waktu b
 
 ### Segmen 6 — Trip Pass, SIMULASI (0:45)
 - **Tekan:** dari hasil S1, ketuk kartu **#2 M+1** → **Trip Pass**.
-- **Harus muncul:** "Estimasi 75–87 mnt · 1x transit" (di sinilah rentang ETA tampil). Tarif per bagian: **MRT Blok M → Bundaran HI Rp8.000** + **TransJakarta 1 Rp3.500** = **Rp11.500**. Kartu berlabel **KARTU DEMO · SIMULASI**. Dengan saldo bawaan Rp10.000, status menjadi **kurang Rp1.500** → top-up simulasi Rp20.000 → cukup.
+- **Harus muncul:** "Estimasi 75–87 mnt · 1x transit" (rentang yang sama dengan kartu hasil). Tarif per bagian: **MRT Blok M → Bundaran HI Rp8.000** + **TransJakarta 1 Rp3.500** = **Rp11.500**. Kartu berlabel **KARTU DEMO · SIMULASI**. Dengan saldo bawaan Rp10.000, status menjadi **kurang Rp1.500** → top-up simulasi Rp20.000 → cukup.
 - **Kalimat kunci** *(perlu ditinjau presenter)*: "Penumpang tahu berapa yang ditap di tiap gerbang. Saldo dan top-up di sini masih simulasi; integrasi kartu sungguhan adalah rencana lewat kemitraan penerbit kartu."
 - **Cadangan:** saldo di HP demo bukan Rp10.000 (bekas gladi) → **Ubah saldo awal simulasi** → 10000. Input negatif ditolak ("Saldo tidak boleh negatif.").
 
 ### Segmen 7 — Riwayat & rating (0:45)
 - **Tekan:** menu → **Riwayat Perjalanan** → buka satu perjalanan → beri penilaian (bintang + "ETA sesuai?", "Risiko transfer sesuai?", "Kepadatan sesuai?").
-- **Harus muncul:** riwayat akun demo. **⚠ 31 Okt: berisi 5 perjalanan, semuanya data uji "Blok M (uji CO₂) → Kota"** (dibuat uji Hari 2, yang sejak Hari 4 tidak lagi memakai akun demo), 0 sudah dinilai. **Jangan didemokan apa adanya.** Keputusan Khalifa: hapus kelima perjalanan uji (cadangan DB ada di `data/backups/`), lalu saat gladi buat 1–2 perjalanan sungguhan lewat navigasi sampai Ringkasan Perjalanan.
+- **Harus muncul:** riwayat akun demo. **Sejak 31 Okt riwayat ini KOSONG**: lima perjalanan uji "Blok M (uji CO₂) → Kota" sudah dihapus berdasarkan ID (keputusan Khalifa; cadangan `data/backups/smartroute-pre-hapus-uji-co2-20261031-202716.db`). **Saat gladi, buat 1–2 perjalanan sungguhan** lewat navigasi sampai Ringkasan Perjalanan, dan sisakan minimal satu yang belum dinilai untuk hari-H. Riwayat kosong di depan investor = segmen ini dilewati.
 - **⚠ Satu rating per perjalanan, permanen.** Setiap gladi yang menilai menghabiskan satu perjalanan. Sisakan minimal satu perjalanan belum dinilai untuk hari-H. Jangan menilai saat gladi, atau buat perjalanan baru lewat navigasi sampai Ringkasan Perjalanan.
 - **Kalimat kunci** *(perlu ditinjau presenter)*: "Penilaian pengguna mengukur apakah perkiraan kami tepat; ini dasar untuk memperbaiki prediksi nanti."
 - **Cadangan:** sesi kedaluwarsa → app mengarahkan ke Masuk dengan pesan jelas; masuk ulang akun demo.
@@ -109,7 +111,7 @@ Durasi per segmen adalah **target**. Latensi sistem sudah diukur, tetapi waktu b
 | Kerja sama, izin, atau dukungan dari **instansi/operator/bank** (TransJakarta, KAI, MRT, Pemprov, JAKI, penerbit kartu) | Belum ada; nama mereka hanya disebut sebagai **sumber data** |
 | Data aksesibilitas **lengkap** | Hanya status halte TransJakarta dari GTFS, sebagian; MRT/KRL/LRT dan armada belum ada |
 | Angka CO₂ sebagai **pengukuran** | **Estimasi** dari faktor emisi publik (lihat "Tentang angka ini") |
-| "Rentang ETA di setiap kartu hasil" | Kartu menampilkan satu angka; rentang ada di Trip Pass/Ringkasan/Riwayat |
+| "Rentang ETA di Detail perjalanan" | Rentang ada di kartu hasil, Trip Pass, Ringkasan, dan Riwayat; Detail menampilkan batas bawah |
 | "Tingkat kenyamanan" | Detail menampilkan "Data belum tersedia" |
 | Kualitas udara / lencana "Aktif sehat" atau "Minim paparan" sebagai saran kesehatan | Hanya bila kunci IQAir terpasang dan data tidak basi; data tingkat **kota**, bukan per halte; lencana bersifat info, bukan saran medis |
 
@@ -135,7 +137,7 @@ Durasi per segmen adalah **target**. Latensi sistem sudah diukur, tetapi waktu b
 - [ ] Ukur ulang 5 pertanyaan TOTO dan isi latensi segmen 4.
 - [ ] Gladi penuh dengan stopwatch dan isi kolom "Terukur" di bagian 1.
 - [ ] Rekam **video cadangan** S1, S2 (dengan lapor Monas), dan TOTO Q1.
-- [ ] Riwayat akun demo **bersih dari perjalanan uji** "Blok M (uji CO₂)" (lihat segmen 7) dan berisi 1–2 perjalanan gladi sungguhan.
+- [ ] Riwayat akun demo (kosong sejak 31 Okt) berisi 1–2 perjalanan gladi sungguhan, minimal satu belum dinilai (lihat segmen 7).
 - [ ] HP demo: bantuan "Info aksesibilitas kursi roda" **menyala**; saldo Trip Pass = Rp10.000; minimal satu perjalanan **belum dinilai** di akun demo.
 - [ ] Uji tampilan di HP (dampak `cssInterop` pada teks); keputusan Khalifa bila bermasalah.
 
@@ -190,8 +192,7 @@ Akun, riwayat, dan rating tersimpan di SQLite, tidak ikut terhapus. Tunnel dan M
 | Video cadangan S1/S2/TOTO | Tim |
 | Uji tampilan HP (`cssInterop`) | Tim HP → keputusan Khalifa |
 | Model bisnis untuk jawaban investor | Tim/Khalifa |
-| Rentang ETA di kartu hasil (saat ini hanya batas bawah) | Keputusan Khalifa |
-| Hapus 5 perjalanan uji "Blok M (uji CO₂)" dari akun demo | Keputusan Khalifa |
+| Perjalanan gladi sungguhan di akun demo (riwayat kosong) | Tim (gladi) |
 
 ---
 

@@ -92,10 +92,23 @@ Semua diuji **hidup** kecuali yang ditandai.
 - `.env` lokal backend mendapat satu baris non-rahasia: `DEMO_TUNNEL_URL` (dibaca preflight).
 - **Usul tag:** `demo-candidate-1` pada commit laporan ini (HEAD cabang). **Belum dibuat**, menunggu perintah Khalifa setelah uji HP.
 
-## 6. Risiko tersisa untuk hari-H
+## 6. Tambahan: keputusan Khalifa 31 Okt (setelah laporan)
+
+| Keputusan | Yang dilakukan | Bukti |
+|---|---|---|
+| (1) Hapus lima entri uji akun demo | Cadangan segar `data/backups/smartroute-pre-hapus-uji-co2-20261031-202716.db` dibuka (`quick_check ok`, berisi 5 entri yang sama). Lima ID ditulis eksplisit; dihapus dalam satu transaksi dengan cek per ID (milik akun demo, berlabel uji, tanpa rating) dan rollback bila jumlahnya ≠ 5. Tidak berdasarkan pola. | Terhapus 5; total perjalanan semua akun 31 → 26; akun demo 0; preflight `GET /trips` = 0 |
+| (2) Rentang di kartu hasil | `3e9898a`: kartu menampilkan `formatRange(travel_time_range)` ("92–106 mnt"), cadangan nilai tunggal. Label (Cepat ≤ 30), filter chip, dan urutan tetap memakai nilai lama. | `test-route-card-layout.mjs` 34/34 (Chrome headless, 320/360/412 px + nama sangat panjang); regresi `/routes` identik; chip 4/4 |
+| Temuan uji layar sempit | `7dbe78b` (commit terpisah): baris CO₂ Hari 2 keluar tepi kartu pada 320 px → kini membungkus (`max-w-full` + `flex-shrink`) | Sebelum: 3 teks CO₂ keluar layar pada 320 px; sesudah: 0 |
+| Runbook | Tabel S1 dan angka S2 memakai rentang; Detail tetap batas bawah; riwayat akun demo kosong → buat 1–2 perjalanan saat gladi; catatan pembekuan | Pemeriksa runbook 17/17 |
+| (3) Tag/merge | Tidak dilakukan; menunggu uji HP | — |
+| (4) Pembekuan | Berlaku: hanya perbaikan yang menghalangi demo, masing-masing dengan uji + regresi | — |
+
+Preflight sesudahnya (21.08 WIB, backend bersih): 13 PASS · 1 WARN (IQAir) · 1 FAIL (kunci OpenRouter kedaluwarsa); S1/S2/S3 sesuai baseline.
+
+## 7. Risiko tersisa untuk hari-H
 
 1. **TOTO** mati sampai kunci diganti; kalau kunci baru datang mepet, Q1–Q5 belum diukur ulang (Q5 tetap berisiko).
-2. **Riwayat akun demo** berisi data uji sampai dibersihkan.
+2. **Riwayat akun demo kosong** (data uji sudah dihapus): perlu 1–2 perjalanan gladi sungguhan, kalau tidak segmen Riwayat & rating tidak bisa didemokan.
 3. **Urutan S1 → S2**: laporan Monas bertahan 15 menit dan menggeser S1; mengulang S1 butuh restart backend (preflight mendeteksinya sebagai WARN).
 4. **Hasil S2 sesudah Monas bergantung jam**: rute #1 pengganti berbeda (Bogor+Cikarang+M pada 07:30 Senin, Bogor+M pada Sabtu malam); kalimat presenter sudah dibuat generik.
 5. **Tampilan native** belum diuji setelah `cssInterop` (Hari 3) dan perubahan Hari 4.
