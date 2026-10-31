@@ -4,7 +4,16 @@
 //   node --import ./scripts/test-support/register-stubs.mjs --import <tsx>/dist/loader.mjs scripts/test-assistive-settings.mts
 import { fetchRealRoutes, adaptToLegacyShape } from "../src/services/routeService";
 import { a11yBanner, confidenceDisplay } from "../src/utils/a11yDisplay";
-import { ASSISTIVE_KEYS, EASY_READ_SCALE, easyReadStyle, effectiveSettings, SUGGESTED_BY } from "../src/utils/assistiveSettings";
+import {
+  ASSISTIVE_KEYS,
+  assistiveWorkingSummary,
+  EASY_READ_SCALE,
+  easyReadStyle,
+  effectiveSettings,
+  SUGGESTED_BY,
+  unavailableAssistiveKeys,
+  visibleAssistiveItems,
+} from "../src/utils/assistiveSettings";
 import { plainStep } from "../src/utils/simpleSteps";
 
 const AT = "2026-09-21T07:30:00+07:00";
@@ -88,6 +97,22 @@ check("S16 jalan kaki: 'Jalan kaki ke <tujuan>' + jarak", walk.title === "Jalan 
 check("S17 naik: 'Naik <moda> arah <arah>' + naik/turun di mana", ride.title === "Naik TransJakarta 1 arah Kota" && /Naik di Blok M\. Turun di Kota \(2 halte\)/.test(ride.detail), `${ride.title} / ${ride.detail}`);
 check("S18 di dalam kendaraan: 'Turun di <stasiun>' + sisa stasiun", inside.title === "Turun di Bundaran HI" && /3 stasiun/.test(inside.detail), `${inside.title} / ${inside.detail}`);
 check("S19 langkah terakhir menyebut tujuan", /tujuan: Kota/.test(lastWalk.title), lastWalk.title);
+
+// --- 6. Hari 4 Task 1: "Tampilan mudah dibaca" disembunyikan di web saja.
+const webOff = unavailableAssistiveKeys("web");
+check("S20 web: hanya 'easyRead' yang tidak ditawarkan", JSON.stringify(webOff) === '["easyRead"]', JSON.stringify(webOff));
+check("S21 android & ios: semua bantuan ditawarkan", unavailableAssistiveKeys("android").length === 0 && unavailableAssistiveKeys("ios").length === 0);
+// Profil low vision + pilihan tersimpan "nyala" -> di web tetap mati & tidak diusulkan.
+const webLow = effectiveSettings({ easyRead: true }, ["low_vision", "kursi_roda"], webOff);
+check("S22 web: easyRead mati walau diusulkan profil & pernah dinyalakan", !webLow.easyRead.on && !webLow.easyRead.suggested);
+check("S23 web: bantuan lain tidak terpengaruh (kursi roda tetap diusulkan)", webLow.showA11yInfo.on && webLow.showA11yInfo.suggested);
+const nativeLow = effectiveSettings({}, ["low_vision"], unavailableAssistiveKeys("android"));
+check("S24 native: perilaku sama persis seperti sebelum Hari 4", JSON.stringify(nativeLow) === JSON.stringify(effectiveSettings({}, ["low_vision"])) && nativeLow.easyRead.on && nativeLow.easyRead.suggested);
+const webItems = visibleAssistiveItems(webOff).map((i) => i.label);
+const nativeItems = visibleAssistiveItems([]).map((i) => i.label);
+check("S25 kartu web: 4 item, tanpa 'Tampilan mudah dibaca'", webItems.length === 4 && !webItems.includes("Tampilan mudah dibaca"), webItems.join(" | "));
+check("S26 kartu native: 5 item termasuk 'Tampilan mudah dibaca'", nativeItems.length === 5 && nativeItems.includes("Tampilan mudah dibaca"));
+check("S27 ringkasan web tidak menyebut 'mudah dibaca'; native sama seperti sebelumnya", !/mudah dibaca/i.test(assistiveWorkingSummary(webOff)) && assistiveWorkingSummary([]) === "Info status halte untuk kursi roda (dari data GTFS), tampilan mudah dibaca, peringatan teks + getar, mode sederhana, dan penonjolan jalan kaki/transfer.", assistiveWorkingSummary(webOff));
 
 console.log(failures === 0 ? "\nSemua uji bantuan aksesibilitas lulus." : `\n${failures} uji GAGAL.`);
 process.exitCode = failures ? 1 : 0;

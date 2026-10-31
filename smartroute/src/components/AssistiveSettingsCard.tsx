@@ -3,38 +3,13 @@
 // server. Bantuan yang aktif karena profil aksesibilitas ditandai
 // "diusulkan dari profil"; profil tersimpan tidak pernah diubah dari sini.
 import Text from "@/components/Text";
-import { useAssistive } from "@/context/AssistiveSettingsContext";
-import type { AssistiveKey } from "@/utils/assistiveSettings";
+import { UNAVAILABLE_ASSISTIVE, useAssistive } from "@/context/AssistiveSettingsContext";
+import { assistiveWorkingSummary, visibleAssistiveItems } from "@/utils/assistiveSettings";
 import { Pressable, Switch, View } from "react-native";
 
-const ITEMS: Array<{ key: AssistiveKey; label: string; description: string }> = [
-  {
-    key: "showA11yInfo",
-    label: "Info aksesibilitas kursi roda",
-    description:
-      "Menampilkan pilihan \"Tampilkan info aksesibilitas\" di hasil rute: status halte menurut data GTFS. Belum mengubah rute yang disarankan.",
-  },
-  {
-    key: "easyRead",
-    label: "Tampilan mudah dibaca",
-    description: "Huruf lebih besar dan teks sekunder lebih kontras.",
-  },
-  {
-    key: "bigAlerts",
-    label: "Peringatan teks besar + getar",
-    description: "Saat navigasi, pindah langkah dan tiba di tujuan ditandai teks besar dan getaran, tanpa suara.",
-  },
-  {
-    key: "simpleNav",
-    label: "Mode sederhana saat navigasi",
-    description: "Satu langkah per layar, bahasa lugas, tanpa peta dan animasi.",
-  },
-  {
-    key: "emphasizeWalk",
-    label: "Tonjolkan jalan kaki & transfer",
-    description: "Jarak jalan kaki dan jumlah transfer tampil lebih menonjol di kartu rute. Urutan rute tidak berubah.",
-  },
-];
+// Hari 4 Task 1: tanpa bantuan yang tidak ditawarkan di platform ini.
+const ITEMS = visibleAssistiveItems(UNAVAILABLE_ASSISTIVE);
+const WORKING_SUMMARY = assistiveWorkingSummary(UNAVAILABLE_ASSISTIVE);
 
 export default function AssistiveSettingsCard() {
   const { settings, setChoice } = useAssistive();
@@ -89,8 +64,7 @@ export default function AssistiveSettingsCard() {
           Yang sudah bekerja
         </Text>
         <Text className="text-ink-2 text-xs" style={{ lineHeight: 17 }}>
-          Info status halte untuk kursi roda (dari data GTFS), tampilan mudah dibaca, peringatan teks + getar, mode
-          sederhana, dan penonjolan jalan kaki/transfer.
+          {WORKING_SUMMARY}
         </Text>
         <Text className="text-ink text-xs mt-1" weight="bold">
           Masih dikembangkan

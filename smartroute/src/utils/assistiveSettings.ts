@@ -34,9 +34,74 @@ export interface EffectiveSetting {
   suggested: boolean;
 }
 
-export function effectiveSettings(choices: AssistiveChoices, needs: readonly AccessibilityNeed[]): Record<AssistiveKey, EffectiveSetting> {
+/**
+ * Hari 4 Task 1: bantuan yang TIDAK ditawarkan di sebuah platform.
+ * "Tampilan mudah dibaca" disembunyikan di web: di sana className NativeWind
+ * menjadi objek `$$css` (bukan style biasa), jadi skala huruf/kontras tidak
+ * bisa diterapkan dengan andal. Native menunggu hasil uji HP.
+ */
+export function unavailableAssistiveKeys(os: string): readonly AssistiveKey[] {
+  return os === "web" ? ["easyRead"] : [];
+}
+
+/** Isi kartu "Tampilan & bantuan" di Profil (urutan tampil). */
+export const ASSISTIVE_ITEMS: ReadonlyArray<{ key: AssistiveKey; label: string; description: string }> = [
+  {
+    key: "showA11yInfo",
+    label: "Info aksesibilitas kursi roda",
+    description:
+      "Menampilkan pilihan \"Tampilkan info aksesibilitas\" di hasil rute: status halte menurut data GTFS. Belum mengubah rute yang disarankan.",
+  },
+  {
+    key: "easyRead",
+    label: "Tampilan mudah dibaca",
+    description: "Huruf lebih besar dan teks sekunder lebih kontras.",
+  },
+  {
+    key: "bigAlerts",
+    label: "Peringatan teks besar + getar",
+    description: "Saat navigasi, pindah langkah dan tiba di tujuan ditandai teks besar dan getaran, tanpa suara.",
+  },
+  {
+    key: "simpleNav",
+    label: "Mode sederhana saat navigasi",
+    description: "Satu langkah per layar, bahasa lugas, tanpa peta dan animasi.",
+  },
+  {
+    key: "emphasizeWalk",
+    label: "Tonjolkan jalan kaki & transfer",
+    description: "Jarak jalan kaki dan jumlah transfer tampil lebih menonjol di kartu rute. Urutan rute tidak berubah.",
+  },
+];
+
+export function visibleAssistiveItems(unavailable: readonly AssistiveKey[]) {
+  return ASSISTIVE_ITEMS.filter((item) => !unavailable.includes(item.key));
+}
+
+/** Ringkasan "Yang sudah bekerja" — tidak menyebut bantuan yang disembunyikan. */
+export function assistiveWorkingSummary(unavailable: readonly AssistiveKey[]): string {
+  const parts = [
+    "Info status halte untuk kursi roda (dari data GTFS)",
+    unavailable.includes("easyRead") ? null : "tampilan mudah dibaca",
+    "peringatan teks + getar",
+    "mode sederhana",
+  ].filter((p): p is string => p !== null);
+  return `${parts.join(", ")}, dan penonjolan jalan kaki/transfer.`;
+}
+
+export function effectiveSettings(
+  choices: AssistiveChoices,
+  needs: readonly AccessibilityNeed[],
+  unavailable: readonly AssistiveKey[] = [],
+): Record<AssistiveKey, EffectiveSetting> {
   const out = {} as Record<AssistiveKey, EffectiveSetting>;
   for (const key of ASSISTIVE_KEYS) {
+    // Tidak tersedia = mati & tidak diusulkan, apa pun profil/pilihan
+    // tersimpan (pilihan tetap di perangkat, berlaku lagi bila tersedia).
+    if (unavailable.includes(key)) {
+      out[key] = { on: false, suggested: false };
+      continue;
+    }
     const explicit = choices[key];
     const suggested = needs.includes(SUGGESTED_BY[key]);
     out[key] = explicit === undefined ? { on: suggested, suggested } : { on: explicit, suggested: false };

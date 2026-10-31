@@ -10,11 +10,16 @@ import {
   type AssistiveKey,
   effectiveSettings,
   type EffectiveSetting,
+  unavailableAssistiveKeys,
 } from "@/utils/assistiveSettings";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { Platform } from "react-native";
 
 const STORAGE_KEY = "smartroute.assistive.v1";
+
+/** Bantuan yang tidak ditawarkan di platform ini (mis. mudah dibaca di web). */
+export const UNAVAILABLE_ASSISTIVE = unavailableAssistiveKeys(Platform.OS);
 
 interface AssistiveContextValue {
   settings: Record<AssistiveKey, EffectiveSetting>;
@@ -43,7 +48,7 @@ export function AssistiveSettingsProvider({ children }: { children: ReactNode })
 
   const value = useMemo<AssistiveContextValue>(
     () => ({
-      settings: effectiveSettings(choices, user?.accessibility?.needs ?? []),
+      settings: effectiveSettings(choices, user?.accessibility?.needs ?? [], UNAVAILABLE_ASSISTIVE),
       setChoice: (key, on) => persist({ ...choices, [key]: on }),
       resetChoice: (key) => {
         const { [key]: _removed, ...rest } = choices;

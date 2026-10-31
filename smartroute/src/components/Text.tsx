@@ -17,6 +17,9 @@
 // ukuran huruf & warna teks sekunder bisa diskalakan di satu tempat untuk
 // semua layar (utils/assistiveSettings.ts). Saat pengaturan mati, gaya yang
 // diteruskan sama persis seperti sebelumnya.
+// Hari 4 Task 1: di web pengaturan ini tidak ditawarkan dan selalu mati
+// (unavailableAssistiveKeys) — di sana className menjadi objek `$$css`
+// yang tidak bisa diratakan, jadi cabang easyReadStyle tidak pernah jalan.
 import { useAssistive } from "@/context/AssistiveSettingsContext";
 import { easyReadStyle } from "@/utils/assistiveSettings";
 import { cssInterop } from "nativewind";
