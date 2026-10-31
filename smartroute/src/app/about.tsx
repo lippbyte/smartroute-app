@@ -17,6 +17,7 @@ import {
   DEVELOPER_INFO,
   FEATURES,
   PARTNERSHIP_TEXT,
+  partnershipContactOrNull,
   PROTOTYPE_STATUS,
   ROADMAP,
   TAGLINE,
@@ -66,6 +67,7 @@ export default function AboutScreen() {
   const router = useRouter();
   const { token } = useAuth();
   const version = Constants.expoConfig?.version ?? "-";
+  const partnershipContact = partnershipContactOrNull();
 
   const [draft, setDraft] = useState<FeedbackDraft>({ category: null, message: "", client_ref: newFeedbackRef() });
   const [restored, setRestored] = useState(false);
@@ -195,14 +197,18 @@ export default function AboutScreen() {
             ))}
           </Section>
 
-          <Section title="Kemitraan">
-            <Text className="text-ink-2 text-sm" style={{ lineHeight: 20 }}>
-              {PARTNERSHIP_TEXT}
-            </Text>
-            <Text className="text-ink text-sm" weight="semibold">
-              Kontak: {DEVELOPER_INFO.partnershipContact || "segera tersedia"}
-            </Text>
-          </Section>
+          {/* Hari 4 Task 1: tanpa kontak resmi, ajakan kemitraan tidak
+              ditampilkan sama sekali (dulu ada teks cadangan). */}
+          {partnershipContact && (
+            <Section title="Kemitraan">
+              <Text className="text-ink-2 text-sm" style={{ lineHeight: 20 }}>
+                {PARTNERSHIP_TEXT}
+              </Text>
+              <Text className="text-ink text-sm" weight="semibold">
+                Kontak: {partnershipContact}
+              </Text>
+            </Section>
+          )}
 
           <Section title="Kirim masukan">
             <Text className="text-ink-2 text-sm">

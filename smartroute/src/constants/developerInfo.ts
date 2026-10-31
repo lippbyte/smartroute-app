@@ -12,9 +12,16 @@ export const DEVELOPER_INFO = {
   teamName: "Problem Solver",
   members: [] as Array<{ name: string; role: string }>,
   // TODO:isi — kontak kemitraan resmi tim (email/nomor) dari Khalifa. JANGAN
-  // dikarang; selama kosong, layar menampilkan "segera tersedia".
+  // dikarang; selama kosong, bagian "Kemitraan" TIDAK ditampilkan sama sekali
+  // (Hari 4 Task 1 — dulu tampil "Kontak: segera tersedia").
   partnershipContact: "",
 };
+
+/** Bagian "Kemitraan" di layar Tentang hanya tampil bila kontak terisi. */
+export function partnershipContactOrNull(contact: string = DEVELOPER_INFO.partnershipContact): string | null {
+  const c = contact.trim();
+  return c ? c : null;
+}
 
 // TODO:verifikasi — tagline final dari tim (sementara memakai tagline app).
 export const TAGLINE = "Navigate Smarter. Travel Better.";
