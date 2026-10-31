@@ -25,6 +25,7 @@ import { UNAVAILABLE_MESSAGE } from "@/services/apiClient";
 import { putRoute } from "@/services/routeStore";
 import { ApiResponse, RouteItem } from "@/type";
 import { formatRupiah } from "@/utils/currency";
+import { formatRange } from "@/utils/tripFormat";
 import { formatDepartureLabel } from "@/utils/departureTime";
 import { geocodePlace, shortPlaceLabel } from "@/utils/geocode";
 import { parseCoordParam } from "@/utils/stopActions";
@@ -232,7 +233,10 @@ const RouteOptionCard = ({
           <View className="flex-row items-center gap-1">
             <Ionicons name="time-outline" size={14} color="#737373" />
             <Text className="text-xs text-ink-2">
-              {item.travel_time_minutes} mnt
+              {/* Hari 4: rentang prediksi ("92–106 mnt"), cadangan nilai
+                  tunggal bila rentang tidak ada. Label "Cepat", filter, dan
+                  urutan tetap memakai travel_time_minutes. */}
+              {formatRange(item.travel_time_range) ?? `${item.travel_time_minutes} mnt`}
               {startClock && endClock ? ` · ${startClock}–${endClock}` : ""}
             </Text>
           </View>
