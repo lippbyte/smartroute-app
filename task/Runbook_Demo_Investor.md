@@ -87,7 +87,7 @@ Durasi per segmen adalah **target**. Latensi sistem sudah diukur, tetapi waktu b
 
 ### Segmen 7 — Riwayat & rating (0:45)
 - **Tekan:** menu → **Riwayat Perjalanan** → buka satu perjalanan → beri penilaian (bintang + "ETA sesuai?", "Risiko transfer sesuai?", "Kepadatan sesuai?").
-- **Harus muncul:** akun demo punya **4 perjalanan** di riwayat, **0 sudah dinilai** (31 Okt).
+- **Harus muncul:** riwayat akun demo. **⚠ 31 Okt: berisi 5 perjalanan, semuanya data uji "Blok M (uji CO₂) → Kota"** (dibuat uji Hari 2, yang sejak Hari 4 tidak lagi memakai akun demo), 0 sudah dinilai. **Jangan didemokan apa adanya.** Keputusan Khalifa: hapus kelima perjalanan uji (cadangan DB ada di `data/backups/`), lalu saat gladi buat 1–2 perjalanan sungguhan lewat navigasi sampai Ringkasan Perjalanan.
 - **⚠ Satu rating per perjalanan, permanen.** Setiap gladi yang menilai menghabiskan satu perjalanan. Sisakan minimal satu perjalanan belum dinilai untuk hari-H. Jangan menilai saat gladi, atau buat perjalanan baru lewat navigasi sampai Ringkasan Perjalanan.
 - **Kalimat kunci** *(perlu ditinjau presenter)*: "Penilaian pengguna mengukur apakah perkiraan kami tepat; ini dasar untuk memperbaiki prediksi nanti."
 - **Cadangan:** sesi kedaluwarsa → app mengarahkan ke Masuk dengan pesan jelas; masuk ulang akun demo.
@@ -135,6 +135,7 @@ Durasi per segmen adalah **target**. Latensi sistem sudah diukur, tetapi waktu b
 - [ ] Ukur ulang 5 pertanyaan TOTO dan isi latensi segmen 4.
 - [ ] Gladi penuh dengan stopwatch dan isi kolom "Terukur" di bagian 1.
 - [ ] Rekam **video cadangan** S1, S2 (dengan lapor Monas), dan TOTO Q1.
+- [ ] Riwayat akun demo **bersih dari perjalanan uji** "Blok M (uji CO₂)" (lihat segmen 7) dan berisi 1–2 perjalanan gladi sungguhan.
 - [ ] HP demo: bantuan "Info aksesibilitas kursi roda" **menyala**; saldo Trip Pass = Rp10.000; minimal satu perjalanan **belum dinilai** di akun demo.
 - [ ] Uji tampilan di HP (dampak `cssInterop` pada teks); keputusan Khalifa bila bermasalah.
 
@@ -190,6 +191,7 @@ Akun, riwayat, dan rating tersimpan di SQLite, tidak ikut terhapus. Tunnel dan M
 | Uji tampilan HP (`cssInterop`) | Tim HP → keputusan Khalifa |
 | Model bisnis untuk jawaban investor | Tim/Khalifa |
 | Rentang ETA di kartu hasil (saat ini hanya batas bawah) | Keputusan Khalifa |
+| Hapus 5 perjalanan uji "Blok M (uji CO₂)" dari akun demo | Keputusan Khalifa |
 
 ---
 

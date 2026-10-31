@@ -7,8 +7,7 @@
 // Jalankan dari folder smartroute/ (backend di :3000, akun demo sudah dibuat):
 //   $env:EXPO_PUBLIC_API_BASE_URL="http://localhost:3000"
 //   node --import ./scripts/test-support/register-stubs.mjs --import <tsx>/dist/loader.mjs scripts/test-co2-pipeline.mts
-import { readFileSync } from "node:fs";
-import path from "node:path";
+import { randomBytes } from "node:crypto";
 import { adaptToLegacyShape, type RouteRecommendation } from "../src/services/routeService";
 import { buildTripInput, createTrip, getTrip, newClientRef } from "../src/services/tripService";
 
@@ -97,9 +96,15 @@ const stripped = adaptToLegacyShape({ ...s1, routes: s1.routes.map(({ co2_estima
 check("C6 adapter TIDAK mengarang COâ‚‚ bila backend tidak mengirim", stripped.routes.every((r) => r.co2 === undefined));
 
 // --- 3. POST /trips lewat tripService (kode app), lalu GET.
-const creds = JSON.parse(readFileSync(path.join(process.cwd(), "..", "backend", "backend-skeleton", "data", "demo-account.local.json"), "utf8"));
-const login = await fetch(`${BASE}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: creds.email, password: creds.password }) });
-const token = ((await login.json()) as { token: string }).token;
+// Hari 4: akun uji sekali-pakai, BUKAN akun demo — dulu setiap jalan uji
+// menambah perjalanan "Blok M (uji CO₂)" ke Riwayat akun demo.
+const reg = await fetch(`${BASE}/auth/register`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ email: `co2-${randomBytes(4).toString("hex")}@contoh.test`, password: randomBytes(12).toString("base64url"), name: "Uji CO2" }),
+});
+const token = ((await reg.json()) as { token: string }).token;
+check("C7a akun uji sekali-pakai terdaftar (bukan akun demo)", reg.status === 201 && !!token, `HTTP ${reg.status}`);
 const route = adapted.routes[0];
 const input = buildTripInput({ clientRef: newClientRef(), route, originLabel: "Blok M (uji COâ‚‚)", destinationLabel: "Kota", actualMinutes: null });
 check("C7 buildTripInput membawa co2_estimate_g dari rute", input.co2_estimate_g === route.co2?.estimate_g, `${input.co2_estimate_g} g`);
