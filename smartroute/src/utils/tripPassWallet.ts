@@ -27,12 +27,27 @@ export function applyTopUp(balance: number, amount: number): number | null {
   return next > MAX_BALANCE ? null : next;
 }
 
-/** "25.000" / "25000" / "Rp 25.000" -> 25000; null bila tidak valid. */
-export function parseBalanceInput(text: string): number | null {
+export type BalanceInput = { ok: true; value: number } | { ok: false; reason: "negative" | "invalid" };
+
+/**
+ * "25.000" / "25000" / "Rp 25.000" -> 25000. Hari 4 Task 1: tanda minus di
+ * depan angka ("-5000", "Rp -5.000", minus Unicode) DITOLAK sebagai negatif —
+ * dulu semua non-digit dibuang sehingga "-5000" diam-diam menjadi 5000.
+ */
+export function validateBalanceInput(text: string): BalanceInput {
+  const firstDigit = text.search(/\d/);
+  const prefix = firstDigit === -1 ? text : text.slice(0, firstDigit);
+  if (/[-−–]/.test(prefix)) return { ok: false, reason: "negative" };
   const digits = text.replace(/[^\d]/g, "");
-  if (!digits || digits.length > 9) return null;
+  if (!digits || digits.length > 9) return { ok: false, reason: "invalid" };
   const n = Number(digits);
-  return Number.isInteger(n) && n >= 0 && n <= MAX_BALANCE ? n : null;
+  return Number.isInteger(n) && n >= 0 && n <= MAX_BALANCE ? { ok: true, value: n } : { ok: false, reason: "invalid" };
+}
+
+/** Seperti validateBalanceInput, null bila tidak valid. */
+export function parseBalanceInput(text: string): number | null {
+  const r = validateBalanceInput(text);
+  return r.ok ? r.value : null;
 }
 
 export async function loadBalance(): Promise<number> {

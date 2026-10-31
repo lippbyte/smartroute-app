@@ -9,6 +9,7 @@
 // Jalankan dari smartroute/ (backend :3000), dengan ASYNC_STORAGE_FILE sama:
 //   node --import ./scripts/test-support/register-stubs.mjs --import <tsx>/dist/loader.mjs scripts/test-trip-pass.mts main
 //   node --import ./scripts/test-support/register-stubs.mjs --import <tsx>/dist/loader.mjs scripts/test-trip-pass.mts reopen
+import { readFileSync } from "node:fs";
 import { adaptToLegacyShape, fetchRealRoutes } from "../src/services/routeService";
 import {
   applyTopUp,
@@ -19,6 +20,7 @@ import {
   parseBalanceInput,
   saveBalance,
   TOPUP_OPTIONS,
+  validateBalanceInput,
 } from "../src/utils/tripPassWallet";
 
 const PHASE = process.argv[2] ?? "main";
@@ -85,6 +87,14 @@ if (PHASE === "main") {
   check("T8 top-up nominal di luar pilihan ditolak", applyTopUp(10_000, 15_000) === null && applyTopUp(10_000, -10_000) === null);
   check("T9 top-up melewati batas simulasi ditolak", applyTopUp(MAX_BALANCE - 5_000, TOPUP_OPTIONS[0]) === null);
   check("T10 input saldo awal: 'Rp 25.000' -> 25000; teks asing/terlalu besar -> null", parseBalanceInput("Rp 25.000") === 25_000 && parseBalanceInput("abc") === null && parseBalanceInput(String(MAX_BALANCE + 1)) === null);
+  // Hari 4 Task 1: dulu "-5000" -> 5000 (minus dibuang diam-diam).
+  const negatives = ["-5000", "-5.000", "Rp -5.000", "-Rp5.000", " -1", "−5000", "-0"];
+  check("T10b saldo negatif ditolak dengan alasan 'negative' (bukan dibalik jadi positif)", negatives.every((t) => { const r = validateBalanceInput(t); return !r.ok && r.reason === "negative" && parseBalanceInput(t) === null; }), negatives.map((t) => JSON.stringify(validateBalanceInput(t))).join(" "));
+  const notNegative = [["0", 0], ["Rp 0", 0], ["25.000", 25_000], ["Rp25000", 25_000]] as const;
+  check("T10c input sah tetap diterima (termasuk 0)", notNegative.every(([t, v]) => { const r = validateBalanceInput(t); return r.ok && r.value === v; }));
+  check("T10d teks asing / kosong / terlalu besar -> 'invalid', bukan 'negative'", ["abc", "", "Rp", String(MAX_BALANCE + 1)].every((t) => { const r = validateBalanceInput(t); return !r.ok && r.reason === "invalid"; }));
+  const screen = readFileSync(new URL("../src/app/trip-pass.tsx", import.meta.url), "utf8");
+  check("T10e layar Trip Pass menampilkan 'Saldo tidak boleh negatif.' untuk alasan negative", /parsed\.reason === "negative" \? "Saldo tidak boleh negatif\."/.test(screen) && /validateBalanceInput\(balanceText\)/.test(screen));
 
   check("T11 belum pernah disimpan -> saldo bawaan", (await loadBalance()) === DEFAULT_BALANCE, `${DEFAULT_BALANCE}`);
   const afterTopUp = applyTopUp(await loadBalance(), 50_000)!;

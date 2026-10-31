@@ -23,9 +23,9 @@ import {
   checkBalance,
   loadBalance,
   MAX_BALANCE,
-  parseBalanceInput,
   saveBalance,
   TOPUP_OPTIONS,
+  validateBalanceInput,
 } from "@/utils/tripPassWallet";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -88,11 +88,14 @@ export default function TripPassScreen() {
   const status = balance != null ? checkBalance(balance, total) : null;
 
   const saveInitial = async () => {
-    const n = parseBalanceInput(balanceText);
-    if (n == null) {
-      setBalanceError(`Masukkan angka 0 sampai ${formatRupiah(MAX_BALANCE)}.`);
+    const parsed = validateBalanceInput(balanceText);
+    if (!parsed.ok) {
+      setBalanceError(
+        parsed.reason === "negative" ? "Saldo tidak boleh negatif." : `Masukkan angka 0 sampai ${formatRupiah(MAX_BALANCE)}.`,
+      );
       return;
     }
+    const n = parsed.value;
     await saveBalance(n);
     setBalance(n);
     setEditing(false);
