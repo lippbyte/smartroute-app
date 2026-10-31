@@ -9,7 +9,8 @@
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
     "scrape:mrt": "tsx scripts/scrape-mrt.ts",
-    "seed:demo": "tsx scripts/seed-demo-account.ts"
+    "seed:demo": "tsx scripts/seed-demo-account.ts",
+    "preflight": "node scripts/demo-preflight.mjs"
   },
   "keywords": [],
   "author": "",
