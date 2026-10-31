@@ -198,7 +198,7 @@ if (!aq.ok || typeof aq.json?.available !== "boolean") {
   add("Kualitas udara", aq.json.stale ? "WARN" : "PASS", `available: true, stale: ${aq.json.stale === true}${aq.json.stale ? " — data lama ditampilkan berlabel" : ""}`);
 } else {
   const reason = aq.json.reason === "not_configured" ? "IQAIR_API_KEY tidak ada" : `IQAir ${aq.json.reason ?? "tidak tersedia"}`;
-  add("Kualitas udara", "WARN", `available: false, stale: false (${reason}) — kartu udara & lencana Sehat tidak tampil, tanpa galat`);
+  add("Kualitas udara", "WARN", `available: false, stale: false (${reason}) — kartu udara & lencana udara tidak tampil, tanpa galat`);
 }
 
 // --- 6. Database + salinan cadangan.

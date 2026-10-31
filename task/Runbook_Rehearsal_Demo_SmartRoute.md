@@ -1,5 +1,7 @@
 # Runbook Rehearsal Demo — SmartRoute AI
 
+> **Hari 4 (31 Okt 2026):** alur demo **investor** 6–8 menit, angka terukur hari ini, daftar "Jangan diklaim", dan daftar periksa H-1/hari-H ada di [`Runbook_Demo_Investor.md`](Runbook_Demo_Investor.md). Sebelum demo apa pun, jalankan `npm run preflight` di `backend/backend-skeleton`.
+
 **Tujuan dokumen:** menggabungkan app (backend + frontend) dan Model 0 jadi satu alur presentasi yang koheren, dengan skenario konkret, urutan yang masuk akal, dan rencana cadangan kalau ada yang gagal live.
 
 **Asumsi yang saya pakai** (koreksi kalau meleset — ini menentukan struktur dokumen):
