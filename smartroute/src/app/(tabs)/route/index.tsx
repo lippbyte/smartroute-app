@@ -246,15 +246,17 @@ const RouteOptionCard = ({
               baris berikutnya, tarif di kanan tidak bergeser. Hanya bila
               backend mengirim data CO₂. */}
           {item.co2 && (
+            // Hari 4: max-w-full + flex-shrink — di layar sempit (<= 360 px)
+            // teks membungkus di dalam kartu, bukan terpotong di tepinya.
             <View
-              className="flex-row items-center gap-1"
+              className="flex-row items-center gap-1 max-w-full"
               accessible
               accessibilityLabel={`Estimasi ${formatCo2(item.co2.estimate_g)} CO₂${
                 percentVs(item.co2.estimate_g, item.co2.car_g) ? `, ${percentVs(item.co2.estimate_g, item.co2.car_g)} dibanding mobil sendirian` : ""
               }`}
             >
               <Ionicons name="leaf-outline" size={14} color="#065F46" />
-              <Text className="text-xs text-ink-2">
+              <Text className="text-xs text-ink-2 flex-shrink">
                 ≈ {formatCo2(item.co2.estimate_g)} CO₂ · Estimasi
                 {percentVs(item.co2.estimate_g, item.co2.car_g) ? ` · ${percentVs(item.co2.estimate_g, item.co2.car_g)} vs mobil sendirian` : ""}
               </Text>
