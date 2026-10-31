@@ -16,6 +16,7 @@ import NavigateMap, { NavigateMapHandle } from "@/components/navigate/NavigateMa
 import SimpleNavView from "@/components/navigate/SimpleNavView";
 import { useAssistive } from "@/context/AssistiveSettingsContext";
 import { plainStep } from "@/utils/simpleSteps";
+import { type GpsIssue, gpsIssueFromPermission, gpsNotice } from "@/utils/gpsNotice";
 import type { MapSegment, MapStop } from "@/components/navigate/navigateMapTypes";
 import NavPanel from "@/components/navigate/NavPanel";
 import TripSummary from "@/components/navigate/TripSummary";
@@ -58,6 +59,8 @@ export default function NavigateScreen() {
   const [isFinished, setIsFinished] = useState(false);
   const [isFollowingUser, setIsFollowingUser] = useState(false);
   const [userLocation, setUserLocation] = useState<LatLng | null>(null);
+  // Hari 4 Task 1: alasan posisi tidak tersedia (pesan satu kalimat).
+  const [gpsIssue, setGpsIssue] = useState<GpsIssue | null>(null);
   const [bannerHeight, setBannerHeight] = useState(120);
   const [panelHeight, setPanelHeight] = useState(180);
 
@@ -150,9 +153,13 @@ export default function NavigateScreen() {
   useEffect(() => {
     let mounted = true;
     const startTracking = async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") return;
       try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        const issue = gpsIssueFromPermission(status);
+        if (issue) {
+          if (mounted) setGpsIssue(issue);
+          return;
+        }
         const current = await Location.getCurrentPositionAsync({});
         if (mounted)
           setUserLocation({ latitude: current.coords.latitude, longitude: current.coords.longitude });
@@ -165,6 +172,7 @@ export default function NavigateScreen() {
         );
       } catch (err) {
         console.warn("GPS tidak tersedia:", err);
+        if (mounted) setGpsIssue("unavailable");
       }
     };
     startTracking();
@@ -277,6 +285,7 @@ export default function NavigateScreen() {
   // Hari 3: Mode sederhana menggantikan peta + banner + panel (deteksi GPS,
   // pindah langkah otomatis, dan trigger 75 m tetap berjalan di atas).
   const simple = assistive.simpleNav.on;
+  const gpsMessage = userLocation ? null : gpsNotice(gpsIssue);
   const nextOrFinish = () => {
     if (currentLegIndex >= legs.length - 1) {
       setIsFollowingUser(false);
@@ -305,10 +314,24 @@ export default function NavigateScreen() {
           currentLegIndex={currentLegIndex}
           progress={progress}
           remainingMin={remainingMin}
+          notice={gpsMessage}
           onPrev={() => goToLeg(currentLegIndex - 1)}
           onNext={nextOrFinish}
           onExit={() => (router.canGoBack() ? router.back() : handleGoHome())}
         />
+      )}
+
+      {/* Hari 4 Task 1: GPS ditolak/gagal — satu kalimat di atas panel, di
+          kiri tombol ikuti-GPS. */}
+      {!isFinished && !simple && gpsMessage && (
+        <View
+          className="absolute left-4 z-10 bg-surface rounded-xl border border-line px-3 py-2 flex-row items-center gap-2"
+          style={{ bottom: panelHeight + 14, right: 76 }}
+          accessibilityLiveRegion="polite"
+        >
+          <Ionicons name="location-outline" size={16} color="#B45309" />
+          <Text className="text-ink text-xs flex-1">{gpsMessage}</Text>
+        </View>
       )}
 
       {!isFinished && !simple && (

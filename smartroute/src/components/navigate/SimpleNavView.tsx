@@ -19,12 +19,14 @@ interface Props {
   currentLegIndex: number;
   progress: LegProgress;
   remainingMin: number;
+  /** Hari 4 Task 1: pesan satu kalimat bila GPS ditolak/gagal. */
+  notice?: string | null;
   onPrev: () => void;
   onNext: () => void;
   onExit: () => void;
 }
 
-export default function SimpleNavView({ legs, currentLegIndex, progress, remainingMin, onPrev, onNext, onExit }: Props) {
+export default function SimpleNavView({ legs, currentLegIndex, progress, remainingMin, notice, onPrev, onNext, onExit }: Props) {
   const leg = legs[currentLegIndex];
   const isLast = currentLegIndex === legs.length - 1;
   const step = plainStep(leg, isLast, { onBoard: progress.onBoard, stopsRemaining: progress.stopsRemaining });
@@ -36,6 +38,11 @@ export default function SimpleNavView({ legs, currentLegIndex, progress, remaini
         <Text className="text-ink-2 text-base" weight="semibold" accessibilityLiveRegion="polite">
           Langkah {currentLegIndex + 1} dari {legs.length} · sisa sekitar {remainingMin} menit
         </Text>
+        {notice ? (
+          <Text className="text-ink text-base" accessibilityLiveRegion="polite">
+            {notice}
+          </Text>
+        ) : null}
 
         <View className="flex-1 justify-center gap-5" accessible accessibilityLabel={`${step.title}. ${step.detail}`}>
           <View
