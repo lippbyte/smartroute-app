@@ -4,7 +4,7 @@
 **Dasar angka:** pengukuran **31 Okt 2026** dengan kode app asli (`smartroute/scripts/measure-demo-flow.mts`) dan preflight (`npm run preflight`), backend bersih setelah restart. Detail mentah di bagian 8.
 **Melengkapi:** `Runbook_Rehearsal_Demo_SmartRoute.md` (versi juri lomba, termasuk Model 0). Dokumen ini khusus alur investor 6–8 menit.
 
-> **Status hari ini (31 Okt):** kunci OpenRouter **kedaluwarsa**, jadi TOTO belum bisa didemokan. Kunci IQAir **tidak ada**, jadi kartu udara dan lencana udara ("Aktif sehat"/"Minim paparan") tidak tampil; lencana "Paling hijau" (CO₂) tetap tampil. Keduanya menunggu Khalifa. Semua yang lain PASS di preflight.
+> **Status 3 Nov:** kunci OpenRouter dan IQAir baru **valid**; TOTO dan kartu udara berjalan dengan data asli. **TOTO hanya aman untuk pertanyaan tarif dan jam operasional**; jawaban soal rute terbukti bisa keliru (segmen 4). Tolak ajakan mencoba rute lewat TOTO; arahkan ke pencarian rute.
 
 > **Kode DIBEKUKAN sejak 31 Okt 2026 (keputusan Khalifa).** Yang boleh masuk hanya perbaikan yang menghalangi demo, masing-masing dengan uji dan regresi `/routes`. Tidak ada tag atau merge ke `main` sebelum hasil uji HP dari Khalifa.
 
@@ -21,7 +21,7 @@ Durasi per segmen adalah **target**. Latensi sistem sudah diukur, tetapi waktu b
 | 1 | Beranda | 0:30 | `TODO:verifikasi` | — |
 | 2 | S1 Blok M → Kota | 1:30 | `TODO:verifikasi` | 0,4–0,9 dtk per pencarian |
 | 3 | S2 Pasar Baru → Lebak Bulus + lapor Monas | 2:00 | `TODO:verifikasi` | 1,4–1,7 dtk per pencarian; lapor < 0,1 dtk |
-| 4 | TOTO | 1:00 | `TODO:verifikasi` | belum bisa diukur (kunci kedaluwarsa) |
+| 4 | TOTO | 1:00 | `TODO:verifikasi` | 2,7–5,5 dtk per jawaban (Q2, Q3) |
 | 5 | Info aksesibilitas | 0:45 | `TODO:verifikasi` | 0,4–0,5 dtk |
 | 6 | Trip Pass (simulasi) | 0:45 | `TODO:verifikasi` | 0 (tanpa jaringan) |
 | 7 | Riwayat & rating | 0:45 | `TODO:verifikasi` | GET /trips < 0,1 dtk |
@@ -34,7 +34,7 @@ Durasi per segmen adalah **target**. Latensi sistem sudah diukur, tetapi waktu b
 
 ### Segmen 1 — Beranda (0:30)
 - **Tekan:** buka app. Kalau muncul layar Masuk, pilih **akun demo** (dibutuhkan untuk TOTO dan Riwayat). Lihat bagian 5 soal tamu vs akun demo.
-- **Harus muncul:** logo, kolom **Dari/Ke**, kartu **Peta Kepadatan**. Kartu kualitas udara **tidak tampil** selama kunci IQAir tidak ada; ini memang perilaku yang dirancang, bukan galat.
+- **Harus muncul:** logo, kolom **Dari/Ke**, kartu **Peta Kepadatan**, dan kartu **Udara Jakarta** (data tingkat kota, berubah sesuai jam). Contoh terukur 3 Nov 05.32: **AQI 161, "Tidak sehat"**, saran "Pertimbangkan rute dengan jalan kaki lebih sedikit." Baca angkanya dari layar, jangan menghafal. Bila IQAir gagal, kartu tidak tampil tanpa galat.
 - **Kalimat kunci** *(perlu ditinjau presenter)*: "SmartRoute merencanakan perjalanan transportasi umum Jabodetabek dengan perkiraan yang jujur: rentang waktu, risiko sambungan, dan jejak karbon."
 - **Cadangan:** app tidak terbuka → pakai video cadangan (bagian 6).
 
@@ -46,8 +46,10 @@ Durasi per segmen adalah **target**. Latensi sistem sudah diukur, tetapi waktu b
 |---|---|---|---|---|---|---|---|
 | 1 | Bus Koridor **1** | Murah | 6/10 | 92–106 mnt | 0x | Rp3.500 | ≈ 480 g · −81% vs mobil sendirian |
 | 2 | **M+1** (MRT lalu Koridor 1) | Nyaman · lencana **Paling hijau** | 5/10 | 75–87 mnt | 1x | Rp11.500 | ≈ 380 g · −85% |
-| 3 | M+Cikarang+Bogor | Nyaman | 5/10 | 64–74 mnt | 2x | Rp10.000 | ≈ 630 g · −81% |
+| 3 | M+Cikarang+Bogor | Nyaman · lencana **Minim paparan*** | 5/10 | 64–74 mnt | 2x | Rp10.000 | ≈ 630 g · −81% |
 | 4 | M+Bogor | Nyaman | 4/10 | 74–86 mnt | 1x | Rp11.000 | ≈ 380 g · −86% |
+
+\* Lencana udara mengikuti AQI saat itu: udara kurang baik (terukur AQI 161) → "Minim paparan"; udara baik/sedang → "Aktif sehat" bila ada rute dengan jalan kaki 800–1.600 m. Bisa berbeda saat demo. Lencana "Paling hijau" (CO₂) tidak bergantung pada udara.
 
 - **Rentang ETA langsung di kartu** (sejak keputusan Khalifa 31 Okt), mis. "92–106 mnt · 07:30–09:01". Diuji di layar 320/360/412 px dan dengan nama lokasi sangat panjang: tidak terpotong.
 - **Ketuk kartu #1 → Detail:** kotak "Menit" di Detail masih **satu angka** (92, batas bawah), dan **Reliabilitas (Tepat Waktu) 90%**. Bandingkan dengan #3 (tercepat, 2 transit): reliabilitas **50%**. Itulah "risiko transfer" yang bisa ditunjukkan. Tunjuk rentang di kartu hasil, bukan di Detail.
@@ -68,11 +70,20 @@ Durasi per segmen adalah **target**. Latensi sistem sudah diukur, tetapi waktu b
 - **Cadangan:** urutan tidak berbalik → kemungkinan ada laporan sisa gladi atau jam berbeda. Petugas teknis restart backend (bagian 4), presenter memutar video S2. **Wajib ada video S2 cadangan.**
 
 ### Segmen 4 — TOTO, asisten AI (1:00)
-- **Status 31 Okt:** **tidak bisa didemokan**. Kunci OpenRouter kedaluwarsa, sehingga app menampilkan "Layanan asisten sedang tidak tersedia. Coba lagi sebentar lagi." (pesan ramah; tidak memakan kuota akun karena 401 dikembalikan).
-- **Setelah kunci baru dipasang:** masuk akun demo → TOTO → tanya pertanyaan terlatih **"dari Blok M ke Kota naik apa?"** (Q1). Jawaban yang diharapkan menyebut Rute 1 (BRT) dan Rp3.500. Latensi: `TODO:verifikasi` (ukur ulang 5 pertanyaan setelah kunci baru).
-- **Hindari Q5** ("Berapa lama perjalanannya dan apakah ramai?"): tercatat sebagai risiko sejak Hari 1.
-- **Kalimat kunci** *(perlu ditinjau presenter)*: "TOTO menjawab dari data transit yang kami berikan, bukan dikarang. Kalau datanya tidak ada, TOTO bilang tidak tahu."
-- **Cadangan:** gagal/lambat > 15 dtk → katakan "asisten sedang tidak tersedia" dan lanjut; putar rekaman jawaban Q1 bila ada (`TODO:verifikasi`: rekaman belum dibuat).
+- **Tekan:** masuk akun demo → TOTO → ketuk tombol saran **"Berapa tarif TransJakarta?"** (Q2).
+- **Harus muncul (3/3 percobaan, 3,2–5,5 dtk):** Rp3.500 untuk mayoritas rute, Rp20.000–Rp35.000 Royaltrans, gratis Mikrotrans, dan transfer gratis dalam 3 jam. Kata-katanya berbeda tiap kali.
+- **Cadangan pertanyaan:** ketik "Jam berapa TransJakarta mulai dan berhenti beroperasi?" (Q3; 3/3 percobaan, 2,7–2,8 dtk): 05:00–22:00 WIB, disebut rentang umum.
+- **⚠ JANGAN pakai pertanyaan rute di depan investor**, termasuk tombol saran **"Dari Blok M ke Kota naik apa?"**. Hasil uji:
+
+| Pertanyaan | Masalah terukur |
+|---|---|
+| Dari Blok M ke Kota (seperti dari app) | Mengarang waktu tempuh "30–45" dan "45–60 menit" (layar: 92–106 menit); menyebut "tercepat" (layar: paling lambat); 2 dari 3 jawaban menyebut "real-time". "Kota" juga di-geocode ke titik di Jakarta Timur, jadi tombol buka rute di bawah jawaban memakai tujuan yang salah |
+| Dari Kalideres ke PGC | Mengarang transfer Rute 3 → Rute 10: kedua rute tidak berbagi halte, halte terdekat berjarak ±5 km |
+| Berapa lama perjalanannya… (dengan konteks rute) | Waktu benar, tetapi keandalan terbalik: rute reliabilitas 90% disebut "rendah", rute 50% disebut "lebih andal" |
+| Dari Fatmawati ke Manggarai | Tidak menyebut MRT + KRL, padahal `/routes` menemukannya (43–50 menit) |
+
+- **Kalimat kunci** *(perlu ditinjau presenter)*: "TOTO menjawab pertanyaan umum soal layanan. Untuk rute, sumber kebenarannya tetap mesin rute yang tadi Anda lihat, dan jawaban TOTO soal rute masih kami perbaiki."
+- **Cadangan:** gagal/lambat > 15 dtk → katakan "asisten sedang tidak tersedia" dan lanjut; putar rekaman jawaban Q2 bila ada (`TODO:verifikasi`: rekaman belum dibuat).
 
 ### Segmen 5 — Info aksesibilitas (0:45)
 - **Persiapan:** Profil → **Tampilan & bantuan** → nyalakan **"Info aksesibilitas kursi roda"** (lakukan sebelum demo).
@@ -105,6 +116,7 @@ Durasi per segmen adalah **target**. Latensi sistem sudah diukur, tetapi waktu b
 
 | Jangan katakan | Yang benar |
 |---|---|
+| **TOTO selalu akurat**, "tidak pernah mengarang", atau bisa dipakai merencanakan rute | Teruji untuk tarif dan jam operasional; jawaban rute terbukti bisa keliru (segmen 4). **Perhatian:** layar Tentang masih menulis "dijawab dari data transit, bukan dikarang"; jangan membacakannya (keputusan Khalifa, bagian 7) |
 | Posisi armada / kepadatan **real-time** | Kepadatan dari **laporan pengguna**, berlaku 15 menit; jadwal dari GTFS dan jadwal rakitan tim |
 | **Model prediksi terlatih** / "AI memprediksi waktu tempuh" | Rentang ETA dan skor rekomendasi berbasis **heuristik**; model prediksi ada di roadmap |
 | Pembayaran, NFC, saldo, atau top-up **sungguhan** | Trip Pass: tarif per bagian nyata dari data tarif; saldo dan top-up **SIMULASI** di perangkat |
@@ -132,11 +144,10 @@ Durasi per segmen adalah **target**. Latensi sistem sudah diukur, tetapi waktu b
 ## 4. Daftar periksa
 
 ### H-1
-- [ ] **Kunci OpenRouter baru** dipasang di `backend/backend-skeleton/.env` oleh Khalifa, lalu restart backend. Preflight baris TOTO harus PASS.
-- [ ] **Kunci IQAir** (bila dipakai) dipasang; preflight "Kualitas udara" `available: true`.
-- [ ] Ukur ulang 5 pertanyaan TOTO dan isi latensi segmen 4.
+- [ ] Preflight: baris TOTO dan "Kualitas udara" PASS (kunci terpasang 2 Nov; pastikan belum kedaluwarsa).
+- [ ] Presenter berlatih segmen 4 hanya dengan Q2/Q3, dan menyiapkan jawaban bila investor meminta mencoba rute lewat TOTO.
 - [ ] Gladi penuh dengan stopwatch dan isi kolom "Terukur" di bagian 1.
-- [ ] Rekam **video cadangan** S1, S2 (dengan lapor Monas), dan TOTO Q1.
+- [ ] Rekam **video cadangan** S1, S2 (dengan lapor Monas), dan TOTO Q2.
 - [ ] Riwayat akun demo (kosong sejak 31 Okt) berisi 1–2 perjalanan gladi sungguhan, minimal satu belum dinilai (lihat segmen 7).
 - [ ] HP demo: bantuan "Info aksesibilitas kursi roda" **menyala**; saldo Trip Pass = Rp10.000; minimal satu perjalanan **belum dinilai** di akun demo.
 - [ ] Uji tampilan di HP (dampak `cssInterop` pada teks); keputusan Khalifa bila bermasalah.
@@ -185,8 +196,7 @@ Akun, riwayat, dan rating tersimpan di SQLite, tidak ikut terhapus. Tunnel dan M
 ## 7. Yang masih menunggu
 | Butir | Siapa |
 |---|---|
-| Kunci OpenRouter baru (TOTO) | Khalifa |
-| Kunci IQAir (kartu udara, lencana Aktif sehat/Minim paparan) | Khalifa |
+| Perbaikan jawaban rute TOTO, tombol saran "Dari Blok M ke Kota", dan kalimat "bukan dikarang" di layar Tentang (kode dibekukan; lihat laporan Hari 4) | Keputusan Khalifa |
 | Kontak kemitraan resmi, tagline final | Khalifa |
 | Durasi nyata tiap segmen | Tim (gladi) |
 | Video cadangan S1/S2/TOTO | Tim |
@@ -196,7 +206,16 @@ Akun, riwayat, dan rating tersimpan di SQLite, tidak ikut terhapus. Tunnel dan M
 
 ---
 
-## 8. Data pengukuran 31 Okt 2026
+## 8. Data pengukuran
+
+**2–3 Nov 2026 (kunci baru):**
+- Preflight terakhir (3 Nov 05.44, backend bersih): **15 PASS · 0 WARN · 0 FAIL**; S1 #1 `1` 415 ms, S2 #1 `2+1+M` 1.739 ms, S3 #1 `3+8+5C` 2.578 ms; TOTO 3.401 ms; kualitas udara `available: true, stale: false`. PASS pada baris TOTO hanya berarti jawaban terbentuk, **bukan** isinya benar. Pada 2 Nov, tepat setelah OTP2 menyala, S1 sempat WARN (dingin 18,7 dtk).
+- Q2 dengan lokasi GPS (seperti HP yang mengizinkan GPS): 5,7 dtk, isi tetap benar.
+- TOTO tanpa konteks, 3x per pertanyaan: Q1 3,1–3,8 dtk, Q2 3,2–5,5 dtk, Q3 2,7–2,8 dtk. Q1 seperti dari app (dengan koordinat): 6,1–7,2 dtk.
+- Udara: AQI 105 (2 Nov malam), AQI 161 "Tidak sehat" (3 Nov 05.32).
+- Regresi `/routes` bersih setelah restart (3 Nov): S1, S2 sebelum/sesudah Monas, S3, L1, L2 **identik** baseline; chip moda 4/4; tata letak kartu dengan data udara asli 34/34.
+
+**31 Okt 2026:**
 
 **Preflight** (backend baru di-restart, ±20.06 WIB): 13 PASS · 1 WARN · 1 FAIL.
 - PASS: backend lokal 53 ms, tunnel 434 ms, OTP2 4 feed 19 ms, laporan kepadatan 0, S1 #1 `1` 868 ms, S2 #1 `2+1+M` 1.688 ms, S3 #1 `3+8+5C` 2.665 ms, akun demo masuk 54 ms, `/me`, `/trips` (4 perjalanan), keluar, database `quick_check ok`, cadangan dibuat.

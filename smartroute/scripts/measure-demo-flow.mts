@@ -8,6 +8,7 @@
 // PERINGATAN: skenario S2 MENGIRIM laporan "padat" Monas (seperti di demo) —
 // restart backend sesudahnya supaya S1 kembali normal.
 import { writeFileSync } from "node:fs";
+import { fetchAirQuality } from "../src/services/airQualityService";
 import { submitCrowdReport } from "../src/services/crowdService";
 import { adaptToLegacyShape, fetchRealRoutes } from "../src/services/routeService";
 import { a11yBanner } from "../src/utils/a11yDisplay";
@@ -19,6 +20,9 @@ import type { RouteItem } from "../src/type";
 const argAt = process.argv[2] ?? "2026-09-21T07:30:00+07:00";
 const AT = argAt === "now" ? undefined : argAt;
 const OUT = process.argv[3];
+// Sama dengan layar: lencana udara mengikuti data kota saat ini.
+const air = await fetchAirQuality();
+console.log(air ? `udara: AQI ${air.aqi_us}, ${air.category} (${air.category_key}), data lama: ${air.stale}` : "udara: tidak tersedia");
 
 // Sama dengan getRouteTypeLabel di app/(tabs)/route/index.tsx.
 const typeLabel = (i: RouteItem) =>
@@ -30,7 +34,7 @@ async function scenario(id: string, from: [number, number], to: [number, number]
   const rec = await fetchRealRoutes({ lat: from[0], lng: from[1] }, { lat: to[0], lng: to[1] }, AT, undefined, opts.a11y ?? false);
   const ms = Date.now() - t0;
   const shaped = adaptToLegacyShape(rec, { origin: "A", destination: "B" });
-  const badges = computeRouteBadges(shaped.routes, null); // IQAir tidak ada -> tanpa lencana udara
+  const badges = computeRouteBadges(shaped.routes, air); // null bila IQAir tidak tersedia -> tanpa lencana udara
   const cards = shaped.routes
     .slice()
     .sort((a, b) => a.rank - b.rank)

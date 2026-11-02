@@ -105,9 +105,31 @@ Semua diuji **hidup** kecuali yang ditandai.
 
 Preflight sesudahnya (21.08 WIB, backend bersih): 13 PASS · 1 WARN (IQAir) · 1 FAIL (kunci OpenRouter kedaluwarsa); S1/S2/S3 sesuai baseline.
 
-## 7. Risiko tersisa untuk hari-H
+## 7. Tambahan: kunci baru, 2–3 Nov
 
-1. **TOTO** mati sampai kunci diganti; kalau kunci baru datang mepet, Q1–Q5 belum diukur ulang (Q5 tetap berisiko).
+Kunci OpenRouter dan IQAir baru valid. Preflight terakhir (3 Nov 05.44) **15 PASS · 0 WARN · 0 FAIL**; PASS pada baris TOTO hanya berarti jawaban terbentuk, bukan isinya benar. Regresi `/routes` bersih identik baseline, chip 4/4, tata letak dengan data udara asli 34/34. Kartu udara dan lencana "Minim paparan" tampil benar (AQI 161). Tidak ada perubahan kode produk.
+
+**Jawaban TOTO dicocokkan dengan OTP2 dan `/routes`, bukan hanya status HTTP:**
+
+| Pertanyaan | Harapan | Hasil | Status |
+|---|---|---|---|
+| Q2 tarif (3x) | Tingkatan tarif | Sesuai, 3/3 | **Aman** → pertanyaan terlatih baru |
+| Q3 jam operasi (3x) | 05:00–22:00, rentang umum | Sesuai, 3/3 | **Aman** → cadangan |
+| Q1 Blok M → Kota, seperti dari app (3x) | Rute 1, Rp3.500 | Rute & tarif benar, tetapi mengarang "30–45"/"45–60 menit" (layar 92–106), menyebut "tercepat", 2/3 menyebut "real-time" | **Tidak aman** |
+| Q4 Kalideres → PGC | Jujur, tidak mengarang | Mengarang transfer Rute 3 → 10 (tanpa halte bersama, terdekat ±5 km) | **Gagal** |
+| Q5 dengan konteks rute | Waktu sesuai, jujur soal kepadatan | Waktu & kepadatan benar; keandalan **terbalik**, "tercepat" keliru | **Gagal sebagian** |
+| Q6 Fatmawati → Manggarai | MRT + KRL | Tidak menyebut; `/routes` punya M+Cikarang 43–50 menit | **Gagal** (tidak mengarang) |
+
+**Temuan yang menunggu keputusan Khalifa** (kode dibekukan, dan demo tetap bisa jalan dengan Q2/Q3, jadi belum diperbaiki):
+
+1. **Label keandalan terbalik** ([assistant.ts:169](../backend/backend-skeleton/src/services/assistant.ts#L169)): `risk: low` dikirim sebagai "keandalan sambungan: low". Usul: "risiko sambungan: rendah/sedang/tinggi" (satu baris, tanpa efek pada `/routes`).
+2. **TOTO mengarang fakta rute** (waktu tempuh, transfer). Usul: instruksi agar waktu tempuh hanya dari kandidat yang diberikan, dan tanpa kandidat diarahkan ke pencarian rute. Perlu uji ulang karena jawaban LLM bervariasi.
+3. **Tombol saran "Dari Blok M ke Kota naik apa?"** menuntun ke jalur yang keliru, dan "Kota" di-geocode ke (-6.2629, 106.8822), sehingga tombol buka rute memakai tujuan salah. Usul: ganti tombol dengan pertanyaan tarif/jam, atau tujuan yang tidak ambigu.
+4. **Layar Tentang** menulis TOTO "dijawab dari data transit, bukan dikarang" ([developerInfo.ts](../smartroute/src/constants/developerInfo.ts)): tidak sesuai hasil uji. Usul: ubah kalimatnya.
+
+## 8. Risiko tersisa untuk hari-H
+
+1. **TOTO keliru bila ditanya rute**: presenter memakai Q2/Q3 saja; investor yang mengetuk tombol saran rute bisa mendapat jawaban salah sampai temuan di atas diputuskan. Kunci OpenRouter perlu dicek saat preflight.
 2. **Riwayat akun demo kosong** (data uji sudah dihapus): perlu 1–2 perjalanan gladi sungguhan, kalau tidak segmen Riwayat & rating tidak bisa didemokan.
 3. **Urutan S1 → S2**: laporan Monas bertahan 15 menit dan menggeser S1; mengulang S1 butuh restart backend (preflight mendeteksinya sebagai WARN).
 4. **Hasil S2 sesudah Monas bergantung jam**: rute #1 pengganti berbeda (Bogor+Cikarang+M pada 07:30 Senin, Bogor+M pada Sabtu malam); kalimat presenter sudah dibuat generik.
