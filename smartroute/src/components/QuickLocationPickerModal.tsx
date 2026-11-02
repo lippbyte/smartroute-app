@@ -16,6 +16,7 @@ import {
   ActivityIndicator,
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   TextInput,
   View,
@@ -65,7 +66,9 @@ export default function QuickLocationPickerModal({
               </Pressable>
             </View>
 
-            <View className="px-5 pb-5 gap-3">
+            {/* flex-shrink: di layar pendek (keyboard terbuka) daftar menyusut
+                di dalam kartu max-h-[75%], bukan terpotong di bawahnya. */}
+            <View className="px-5 pb-5 gap-3 flex-shrink">
               <View className="flex-row items-center gap-2 bg-surface-2 rounded-xl px-3 py-2.5">
                 <Ionicons name="search" size={16} color="#737373" />
                 <TextInput
@@ -88,7 +91,11 @@ export default function QuickLocationPickerModal({
                   Tidak ada lokasi untuk &quot;{query.trim()}&quot;
                 </Text>
               ) : (
-                <View style={{ maxHeight: 320 }}>
+                // ScrollView, bukan View: dulu baris yang melebihi maxHeight
+                // terpotong dan tidak pernah bisa dicapai. "handled": keyboard
+                // terbuka saat daftar tampil (autoFocus), tanpa ini ketukan
+                // pertama hanya menutup keyboard.
+                <ScrollView style={{ maxHeight: 320 }} keyboardShouldPersistTaps="handled">
                   {suggestions.map((item, index) => (
                     <Pressable
                       key={`${item.displayName}-${index}`}
@@ -105,7 +112,7 @@ export default function QuickLocationPickerModal({
                       )}
                     </Pressable>
                   ))}
-                </View>
+                </ScrollView>
               )}
             </View>
           </Pressable>

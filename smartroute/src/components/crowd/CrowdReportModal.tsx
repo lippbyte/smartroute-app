@@ -21,6 +21,7 @@ import {
   ActivityIndicator,
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   TextInput,
   View,
@@ -122,7 +123,9 @@ export default function CrowdReportModal({
             </View>
 
             {!selectedStop ? (
-              <View className="px-5 pb-5 gap-3">
+              // flex-shrink: di layar pendek (keyboard terbuka) daftar menyusut
+              // di dalam kartu max-h-[75%], bukan terpotong di bawahnya.
+              <View className="px-5 pb-5 gap-3 flex-shrink">
                 <View className="flex-row items-center gap-2 bg-surface-2 rounded-xl px-3 py-2.5">
                   <Ionicons name="search" size={16} color="#737373" />
                   <TextInput
@@ -145,7 +148,11 @@ export default function CrowdReportModal({
                     Tidak ada halte untuk &quot;{query.trim()}&quot;
                   </Text>
                 ) : (
-                  <View style={{ maxHeight: 280 }}>
+                  // ScrollView, bukan View: dulu baris yang melebihi maxHeight
+                  // terpotong (8 hasil "Monumen" di alur demo S2). "handled":
+                  // keyboard terbuka saat daftar tampil (autoFocus), tanpa ini
+                  // ketukan pertama hanya menutup keyboard.
+                  <ScrollView style={{ maxHeight: 280 }} keyboardShouldPersistTaps="handled">
                     {results.map((stop, index) => (
                       <Pressable
                         key={`${stop.gtfsId}-${index}`}
@@ -157,7 +164,7 @@ export default function CrowdReportModal({
                         </Text>
                       </Pressable>
                     ))}
-                  </View>
+                  </ScrollView>
                 )}
               </View>
             ) : (
