@@ -102,19 +102,24 @@ function ModeToggleChip({
 function SearchResultRow({
   stop,
   onPress,
+  onPressIn,
+  onPressOut,
 }: {
   stop: TransitStop;
   onPress: () => void;
+  onPressIn: () => void;
+  onPressOut: () => void;
 }) {
   return (
     <Pressable
-      // onPressIn, bukan onPress: di HP jeda antara jari menyentuh dan
-      // melepas bisa lebih lama dari timer blur field pencarian, sehingga
-      // baris ini keburu hilang dan pilihan tidak pernah terbaca — peta
-      // lalu terlihat "tidak mengarah ke halte" (dilaporkan 23 Sep 2026).
+      // Memilih saat jari DILEPAS, bukan saat menyentuh: dulu memakai onPressIn,
+      // sehingga jari yang hendak menggulir langsung memilih baris yang
+      // tersentuh. Balapan timer blur (dilaporkan 23 Sep 2026) yang dulu
+      // dihindari onPressIn kini ditangani onPressIn/onPressOut dari layar ini.
       // Sama dengan perbaikan di LocationAutocompleteField.
-      onPressIn={onPress}
-      onPress={() => {}}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      onPress={onPress}
       className="flex-row items-center gap-2.5 px-4 py-3 active:bg-surface-2 border-b border-line last:border-b-0"
     >
       <Ionicons name={MODE_ICON[stop.mode]} size={16} color={MODE_COLOR[stop.mode]} />
@@ -159,6 +164,9 @@ export default function AllStopsMapScreen() {
   // di baris hasil menyentuh layar sebelum TextInput sempat blur, jadi blur
   // ditunda dikit supaya onPress sempat kebaca duluan.
   const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Hotfix gulir: jari sedang menekan baris hasil. Selama itu blur tidak boleh
+  // menutup dropdown, karena memilih kini terjadi saat jari DILEPAS (onPress).
+  const pressingRowRef = useRef(false);
 
   const load = useCallback(async () => {
     setState({ status: "loading" });
@@ -399,7 +407,25 @@ export default function AllStopsMapScreen() {
     setPendingFlyTarget({ lat: coordinate.latitude, lng: coordinate.longitude, zoom: 16 });
   };
 
+  const scheduleSearchClose = () => {
+    clearBlurTimeout();
+    blurTimeoutRef.current = setTimeout(() => setIsSearchFocused(false), 150);
+  };
+
+  const handleRowPressIn = () => {
+    pressingRowRef.current = true;
+    clearBlurTimeout();
+  };
+
+  // Juga terpanggil saat gulir mengambil alih sentuhan (tanpa onPress). Bila
+  // input sudah lepas fokus selama ditekan, tutup seperti blur biasa.
+  const handleRowPressOut = () => {
+    pressingRowRef.current = false;
+    if (!searchInputRef.current?.isFocused()) scheduleSearchClose();
+  };
+
   const handleSelectResult = (stop: TransitStop) => {
+    pressingRowRef.current = false;
     clearBlurTimeout();
     setIsSearchFocused(false);
     // BUG (dilaporkan user: "search kedua kali tidak muncul rekomendasi"):
@@ -479,7 +505,7 @@ export default function AllStopsMapScreen() {
                   setIsSearchFocused(true);
                 }}
                 onBlur={() => {
-                  blurTimeoutRef.current = setTimeout(() => setIsSearchFocused(false), 150);
+                  if (!pressingRowRef.current) scheduleSearchClose();
                 }}
                 placeholder="Cari nama halte..."
                 placeholderTextColor="#737373"
@@ -549,6 +575,8 @@ export default function AllStopsMapScreen() {
                         key={`${stop.mode}-${stop.name}-${index}`}
                         stop={stop}
                         onPress={() => handleSelectResult(stop)}
+                        onPressIn={handleRowPressIn}
+                        onPressOut={handleRowPressOut}
                       />
                     ))}
                   </ScrollView>

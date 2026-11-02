@@ -7,7 +7,7 @@
 import { useLocationSuggestions } from "@/hooks/useLocationSuggestions";
 import { PlaceSuggestion } from "@/utils/geocode";
 import { Ionicons } from "@expo/vector-icons";
-import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, TextInput, View } from "react-native";
 import Text from "./Text";
 
@@ -55,6 +55,9 @@ const LocationAutocompleteField = forwardRef<
   // pernah kena. Blur ditunda dikit supaya onPress sempat jalan dulu; tap
   // suksesnya sendiri yang membatalkan timer ini via clearBlurTimeout().
   const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Hotfix gulir: jari sedang menekan baris daftar. Selama itu blur tidak boleh
+  // menutup dropdown, karena memilih kini terjadi saat jari DILEPAS (onPress).
+  const pressingRowRef = useRef(false);
   // Task App-09 Bagian 2: dipakai tombol X untuk fokus ulang ke input
   // setelah mengosongkan field, supaya user bisa langsung ketik ulang tanpa
   // tap dulu ke field-nya.
@@ -80,7 +83,31 @@ const LocationAutocompleteField = forwardRef<
     }
   };
 
+  const scheduleClose = () => {
+    clearBlurTimeout();
+    blurTimeoutRef.current = setTimeout(() => setIsFocused(false), 150);
+  };
+
+  const handleRowPressIn = () => {
+    pressingRowRef.current = true;
+    clearBlurTimeout();
+  };
+
+  // Juga terpanggil saat gulir mengambil alih sentuhan (tanpa onPress). Bila
+  // input sudah lepas fokus selama ditekan, tutup seperti blur biasa.
+  const handleRowPressOut = () => {
+    pressingRowRef.current = false;
+    if (!inputRef.current?.isFocused()) scheduleClose();
+  };
+
+  // Baris yang sedang ditekan bisa hilang saat hasil baru datang, dan
+  // onPressOut-nya tidak pernah terpanggil.
+  useEffect(() => {
+    pressingRowRef.current = false;
+  }, [suggestions]);
+
   const handleSelect = (suggestion: PlaceSuggestion) => {
+    pressingRowRef.current = false;
     clearBlurTimeout();
     setIsFocused(false);
     setPicked(suggestion);
@@ -119,7 +146,7 @@ const LocationAutocompleteField = forwardRef<
             setIsFocused(true);
           }}
           onBlur={() => {
-            blurTimeoutRef.current = setTimeout(() => setIsFocused(false), 150);
+            if (!pressingRowRef.current) scheduleClose();
           }}
           placeholder={placeholder}
           placeholderTextColor="#737373"
@@ -162,13 +189,14 @@ const LocationAutocompleteField = forwardRef<
           {suggestions.map((item, index) => (
             <Pressable
               key={`${item.displayName}-${index}`}
-              // onPressIn, bukan onPress: di HP, jeda antara jari menyentuh
-              // dan melepas kadang lebih lama dari timer blur field ini,
-              // sehingga baris ini keburu hilang dan pilihan user tidak
-              // pernah tersimpan (dilaporkan 23 Sep 2026). Menyimpan saat
-              // SENTUHAN PERTAMA menghilangkan balapan itu sepenuhnya.
-              onPressIn={() => handleSelect(item)}
-              onPress={() => {}}
+              // Memilih saat jari DILEPAS, bukan saat menyentuh: dulu memakai
+              // onPressIn, sehingga jari yang hendak menggulir langsung memilih
+              // baris pertama yang tersentuh dan daftar tidak bisa digulir.
+              // Balapan timer blur (dilaporkan 23 Sep 2026) yang dulu dihindari
+              // onPressIn kini ditangani handleRowPressIn/Out.
+              onPressIn={handleRowPressIn}
+              onPressOut={handleRowPressOut}
+              onPress={() => handleSelect(item)}
               className="px-3 py-3 active:bg-surface-2 border-b border-line flex-row items-center gap-3"
             >
               {/* Halte/stasiun pakai ikon & warna modanya; alamat biasa
