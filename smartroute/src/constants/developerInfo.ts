@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 // Isi layar "Tentang & Masukan" (app/about.tsx). Satu tempat — ganti isinya
 // di sini saja.
 //
@@ -30,16 +31,18 @@ export const VALUE_PROPOSITION =
 
 // Batas kemampuan TOTO yang jujur, dipakai di layar Tentang, kartu Beranda, dan
 // layar TOTO. Jawaban soal rute terbukti bisa keliru (laporan Hari 4).
-export const TOTO_SCOPE_NOTE = "TOTO paling akurat untuk tarif dan jam operasional; untuk rute gunakan pencarian rute.";
+export const totoScopeNote = () => t("toto.scopeNote");
 
 // Catatan tetap di layar TOTO. Instruksi sistem sudah membatasi jawaban, tetapi
 // uji berulang masih menemukan jawaban keliru (test-toto-live.mjs, laporan hotfix).
-export const TOTO_CHAT_NOTE = "Jawaban TOTO bisa keliru. Untuk rute, waktu tempuh, dan transfer, gunakan pencarian rute.";
+export const totoChatNote = () => t("toto.chatNote");
 
 export const FEATURES: Array<{ icon: string; title: string; body: string }> = [
   { icon: "time-outline", title: "Rentang ETA & risiko transfer", body: "Waktu tempuh ditampilkan sebagai rentang, dengan penilaian risiko sambungan antarmoda." },
   { icon: "people-outline", title: "Laporan kepadatan", body: "Pengguna melaporkan halte yang padat; rekomendasi rute ikut menyesuaikan." },
-  { icon: "chatbubble-ellipses-outline", title: "TOTO, asisten AI", body: TOTO_SCOPE_NOTE },
+  { icon: "chatbubble-ellipses-outline", title: "TOTO, asisten AI", get body() {
+      return totoScopeNote();
+    } },
   { icon: "leaf-outline", title: "Jejak karbon & kualitas udara", body: "Estimasi CO₂ per rute dan info udara kota — selalu dilabeli estimasi beserta sumbernya." },
   { icon: "accessibility-outline", title: "Aksesibilitas", body: "Info status halte untuk kursi roda (dari data GTFS), tampilan mudah dibaca, peringatan teks + getar, dan mode sederhana." },
   { icon: "card-outline", title: "Trip Pass (simulasi)", body: "Tarif per bagian perjalanan dan simulasi saldo kartu — belum terhubung ke kartu atau bank sungguhan." },

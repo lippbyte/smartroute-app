@@ -8,6 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRef } from "react";
 import { Pressable, TextInput, View } from "react-native";
 import Text from "./Text";
+import { t } from "@/i18n";
 
 export interface DepartureTimeValue {
   enabled: boolean;
@@ -58,7 +59,7 @@ export default function DepartureTimeField({
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-2">
           <Ionicons name="time-outline" size={19} color="#404040" />
-          <Text className="text-ink-2 text-md">Waktu Berangkat</Text>
+          <Text className="text-ink-2 text-md">{t("departure.title")}</Text>
         </View>
         <Pressable
           onPress={() => onChange({ ...value, enabled: !value.enabled })}
@@ -67,7 +68,7 @@ export default function DepartureTimeField({
           <Text
             className={`text-xs font-bold ${value.enabled ? "text-ink-2" : "text-white"}`}
           >
-            {value.enabled ? "Sekarang" : "Atur waktu"}
+            {value.enabled ? t("departure.now") : t("departure.set")}
           </Text>
         </Pressable>
       </View>
@@ -106,7 +107,7 @@ export default function DepartureTimeField({
             maxLength={2}
             className="bg-surface font-jakarta text-ink font-bold text-lg text-center rounded-lg px-3 py-2 w-16"
           />
-          <Text className="text-muted text-xs ml-1">hari ini</Text>
+          <Text className="text-muted text-xs ml-1">{t("departure.today")}</Text>
         </View>
       )}
     </View>

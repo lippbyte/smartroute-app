@@ -18,6 +18,7 @@ import { useState } from "react";
 import { Pressable, View } from "react-native";
 import Text from "./Text";
 import { legModeStyle } from "./transit/legModes";
+import { stopWord, t } from "@/i18n";
 
 interface Props {
   item: RouteItem;
@@ -83,8 +84,8 @@ function LegBody({ leg }: { leg: Leg }) {
           <View className="flex-row items-center gap-1.5">
             <Ionicons name="walk" size={16} color="#737373" />
             <Text className="text-ink-2 text-sm">
-              Jalan kaki
-              {minutes ? ` ${minutes} mnt` : ""}
+              {t("common.walk")}
+              {minutes ? ` ${t("format.minutes", { n: minutes })}` : ""}
               {leg.distance_m ? ` · ${formatDistance(leg.distance_m)}` : ""}
             </Text>
           </View>
@@ -108,12 +109,12 @@ function LegBody({ leg }: { leg: Leg }) {
                 disabled={!leg.stops_passed?.length}
                 className="flex-row items-center gap-1"
                 accessibilityRole="button"
-                accessibilityLabel="Tampilkan halte yang dilewati"
+                accessibilityLabel={t("detail.showStops")}
               >
                 <Text className="text-muted text-xs">
                   {[
-                    stops != null ? `${stops} ${style.isRail ? "stasiun" : "halte"}` : null,
-                    minutes != null ? `${minutes} mnt` : null,
+                    stops != null ? `${stops} ${stopWord(style.isRail, stops)}` : null,
+                    minutes != null ? t("format.minutes", { n: minutes }) : null,
                   ]
                     .filter(Boolean)
                     .join(" · ")}
@@ -164,7 +165,7 @@ export default function RouteDetailCard({ item, originName }: Props) {
         })}
         <PlaceRow
           time={formatClock(legs[legs.length - 1]?.arrive_at)}
-          name={legs[legs.length - 1]?.to ?? "Tujuan"}
+          name={legs[legs.length - 1]?.to ?? t("common.destination")}
           dotColor="#EF4444"
           isEnd
         />

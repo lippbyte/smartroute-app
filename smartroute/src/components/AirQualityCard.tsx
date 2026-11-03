@@ -8,6 +8,7 @@ import Text from "@/components/Text";
 import { AQI_ADVICE, AQI_COLORS, type AirQuality } from "@/services/airQualityService";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, View } from "react-native";
+import { t } from "@/i18n";
 
 const hhmm = (iso: string) => {
   const d = new Date(iso);
@@ -17,8 +18,8 @@ const hhmm = (iso: string) => {
 export default function AirQualityCard({ air, compact, onPress }: { air: AirQuality | null; compact?: boolean; onPress?: () => void }) {
   if (!air) return null;
   const colors = AQI_COLORS[air.category_key];
-  const updated = `Diperbarui ${hhmm(air.fetched_at)} · Sumber: IQAir`;
-  const label = `Kualitas udara ${air.city}: ${air.category}, AQI ${air.aqi_us}. ${air.stale ? "Data tidak terbaru. " : ""}${updated}.`;
+  const updated = t("air.updated", { time: hhmm(air.fetched_at) });
+  const label = t("air.cardLabel", { city: air.city, category: air.category, aqi: air.aqi_us, stale: air.stale ? t("air.staleSentence") : "", updated });
 
   const content = (
     <>
@@ -33,13 +34,13 @@ export default function AirQualityCard({ air, compact, onPress }: { air: AirQual
       <View className="flex-1 gap-0.5">
         <View className="flex-row items-center gap-1.5 flex-wrap">
           <Text className="text-ink text-sm" weight="bold">
-            Udara {air.city}: {air.category}
+            {t("air.title", { city: air.city, category: air.category })}
           </Text>
           {air.stale && (
             <View className="flex-row items-center gap-1 rounded-full px-2 py-0.5" style={{ backgroundColor: "#F4F4F0", borderWidth: 1, borderColor: "#737373" }}>
               <Ionicons name="time-outline" size={11} color="#404040" />
               <Text className="text-[11px]" weight="semibold" style={{ color: "#404040" }}>
-                data tidak terbaru
+                {t("air.staleChip")}
               </Text>
             </View>
           )}
@@ -47,7 +48,7 @@ export default function AirQualityCard({ air, compact, onPress }: { air: AirQual
         {!compact && <Text className="text-ink-2 text-sm">{AQI_ADVICE[air.category_key]}</Text>}
         <Text className="text-ink-2 text-xs">
           {updated}
-          {air.pollutant_main ? ` · Polutan utama ${air.pollutant_main}` : ""}
+          {air.pollutant_main ? ` · ${t("air.mainPollutantValue", { value: air.pollutant_main })}` : ""}
         </Text>
       </View>
       {onPress && <Ionicons name="chevron-forward" size={18} color="#737373" style={{ alignSelf: "center" }} />}
@@ -63,7 +64,7 @@ export default function AirQualityCard({ air, compact, onPress }: { air: AirQual
         onPress={onPress}
         accessibilityRole="button"
         accessibilityLabel={label}
-        accessibilityHint="Buka detail kualitas udara"
+        accessibilityHint={t("air.openHint")}
         className={`${className} active:opacity-80`}
         style={padding}
       >

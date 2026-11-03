@@ -10,6 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, TextInput, View } from "react-native";
 import Text from "./Text";
+import { t } from "@/i18n";
 
 interface LocationAutocompleteFieldProps {
   value: string;
@@ -165,7 +166,7 @@ const LocationAutocompleteField = forwardRef<
           <Pressable
             onPress={handleClear}
             hitSlop={8}
-            accessibilityLabel={`Hapus ${placeholder}`}
+            accessibilityLabel={t("location.clear", { field: placeholder })}
           >
             <Ionicons name="close-circle" size={18} color="#737373" />
           </Pressable>
@@ -234,14 +235,14 @@ const LocationAutocompleteField = forwardRef<
             <View className="px-4 py-3 flex-row items-center gap-2">
               <ActivityIndicator size="small" color="#018959" />
               <Text className="text-muted text-sm">
-                {suggestions.length ? "Mencari alamat lain..." : "Mencari lokasi..."}
+                {suggestions.length ? t("location.searchingMore") : t("location.searching")}
               </Text>
             </View>
           ) : (
             suggestions.length === 0 && (
               <View className="px-4 py-3">
                 <Text className="text-muted text-sm">
-                  Tidak ada hasil untuk &quot;{value.trim()}&quot;
+                  {t("location.noResults", { query: value.trim() })}
                 </Text>
               </View>
             )

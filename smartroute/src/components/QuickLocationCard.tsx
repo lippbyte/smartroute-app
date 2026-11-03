@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable } from "react-native";
 import Text from "./Text";
+import { t } from "@/i18n";
 
 interface QuickLocationCardProps {
   title: string;
@@ -18,7 +19,7 @@ interface QuickLocationCardProps {
 }
 
 export default function QuickLocationCard({
-  title = "Kantor",
+  title,
   iconName = "briefcase-sharp",
   onPress,
   onLongPress,
@@ -30,8 +31,8 @@ export default function QuickLocationCard({
       onLongPress={onLongPress}
       // Hari 3: label pembaca layar (judul + lokasi tersimpan / belum diatur).
       accessibilityRole="button"
-      accessibilityLabel={savedLabel ? `${title}: ${savedLabel}` : `${title}, belum diatur`}
-      accessibilityHint={savedLabel ? "Ketuk untuk memakai sebagai tujuan. Tahan untuk mengubah." : "Ketuk untuk mengatur lokasi."}
+      accessibilityLabel={savedLabel ? `${title}: ${savedLabel}` : t("quick.notSet", { title })}
+      accessibilityHint={savedLabel ? t("quick.hintSaved") : t("quick.hintEmpty")}
       className="bg-surface flex-1 rounded-2xl items-center justify-center p-5 shadow-card active:opacity-70"
     >
       <Ionicons
@@ -51,7 +52,7 @@ export default function QuickLocationCard({
         className="text-muted text-[10px] text-center mt-0.5"
         numberOfLines={1}
       >
-        {savedLabel ?? "Tap untuk atur"}
+        {savedLabel ?? t("quick.tapToSet")}
       </Text>
     </Pressable>
   );

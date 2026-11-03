@@ -9,6 +9,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { View } from "react-native";
 import Text from "./Text";
+import { t } from "@/i18n";
 
 const RealTimeInfoCard = () => {
   return (
@@ -20,10 +21,9 @@ const RealTimeInfoCard = () => {
         <Ionicons name="information-circle-outline" size={30} color="#0F3FC1" />
       </View>
       <View className="flex-1 gap-0.5">
-        <Text className="text-ink font-bold text-md">Info Umum</Text>
+        <Text className="text-ink font-bold text-md">{t("home.generalInfo")}</Text>
         <Text className="text-muted text-sm">
-          Gambaran umum, bukan status langsung: KRL & TransJakarta biasanya
-          lancar di jam-jam awal.
+          {t("home.generalInfoBody")}
         </Text>
       </View>
     </View>

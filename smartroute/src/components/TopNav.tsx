@@ -7,6 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
+import { t } from "@/i18n";
 
 export default function TopNav() {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function TopNav() {
           onPress={() => setMenuOpen(true)}
           hitSlop={10}
           accessibilityRole="button"
-          accessibilityLabel="Buka menu"
+          accessibilityLabel={t("menu.open")}
           className="w-10 h-10 items-center justify-center rounded-full active:bg-white/10"
         >
           <Ionicons name="menu" size={26} color="#FFFFFF" />
@@ -28,7 +29,7 @@ export default function TopNav() {
           onPress={() => router.push("/about")}
           hitSlop={10}
           accessibilityRole="button"
-          accessibilityLabel="Tentang SmartRoute dan kirim masukan"
+          accessibilityLabel={t("menu.aboutLabel")}
           className="w-10 h-10 items-center justify-center rounded-full active:bg-white/10"
         >
           <Ionicons name="chatbox-outline" size={24} color="#FFFFFF" />

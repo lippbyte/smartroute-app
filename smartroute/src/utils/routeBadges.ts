@@ -19,6 +19,7 @@
 // Heuristik sederhana, bukan saran medis.
 import type { AqiCategoryKey } from "@/services/airQualityService";
 import type { RouteItem } from "@/type";
+import { t } from "@/i18n";
 
 export const WALK_MODERATE_MIN_M = 800;
 export const WALK_MODERATE_MAX_M = 1600;
@@ -31,9 +32,15 @@ export interface RouteBadge {
 }
 
 export const BADGE_LABELS: Record<RouteBadgeKind, string> = {
-  paling_hijau: "Paling hijau",
-  aktif_sehat: "Aktif sehat",
-  minim_paparan: "Minim paparan",
+  get paling_hijau() {
+    return t("badge.paling_hijau");
+  },
+  get aktif_sehat() {
+    return t("badge.aktif_sehat");
+  },
+  get minim_paparan() {
+    return t("badge.minim_paparan");
+  },
 };
 
 type Candidate = Pick<RouteItem, "route_id" | "rank" | "walking_distance_m" | "co2">;
@@ -72,10 +79,10 @@ export function computeRouteBadges(
 export function badgeExplanation(kind: RouteBadgeKind): string {
   switch (kind) {
     case "paling_hijau":
-      return "Rute ini punya estimasi CO₂ terendah di antara semua rute hasil pencarian ini. Angkanya estimasi dari jarak tiap bagian rute dikali faktor emisi modanya.";
+      return t("badge.paling_hijau.body");
     case "aktif_sehat":
-      return `Kualitas udara sedang baik/sedang, dan rute ini punya total jalan kaki ${WALK_MODERATE_MIN_M}–${WALK_MODERATE_MAX_M} m — cukup untuk bergerak aktif tanpa terlalu jauh.`;
+      return t("badge.aktif_sehat.body", { min: WALK_MODERATE_MIN_M, max: WALK_MODERATE_MAX_M });
     case "minim_paparan":
-      return "Kualitas udara sedang kurang baik, dan rute ini punya jalan kaki paling sedikit, sehingga waktu di luar ruangan lebih singkat.";
+      return t("badge.minim_paparan.body");
   }
 }

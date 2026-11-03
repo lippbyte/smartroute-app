@@ -22,6 +22,7 @@ import {
   View,
 } from "react-native";
 import Text from "./Text";
+import { t } from "@/i18n";
 
 interface QuickLocationPickerModalProps {
   visible: boolean;
@@ -74,7 +75,7 @@ export default function QuickLocationPickerModal({
                 <TextInput
                   value={query}
                   onChangeText={setQuery}
-                  placeholder="Cari nama lokasi..."
+                  placeholder={t("quick.searchPlaceholder")}
                   placeholderTextColor="#737373"
                   autoFocus
                   className="flex-1 font-jakarta text-ink text-md"
@@ -84,11 +85,11 @@ export default function QuickLocationPickerModal({
 
               {query.trim().length > 0 && query.trim().length < 3 ? (
                 <Text className="text-muted text-sm text-center py-4">
-                  Ketik minimal 3 karakter.
+                  {t("quick.minChars")}
                 </Text>
               ) : query.trim().length >= 3 && !isLoading && suggestions.length === 0 ? (
                 <Text className="text-muted text-sm text-center py-4">
-                  Tidak ada lokasi untuk &quot;{query.trim()}&quot;
+                  {t("quick.noResults", { query: query.trim() })}
                 </Text>
               ) : (
                 // ScrollView, bukan View: dulu baris yang melebihi maxHeight

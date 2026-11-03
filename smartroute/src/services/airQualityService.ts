@@ -4,6 +4,7 @@
 // token). Backend sudah meng-cache 15 menit dan tidak pernah 500; kegagalan
 // jaringan di sini -> null (kartu udara & lencana "Sehat" tidak tampil,
 // tanpa galat ke pengguna).
+import { t, type TKey } from "@/i18n";
 import { apiRequest } from "./apiClient";
 
 export type AqiCategoryKey = "baik" | "sedang" | "sensitif" | "tidak_sehat" | "sangat_tidak_sehat" | "berbahaya";
@@ -34,14 +35,22 @@ export interface AirQuality {
 /** Halaman Jakarta di situs IQAir, untuk data yang lebih lengkap. */
 export const IQAIR_CITY_URL = "https://www.iqair.com/indonesia/jakarta";
 
+const aqiStep = (key: AqiCategoryKey, range: string, label: TKey) => ({
+  key,
+  range,
+  get label() {
+    return t(label);
+  },
+});
+
 /** Skala AQI AS, sama dengan ambang kategori di backend (services/airQuality.ts). */
 export const AQI_SCALE: ReadonlyArray<{ key: AqiCategoryKey; range: string; label: string }> = [
-  { key: "baik", range: "0–50", label: "Baik" },
-  { key: "sedang", range: "51–100", label: "Sedang" },
-  { key: "sensitif", range: "101–150", label: "Tidak sehat bagi kelompok sensitif" },
-  { key: "tidak_sehat", range: "151–200", label: "Tidak sehat" },
-  { key: "sangat_tidak_sehat", range: "201–300", label: "Sangat tidak sehat" },
-  { key: "berbahaya", range: "301+", label: "Berbahaya" },
+  aqiStep("baik", "0–50", "air.scale.baik"),
+  aqiStep("sedang", "51–100", "air.scale.sedang"),
+  aqiStep("sensitif", "101–150", "air.scale.sensitif"),
+  aqiStep("tidak_sehat", "151–200", "air.scale.tidak_sehat"),
+  aqiStep("sangat_tidak_sehat", "201–300", "air.scale.sangat_tidak_sehat"),
+  aqiStep("berbahaya", "301+", "air.scale.berbahaya"),
 ];
 
 type AirQualityResponse = AirQuality | { available: false; source: "IQAir"; reason: string };
@@ -50,7 +59,7 @@ export async function fetchAirQuality(): Promise<AirQuality | null> {
   try {
     const res = await apiRequest<AirQualityResponse>("GET", "/air-quality", {
       timeoutMs: 8_000,
-      timeoutMessage: "Memuat kualitas udara terlalu lama.",
+      timeoutMessage: t("air.timeout"),
     });
     return res.available ? res : null;
   } catch {
@@ -60,12 +69,24 @@ export async function fetchAirQuality(): Promise<AirQuality | null> {
 
 /** Saran satu kalimat per kategori — informasi umum, BUKAN saran medis. */
 export const AQI_ADVICE: Record<AqiCategoryKey, string> = {
-  baik: "Udara cukup baik untuk berjalan kaki.",
-  sedang: "Udara umumnya cukup baik; orang yang sangat sensitif bisa membatasi aktivitas berat di luar.",
-  sensitif: "Kelompok sensitif sebaiknya mengurangi waktu di luar ruangan.",
-  tidak_sehat: "Pertimbangkan rute dengan jalan kaki lebih sedikit.",
-  sangat_tidak_sehat: "Kurangi waktu di luar ruangan bila memungkinkan.",
-  berbahaya: "Hindari aktivitas di luar ruangan bila memungkinkan.",
+  get baik() {
+    return t("air.advice.baik");
+  },
+  get sedang() {
+    return t("air.advice.sedang");
+  },
+  get sensitif() {
+    return t("air.advice.sensitif");
+  },
+  get tidak_sehat() {
+    return t("air.advice.tidak_sehat");
+  },
+  get sangat_tidak_sehat() {
+    return t("air.advice.sangat_tidak_sehat");
+  },
+  get berbahaya() {
+    return t("air.advice.berbahaya");
+  },
 };
 
 /** Warna latar chip kategori + teks gelap di atasnya (kontras AA). */

@@ -6,6 +6,7 @@ import LocationAutocompleteField, {
 } from "./LocationAutocompleteField";
 import Text from "./Text";
 import { PlaceSuggestion } from "@/utils/geocode";
+import { t } from "@/i18n";
 
 interface RouteCardProps {
   origin: string;
@@ -45,12 +46,12 @@ export default function RouteCard({
       // anak kartu ini, bukan lintas kartu.
       style={{ zIndex: 10 }}
     >
-      <Text className="text-ink-2 text-md">Dari</Text>
+      <Text className="text-ink-2 text-md">{t("search.from")}</Text>
       <LocationAutocompleteField
         value={origin}
         onChange={onOriginChange}
         onSelectPlace={onOriginSelect}
-        placeholder="Lokasi Anda"
+        placeholder={t("search.fromPlaceholder")}
       />
       <View className="flex-row gap-4 items-center">
         <View className="flex-1 h-[2px] rounded-xl bg-line"></View>
@@ -58,19 +59,19 @@ export default function RouteCard({
           onPress={onSwap}
           hitSlop={10}
           accessibilityRole="button"
-          accessibilityLabel="Tukar asal dan tujuan"
+          accessibilityLabel={t("search.swap")}
           className="p-1 rounded-full active:bg-line"
         >
           <Ionicons name="swap-vertical" size={24} color="#404040" />
         </Pressable>
       </View>
-      <Text className="text-ink-2 text-md">Tujuan</Text>
+      <Text className="text-ink-2 text-md">{t("search.to")}</Text>
       <LocationAutocompleteField
         ref={destinationFieldRef}
         value={destination}
         onChange={onDestinationChange}
         onSelectPlace={onDestinationSelect}
-        placeholder="Tujuan Anda"
+        placeholder={t("search.toPlaceholder")}
       />
     </View>
   );

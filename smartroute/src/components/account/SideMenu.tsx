@@ -1,5 +1,6 @@
 // Menu samping (tombol burger di halaman Akun): pintasan ke semua fitur app.
 import Text from "@/components/Text";
+import { t, type TKey } from "@/i18n";
 import { Ionicons } from "@expo/vector-icons";
 import { Href, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -7,15 +8,23 @@ import { Animated, Easing, Modal, Pressable, StyleSheet, View } from "react-nati
 
 const PANEL_WIDTH = 290;
 
-const ITEMS: Array<{ label: string; icon: keyof typeof Ionicons.glyphMap; href: Href }> = [
-  { label: "Beranda", icon: "home-outline", href: "/" },
-  { label: "Hasil Rute", icon: "git-branch-outline", href: "/route" },
-  { label: "Riwayat Perjalanan", icon: "time-outline", href: "/history" },
-  { label: "Peta Kepadatan", icon: "map-outline", href: "/crowd-map" },
-  { label: "Halte Terdekat", icon: "navigate-outline", href: "/nearby-stops" },
-  { label: "Semua Halte", icon: "location-outline", href: "/all-stops-map" },
-  { label: "TOTO · Asisten AI", icon: "chatbubble-ellipses-outline", href: "/assistant" },
-  { label: "Tentang & Masukan", icon: "information-circle-outline", href: "/about" },
+const item = (label: TKey, icon: keyof typeof Ionicons.glyphMap, href: Href) => ({
+  get label() {
+    return t(label);
+  },
+  icon,
+  href,
+});
+
+const ITEMS = [
+  item("menu.home", "home-outline", "/"),
+  item("route.title", "git-branch-outline", "/route"),
+  item("history.title", "time-outline", "/history"),
+  item("menu.crowdMap", "map-outline", "/crowd-map"),
+  item("menu.nearby", "navigate-outline", "/nearby-stops"),
+  item("menu.allStops", "location-outline", "/all-stops-map"),
+  item("menu.toto", "chatbubble-ellipses-outline", "/assistant"),
+  item("about.title", "information-circle-outline", "/about"),
 ];
 
 interface Props {
@@ -53,7 +62,7 @@ export default function SideMenu({ visible, onClose }: Props) {
       <Animated.View
         style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.6)", opacity: progress }]}
       >
-        <Pressable style={{ flex: 1 }} onPress={onClose} accessibilityLabel="Tutup menu" />
+        <Pressable style={{ flex: 1 }} onPress={onClose} accessibilityLabel={t("menu.close")} />
       </Animated.View>
       <Animated.View
         style={{
@@ -75,7 +84,7 @@ export default function SideMenu({ visible, onClose }: Props) {
       >
         <View className="flex-row items-center justify-between px-2 pb-5">
           <Text className="text-ink font-bold text-xl">SmartRoute AI</Text>
-          <Pressable onPress={onClose} hitSlop={10} accessibilityLabel="Tutup menu">
+          <Pressable onPress={onClose} hitSlop={10} accessibilityLabel={t("menu.close")}>
             <Ionicons name="close" size={24} color="#737373" />
           </Pressable>
         </View>

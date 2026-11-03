@@ -6,6 +6,7 @@
 // peta halte) supaya warna moda yang sama tidak divergen antar layar.
 import { Ionicons } from "@expo/vector-icons";
 import { MODE_COLOR } from "./transitMode";
+import { t } from "@/i18n";
 
 export type LegModeKey =
   | "walk"
@@ -66,7 +67,12 @@ export interface ModeFilter {
 export const MODE_FILTERS: ModeFilter[] = [
   // "Semua moda", bukan "Semua": baris chip kriteria di bawahnya sudah punya
   // chip "Semua" sendiri.
-  { key: "all", label: "Semua moda" },
+  {
+    key: "all",
+    get label() {
+      return t("mode.all");
+    },
+  },
   { key: "bus", label: "Bus", backendModes: ["BUS"], icon: "bus" },
   { key: "krl", label: "KRL", backendModes: ["RAIL"], icon: "train" },
   { key: "mrt", label: "MRT", backendModes: ["SUBWAY"], icon: "subway" },

@@ -14,10 +14,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { ReactNode, useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Linking, Pressable, ScrollView, View } from "react-native";
+import { decimal, t } from "@/i18n";
 
 const dateTimeOrNull = (iso: string | null | undefined) => (iso ? formatReportedAt(iso) : null);
-
-const decimal = (n: number) => String(n).replace(".", ",");
 
 function Card({ title, children }: { title?: string; children: ReactNode }) {
   return (
@@ -69,13 +68,13 @@ export default function AirQualityScreen() {
           <Pressable
             onPress={() => (router.canGoBack() ? router.back() : router.navigate("/"))}
             accessibilityRole="button"
-            accessibilityLabel="Kembali"
+            accessibilityLabel={t("common.back")}
             className="bg-surface p-2.5 rounded-full border border-line"
           >
             <Ionicons name="arrow-back" size={20} color="#0A0A0A" />
           </Pressable>
           <Text className="text-2xl font-bold text-white flex-1" accessibilityRole="header">
-            Kualitas udara
+            {t("air.screenTitle")}
           </Text>
         </View>
 
@@ -83,8 +82,8 @@ export default function AirQualityScreen() {
 
         {!loading && !air && (
           <Card>
-            <FormMessage tone="error" message="Data kualitas udara sedang tidak tersedia." />
-            <PrimaryButton label="Coba lagi" variant="outline" onPress={load} />
+            <FormMessage tone="error" message={t("air.unavailable")} />
+            <PrimaryButton label={t("common.retry")} variant="outline" onPress={load} />
           </Card>
         )}
 
@@ -102,11 +101,11 @@ export default function AirQualityScreen() {
                 </View>
                 <View className="flex-1 gap-0.5">
                   <Text className="text-ink text-base" weight="bold">
-                    Udara {air.city}: {air.category}
+                    {t("air.title", { city: air.city, category: air.category })}
                   </Text>
                   {air.stale && (
                     <Text className="text-xs" weight="semibold" style={{ color: "#404040" }}>
-                      Data tidak terbaru
+                      {t("air.stale")}
                     </Text>
                   )}
                 </View>
@@ -116,24 +115,24 @@ export default function AirQualityScreen() {
               </Text>
             </Card>
 
-            <Card title="Detail pengukuran">
-              <Row label="AQI (standar AS)" value={String(air.aqi_us)} />
-              <Row label="Polutan utama" value={air.pollutant_main} />
-              <Row label="Waktu pengukuran" value={dateTimeOrNull(air.observed_at)} />
-              <Row label="Diambil dari IQAir" value={dateTimeOrNull(air.fetched_at)} />
+            <Card title={t("air.details")}>
+              <Row label={t("air.aqiUs")} value={String(air.aqi_us)} />
+              <Row label={t("air.mainPollutant")} value={air.pollutant_main} />
+              <Row label={t("air.measuredAt")} value={dateTimeOrNull(air.observed_at)} />
+              <Row label={t("air.fetchedAt")} value={dateTimeOrNull(air.fetched_at)} />
             </Card>
 
             {w && (
-              <Card title="Cuaca">
-                <Row label="Suhu" value={w.temp_c === null ? null : `${decimal(w.temp_c)}°C`} />
-                <Row label="Kelembapan" value={w.humidity_pct === null ? null : `${decimal(w.humidity_pct)}%`} />
-                <Row label="Angin" value={w.wind_ms === null ? null : `${decimal(w.wind_ms)} m/dtk`} />
-                <Row label="Tekanan udara" value={w.pressure_hpa === null ? null : `${decimal(w.pressure_hpa)} hPa`} />
-                <Row label="Waktu cuaca" value={dateTimeOrNull(w.observed_at)} />
+              <Card title={t("air.weather")}>
+                <Row label={t("air.temperature")} value={w.temp_c === null ? null : `${decimal(w.temp_c)}°C`} />
+                <Row label={t("air.humidity")} value={w.humidity_pct === null ? null : `${decimal(w.humidity_pct)}%`} />
+                <Row label={t("air.wind")} value={w.wind_ms === null ? null : t("air.windValue", { value: decimal(w.wind_ms) })} />
+                <Row label={t("air.pressure")} value={w.pressure_hpa === null ? null : `${decimal(w.pressure_hpa)} hPa`} />
+                <Row label={t("air.weatherAt")} value={dateTimeOrNull(w.observed_at)} />
               </Card>
             )}
 
-            <Card title="Skala AQI">
+            <Card title={t("air.scale")}>
               {AQI_SCALE.map((s) => {
                 const current = s.key === air.category_key;
                 return (
@@ -157,11 +156,11 @@ export default function AirQualityScreen() {
 
             <Card>
               <Text className="text-ink-2 text-sm" style={{ lineHeight: 20 }}>
-                Data tingkat kota dari IQAir, bukan pengukuran per halte. Informasi umum, bukan saran medis.
+                {t("air.note")}
               </Text>
               <Pressable onPress={() => Linking.openURL(IQAIR_CITY_URL)} accessibilityRole="link" hitSlop={6} className="self-start">
                 <Text className="text-sm underline" weight="semibold" style={{ color: "#0F3FC1" }}>
-                  Buka di situs IQAir
+                  {t("air.openSite")}
                 </Text>
               </Pressable>
             </Card>

@@ -1,8 +1,8 @@
 // Teks instruksi perjalanan (detail rute & layar navigasi) dari data leg
 // backend. Satu tempat supaya kalimat di detail dan di navigasi sama persis.
 import { legModeStyle } from "@/components/transit/legModes";
+import { decimal, getLanguage, t, type TKey } from "@/i18n";
 import { Leg } from "@/type";
-import { decimal } from "@/i18n";
 
 export type LatLng = { latitude: number; longitude: number };
 
@@ -51,26 +51,27 @@ export function streetLabel(street: string): string {
   // Ruas OSM tanpa nama kadang bocor sebagai id mentah
   // ("way 1249875201 from 0") — lebih baik tanpa nama sama sekali.
   if (/^way \d+/i.test(s) || /^osm:/i.test(s)) return "";
-  return GENERIC_STREETS[s.toLowerCase()] ?? s;
+  // Nama generik dari OSM sudah berbahasa Inggris.
+  return getLanguage() === "en" ? s : (GENERIC_STREETS[s.toLowerCase()] ?? s);
 }
 
-const DIRECTION_TEXT: Record<string, string> = {
-  DEPART: "Mulai jalan",
-  CONTINUE: "Lurus terus",
-  LEFT: "Belok kiri",
-  RIGHT: "Belok kanan",
-  SLIGHTLY_LEFT: "Serong kiri",
-  SLIGHTLY_RIGHT: "Serong kanan",
-  HARD_LEFT: "Belok tajam ke kiri",
-  HARD_RIGHT: "Belok tajam ke kanan",
-  UTURN_LEFT: "Putar balik",
-  UTURN_RIGHT: "Putar balik",
-  CIRCLE_CLOCKWISE: "Masuk bundaran",
-  CIRCLE_COUNTERCLOCKWISE: "Masuk bundaran",
-  ELEVATOR: "Naik/turun lift",
-  ENTER_STATION: "Masuk stasiun",
-  EXIT_STATION: "Keluar stasiun",
-  FOLLOW_SIGNS: "Ikuti petunjuk arah",
+const DIRECTION_TEXT: Record<string, TKey> = {
+  DEPART: "dir.depart",
+  CONTINUE: "dir.continue",
+  LEFT: "dir.left",
+  RIGHT: "dir.right",
+  SLIGHTLY_LEFT: "dir.slightLeft",
+  SLIGHTLY_RIGHT: "dir.slightRight",
+  HARD_LEFT: "dir.hardLeft",
+  HARD_RIGHT: "dir.hardRight",
+  UTURN_LEFT: "dir.uturn",
+  UTURN_RIGHT: "dir.uturn",
+  CIRCLE_CLOCKWISE: "dir.roundabout",
+  CIRCLE_COUNTERCLOCKWISE: "dir.roundabout",
+  ELEVATOR: "dir.elevator",
+  ENTER_STATION: "dir.enterStation",
+  EXIT_STATION: "dir.exitStation",
+  FOLLOW_SIGNS: "dir.followSigns",
 };
 
 // Nama Ionicons untuk panah belokan di banner navigasi.
@@ -98,12 +99,12 @@ export function directionIcon(direction: string): string {
 }
 
 export function walkStepText(step: { direction: string; street: string }): string {
-  const verb = DIRECTION_TEXT[step.direction] ?? "Lanjutkan";
+  const verb = t(DIRECTION_TEXT[step.direction] ?? "dir.fallback");
   const street = streetLabel(step.street);
   if (!street) return verb;
-  if (step.direction === "DEPART") return `${verb} lewat ${street}`;
-  if (step.direction === "CONTINUE") return `${verb} di ${street}`;
-  return `${verb} ke ${street}`;
+  if (step.direction === "DEPART") return t("dir.via", { verb, street });
+  if (step.direction === "CONTINUE") return t("dir.on", { verb, street });
+  return t("dir.onto", { verb, street });
 }
 
 /**
@@ -119,7 +120,7 @@ export function serviceLabel(leg: Leg): string {
 /** "Naik TransJakarta 13B arah Puri Beta" / "Naik MRT arah Lebak Bulus". */
 export function boardText(leg: Leg): string {
   const what = serviceLabel(leg);
-  return leg.headsign ? `Naik ${what} arah ${leg.headsign}` : `Naik ${what}`;
+  return leg.headsign ? t("dir.boardToward", { what, headsign: leg.headsign }) : t("dir.board", { what });
 }
 
 /** Jumlah pemberhentian dari naik sampai turun (termasuk halte turun). */

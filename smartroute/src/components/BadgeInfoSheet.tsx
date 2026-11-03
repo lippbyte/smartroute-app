@@ -8,12 +8,13 @@ import Text from "@/components/Text";
 import { badgeExplanation, type RouteBadge } from "@/utils/routeBadges";
 import { useRouter } from "expo-router";
 import { Modal, Pressable, View } from "react-native";
+import { t } from "@/i18n";
 
 export default function BadgeInfoSheet({ badge, onClose }: { badge: RouteBadge | null; onClose: () => void }) {
   const router = useRouter();
   return (
     <Modal visible={!!badge} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable className="flex-1 justify-center px-6" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} onPress={onClose} accessibilityLabel="Tutup penjelasan">
+      <Pressable className="flex-1 justify-center px-6" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} onPress={onClose} accessibilityLabel={t("badge.close")}>
         <Pressable onPress={() => {}} className="bg-surface rounded-3xl p-5 gap-3">
           {badge && (
             <>
@@ -24,18 +25,18 @@ export default function BadgeInfoSheet({ badge, onClose }: { badge: RouteBadge |
                 {badgeExplanation(badge.kind)}
               </Text>
               <Text className="text-ink-2 text-sm" weight="semibold">
-                Heuristik sederhana, bukan saran medis.
+                {t("badge.note")}
               </Text>
               <View className="gap-2 pt-1">
                 <PrimaryButton
-                  label="Tentang angka ini"
+                  label={t("common.aboutFigures")}
                   variant="outline"
                   onPress={() => {
                     onClose();
                     router.push("/co2-info");
                   }}
                 />
-                <PrimaryButton label="Tutup" onPress={onClose} />
+                <PrimaryButton label={t("common.close")} onPress={onClose} />
               </View>
             </>
           )}

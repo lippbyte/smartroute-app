@@ -11,6 +11,7 @@ import { getRoute } from "@/services/routeStore";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Pressable, ScrollView, View } from "react-native";
+import { t } from "@/i18n";
 
 export default function RouteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -29,18 +30,18 @@ export default function RouteDetailScreen() {
       <ScreenBackground className="items-center justify-center gap-3 px-8">
         <Ionicons name="refresh-circle-outline" size={40} color="#737373" />
         <Text className="text-white text-center font-bold">
-          Data rute sudah tidak tersedia
+          {t("common.routeGone")}
         </Text>
         <Text className="text-line text-center text-sm">
-          Cari ulang rute dari Beranda.
+          {t("detail.searchAgain")}
         </Text>
         <Pressable
           onPress={() => router.navigate("/")}
           accessibilityRole="button"
-          accessibilityLabel="Ke Beranda"
+          accessibilityLabel={t("common.toHome")}
           className="bg-brand-blue px-5 py-2.5 rounded-xl mt-2"
         >
-          <Text className="text-white font-bold">Ke Beranda</Text>
+          <Text className="text-white font-bold">{t("common.toHome")}</Text>
         </Pressable>
       </ScreenBackground>
     );
@@ -76,13 +77,13 @@ export default function RouteDetailScreen() {
             <Pressable
               onPress={goBack}
               accessibilityRole="button"
-              accessibilityLabel="Kembali ke hasil rute"
+              accessibilityLabel={t("detail.backToResults")}
               className="bg-surface p-2.5 rounded-full border border-line"
             >
               <Ionicons name="arrow-back" size={20} color="#0A0A0A" />
             </Pressable>
             <Text className="text-2xl font-bold text-white">
-              Detail Perjalanan
+              {t("detail.title")}
             </Text>
           </View>
           <View className="flex-row items-center gap-2">
@@ -99,7 +100,7 @@ export default function RouteDetailScreen() {
             ) : (
               <View className="px-2 py-0.5 rounded bg-line">
                 <Text className="text-xs font-bold text-muted">
-                  Data crowd belum tersedia
+                  {t("detail.noCrowd")}
                 </Text>
               </View>
             )}
@@ -113,18 +114,18 @@ export default function RouteDetailScreen() {
 
         {/* Stats Grid */}
         <View className="flex-row gap-2">
-          <InfoCard title={`${routeData.travel_time_minutes}`} desc="Menit" />
-          <InfoCard title={`${routeData.transfers}x`} desc="Transit" />
-          <InfoCard title={`${routeData.walking_distance_m}m`} desc="Jalan" />
+          <InfoCard title={`${routeData.travel_time_minutes}`} desc={t("detail.minutes")} />
+          <InfoCard title={`${routeData.transfers}x`} desc={t("detail.transfers")} />
+          <InfoCard title={`${routeData.walking_distance_m}m`} desc={t("detail.walk")} />
         </View>
 
         {/* Scores */}
         <View className="bg-surface p-4 rounded-xl gap-4 border border-line">
           <View className="gap-2">
             <View className="flex-row justify-between">
-              <Text className="text-ink-2 text-sm">Tingkat Kenyamanan</Text>
+              <Text className="text-ink-2 text-sm">{t("detail.comfort")}</Text>
               <Text className="text-ink text-sm font-bold">
-                {comfortPercent != null ? `${comfortPercent}%` : "Data belum tersedia"}
+                {comfortPercent != null ? `${comfortPercent}%` : t("detail.noData")}
               </Text>
             </View>
             {comfortPercent != null && (
@@ -140,10 +141,10 @@ export default function RouteDetailScreen() {
           <View className="gap-2">
             <View className="flex-row justify-between">
               <Text className="text-ink-2 text-sm">
-                Reliabilitas (Tepat Waktu)
+                {t("detail.reliability")}
               </Text>
               <Text className="text-ink text-sm font-bold">
-                {reliabilityPercent != null ? `${reliabilityPercent}%` : "Data belum tersedia"}
+                {reliabilityPercent != null ? `${reliabilityPercent}%` : t("detail.noData")}
               </Text>
             </View>
             {reliabilityPercent != null && (
@@ -158,7 +159,7 @@ export default function RouteDetailScreen() {
 
           {departureLabel && (
             <View className="flex-row justify-between items-center pt-2 border-t border-line">
-              <Text className="text-ink-2 text-sm">Berangkat Pukul</Text>
+              <Text className="text-ink-2 text-sm">{t("detail.departsAt")}</Text>
               <Text className="text-ink text-sm font-semibold">
                 {departureLabel}
               </Text>
@@ -166,7 +167,7 @@ export default function RouteDetailScreen() {
           )}
 
           <View className="flex-row justify-between items-center pt-2 border-t border-line">
-            <Text className="text-ink-2 text-sm">Estimasi Biaya</Text>
+            <Text className="text-ink-2 text-sm">{t("detail.cost")}</Text>
             <Text className="text-ink text-lg font-bold">
               {formatRupiah(routeData.cost_idr)}
             </Text>
@@ -183,18 +184,18 @@ export default function RouteDetailScreen() {
               })
             }
             accessibilityRole="button"
-            accessibilityLabel="Mulai navigasi"
+            accessibilityLabel={t("detail.startLabel")}
             className="flex-1 items-center py-4 rounded-xl bg-brand-blue active:opacity-90"
           >
             <Text className="text-md text-white font-bold">
-              Mulai Navigasi
+              {t("detail.start")}
             </Text>
           </Pressable>
           {/* Hari 3 Task 3: Trip Pass (tarif per bagian + saldo SIMULASI). */}
           <Pressable
             onPress={() => router.push({ pathname: "/trip-pass", params: { id: routeData.route_id } })}
             accessibilityRole="button"
-            accessibilityLabel="Trip Pass: tarif per bagian dan saldo simulasi"
+            accessibilityLabel={t("detail.tripPassLabel")}
             className="items-center justify-center py-4 px-4 rounded-xl bg-surface border border-line active:opacity-90 flex-row gap-1.5"
           >
             <Ionicons name="card-outline" size={18} color="#0F3FC1" />
@@ -206,8 +207,7 @@ export default function RouteDetailScreen() {
 
         <View className="w-full items-center pt-2">
           <Text className="text-muted text-xs text-center w-5/6">
-            Data diperbarui pada {new Date().toLocaleTimeString()} • Sumber:
-            SmartRoute AI Model
+            {t("detail.updated", { time: new Date().toLocaleTimeString() })}
           </Text>
         </View>
       </ScrollView>

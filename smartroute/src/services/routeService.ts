@@ -8,6 +8,7 @@
 import { AccessibilityConfidence, AccessibilityPoint, ApiResponse, CrowdInfo, FareItem, Leg, RouteItem } from "@/type";
 import { apiRequest, unavailableMessage } from "./apiClient";
 import { LEG_MODES, legModeFromBackend } from "@/components/transit/legModes";
+import { t } from "@/i18n";
 
 // Latensi POST /routes terukur 2–19 detik (OTP2 menghitung beberapa kandidat
 // sekaligus). 30 detik dipilih di ATAS maksimum terukur itu: tujuannya
@@ -131,7 +132,7 @@ export async function fetchRealRoutes(
         ...(withAccessibility ? { accessibility: ["kursi_roda"] } : {}),
       },
       timeoutMs: ROUTES_TIMEOUT_MS,
-      timeoutMessage: "Pencarian rute terlalu lama dan dihentikan. Coba lagi.",
+      timeoutMessage: t("route.timeout"),
     });
   } catch (err) {
     throw new RouteFetchError(err instanceof Error ? err.message : unavailableMessage(), err);

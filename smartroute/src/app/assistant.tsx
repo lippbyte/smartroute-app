@@ -27,7 +27,7 @@ import ScreenBackground from "@/components/ScreenBackground";
 import AssistantAnswerText from "@/components/assistant/AssistantAnswerText";
 import PrimaryButton from "@/components/form/PrimaryButton";
 import Text from "@/components/Text";
-import { TOTO_CHAT_NOTE, TOTO_SCOPE_NOTE } from "@/constants/developerInfo";
+import { totoChatNote, totoScopeNote } from "@/constants/developerInfo";
 import { useAuth } from "@/context/AuthContext";
 import StopActionButtons from "@/components/transit/StopActionButtons";
 import {
@@ -322,7 +322,7 @@ function AssistantScreen({ token }: { token: string }) {
           <View className="items-center gap-3 py-10 px-4">
             <Ionicons name="chatbubble-ellipses-outline" size={40} color="#737373" />
             <Text className="text-white text-center font-bold">Halo, aku TOTO!</Text>
-            <Text className="text-line text-sm text-center">{TOTO_SCOPE_NOTE}</Text>
+            <Text className="text-line text-sm text-center">{totoScopeNote()}</Text>
           </View>
         )}
 
@@ -419,7 +419,7 @@ function AssistantScreen({ token }: { token: string }) {
       <View className="flex-row items-start gap-1.5 px-5 pt-2" accessibilityLiveRegion="none">
         <Ionicons name="information-circle-outline" size={14} color="#D4D4D4" />
         <Text className="text-xs flex-1" style={{ color: "#D4D4D4" }}>
-          {TOTO_CHAT_NOTE}
+          {totoChatNote()}
         </Text>
       </View>
 

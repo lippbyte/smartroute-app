@@ -7,7 +7,7 @@ import DepartureTimeField, {
 } from "@/components/DepartureTimeField";
 import QuickLocationCard from "@/components/QuickLocationCard";
 import QuickLocationPickerModal from "@/components/QuickLocationPickerModal";
-import { TOTO_SCOPE_NOTE } from "@/constants/developerInfo";
+import { totoScopeNote } from "@/constants/developerInfo";
 import RealTimeInfoCard from "@/components/RealTimeInfoCard";
 import { LocationAutocompleteFieldHandle } from "@/components/LocationAutocompleteField";
 import RouteCard from "@/components/RouteCard";
@@ -34,6 +34,7 @@ import Animated, {
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
+import { t } from "@/i18n";
 
 // Perluasan Task App-21 (diminta user langsung): metadata per slot "Tujuan
 // Cepat" — satu sumber untuk title/icon/label dialog, dipakai baik untuk
@@ -44,9 +45,27 @@ const QUICK_LOCATION_SLOTS: {
   title: string;
   iconName: "briefcase" | "school" | "home";
 }[] = [
-  { slot: "kantor", title: "Kantor", iconName: "briefcase" },
-  { slot: "kampus", title: "Kampus", iconName: "school" },
-  { slot: "rumah", title: "Rumah", iconName: "home" },
+  {
+    slot: "kantor",
+    get title() {
+      return t("quick.kantor");
+    },
+    iconName: "briefcase",
+  },
+  {
+    slot: "kampus",
+    get title() {
+      return t("quick.kampus");
+    },
+    iconName: "school",
+  },
+  {
+    slot: "rumah",
+    get title() {
+      return t("quick.rumah");
+    },
+    iconName: "home",
+  },
 ];
 
 // Balon ajakan di pojok kanan atas kartu TOTO; naik-turun pelan supaya
@@ -65,7 +84,7 @@ function AskTotoBubble() {
     >
       <View className="bg-[#018959] px-3 py-1.5 rounded-full flex-row items-center gap-1 shadow-md">
         <Ionicons name="chatbubble-ellipses" size={12} color="#FFFFFF" />
-        <Text className="text-white font-bold text-xs">Ayo tanya TOTO!</Text>
+        <Text className="text-white font-bold text-xs">{t("home.askToto")}</Text>
       </View>
       <View
         style={{
@@ -211,16 +230,16 @@ export default function Index() {
 
     const slotMeta = QUICK_LOCATION_SLOTS.find((s) => s.slot === slot)!;
     Alert.alert(slotMeta.title, saved.label, [
-      { text: "Ubah Lokasi", onPress: () => setActivePickerSlot(slot) },
+      { text: t("home.changeLocation"), onPress: () => setActivePickerSlot(slot) },
       {
-        text: "Hapus",
+        text: t("common.delete"),
         style: "destructive",
         onPress: async () => {
           await removeQuickLocation(slot);
           setQuickLocations((current) => ({ ...current, [slot]: null }));
         },
       },
-      { text: "Batal", style: "cancel" },
+      { text: t("common.cancel"), style: "cancel" },
     ]);
   };
 
@@ -252,8 +271,8 @@ export default function Index() {
   const handleSearch = () => {
     if (!origin.trim() || !destination.trim()) {
       Alert.alert(
-        "Lengkapi dulu",
-        "Isi asal dan tujuan sebelum mencari rute.",
+        t("home.incompleteTitle"),
+        t("home.incompleteBody"),
       );
       return;
     }
@@ -268,7 +287,7 @@ export default function Index() {
         departureTime.minute,
       );
       if (validationError) {
-        Alert.alert("Jam tidak valid", validationError);
+        Alert.alert(t("home.invalidTime"), validationError);
         return;
       }
       departureTimeIso = buildDepartureTimeIso(
@@ -323,7 +342,7 @@ export default function Index() {
             SmartRoute AI
           </Text>
           <Text className="text-center" style={{ color: "#F4F4F0" }}>
-            Hai, Selamat Pagi!{"\n"}Mau ke mana hari ini?
+            {t("home.greeting")}{"\n"}{t("home.question")}
           </Text>
         </View>
 
@@ -350,12 +369,12 @@ export default function Index() {
         <Pressable
           onPress={handleSearch}
           accessibilityRole="button"
-          accessibilityLabel="Cari rute terbaik"
+          accessibilityLabel={t("home.searchLabel")}
           className="w-full bg-[#018959] py-3.5 rounded-2xl flex-row items-center justify-center gap-2 active:opacity-80"
         >
           <Ionicons name="search" size={20} color="#FFFFFF" />
           <Text className="text-white font-bold text-md">
-            Cari Rute Terbaik
+            {t("home.search")}
           </Text>
         </Pressable>
 
@@ -368,7 +387,7 @@ export default function Index() {
         <Pressable
           onPress={() => router.push("/crowd-map")}
           accessibilityRole="button"
-          accessibilityLabel="Peta Kepadatan. Lihat halte yang lagi padat berdasarkan laporan pengguna."
+          accessibilityLabel={t("home.crowdLabel")}
           className="w-full bg-surface rounded-2xl p-4 flex-row items-center gap-3 active:opacity-80 border border-line"
         >
           <View className="bg-brand-blue/10 p-2.5 rounded-xl">
@@ -376,10 +395,10 @@ export default function Index() {
           </View>
           <View className="flex-1 gap-0.5">
             <Text className="text-ink font-bold text-md">
-              Peta Kepadatan
+              {t("menu.crowdMap")}
             </Text>
             <Text className="text-muted text-sm">
-              Lihat halte yang lagi padat, berdasar laporan pengguna lain.
+              {t("home.crowdBody")}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color="#737373" />
@@ -391,7 +410,7 @@ export default function Index() {
         <Pressable
           onPress={() => router.push("/nearby-stops")}
           accessibilityRole="button"
-          accessibilityLabel="Halte Terdekat. Cari halte TransJakarta, MRT, LRT, dan JakLingko di sekitar Anda."
+          accessibilityLabel={t("home.nearbyLabel")}
           className="w-full bg-surface rounded-2xl p-4 flex-row items-center gap-3 active:opacity-80 border border-line"
         >
           <View className="bg-brand-blue/10 p-2.5 rounded-xl">
@@ -399,10 +418,10 @@ export default function Index() {
           </View>
           <View className="flex-1 gap-0.5">
             <Text className="text-ink font-bold text-md">
-              Halte Terdekat
+              {t("menu.nearby")}
             </Text>
             <Text className="text-muted text-sm">
-              Cari halte TransJakarta, MRT, LRT, & JakLingko di sekitarmu.
+              {t("home.nearbyBody")}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color="#737373" />
@@ -412,15 +431,15 @@ export default function Index() {
         <Pressable
           onPress={() => router.push("/assistant")}
           accessibilityRole="button"
-          accessibilityLabel={`TOTO, asisten AI. ${TOTO_SCOPE_NOTE}`}
+          accessibilityLabel={t("home.totoLabel", { note: totoScopeNote() })}
           className="w-full bg-surface rounded-2xl p-4 flex-row items-center gap-3 active:opacity-80 border border-line relative"
         >
           <View className="bg-primary-emerald/15 p-2.5 rounded-xl">
             <Ionicons name="sparkles" size={24} color="#018959" />
           </View>
           <View className="flex-1 gap-0.5">
-            <Text className="text-ink font-bold text-md">TOTO · Asisten AI</Text>
-            <Text className="text-muted text-sm">{TOTO_SCOPE_NOTE}</Text>
+            <Text className="text-ink font-bold text-md">{t("menu.toto")}</Text>
+            <Text className="text-muted text-sm">{totoScopeNote()}</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color="#737373" />
           <AskTotoBubble />
@@ -429,7 +448,7 @@ export default function Index() {
         {/* Tujuan Cepat */}
         <View className="gap-4 w-full">
           <Text className="text-md w-full text-left text-white font-bold">
-            Tujuan Cepat
+            {t("home.quick")}
           </Text>
           <View className="flex-row gap-4">
             {QUICK_LOCATION_SLOTS.map(({ slot, title, iconName }) => (
@@ -448,7 +467,7 @@ export default function Index() {
         {/* Info Real Time */}
         <View className="gap-4 w-full">
           <Text className="text-md w-full text-left text-white font-bold">
-            Informasi
+            {t("home.info")}
           </Text>
           <View className="gap-4">
             {/* Task App-21: sebelumnya dipanggil 2x berturut-turut di sini
@@ -463,7 +482,7 @@ export default function Index() {
         visible={activePickerSlot !== null}
         title={
           activePickerSlot
-            ? `Atur Lokasi ${QUICK_LOCATION_SLOTS.find((s) => s.slot === activePickerSlot)!.title}`
+            ? t("home.setLocation", { place: QUICK_LOCATION_SLOTS.find((s) => s.slot === activePickerSlot)!.title })
             : ""
         }
         onClose={() => setActivePickerSlot(null)}

@@ -2,6 +2,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { JSX } from "react";
 import { Pressable, View } from "react-native";
 import Text from "./Text";
+import { t } from "@/i18n";
 
 // Definisikan tab yang ingin ditampilkan
 const ALLOWED_TABS = ["index", "route", "account"];
@@ -14,7 +15,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: any) {
     index: {
       active: <Ionicons name="home" size={22} color="#0F3FC1" />,
       inactive: <Ionicons name="home-outline" size={22} color="#737373" />,
-      label: "Beranda",
+      label: t("menu.home"),
     },
     route: {
       active: (
@@ -23,12 +24,12 @@ export default function CustomTabBar({ state, descriptors, navigation }: any) {
       inactive: (
         <MaterialCommunityIcons name="routes" size={22} color="#737373" />
       ),
-      label: "Rute",
+      label: t("tab.routes"),
     },
     account: {
       active: <Ionicons name="person" size={22} color="#0F3FC1" />,
       inactive: <Ionicons name="person-outline" size={22} color="#737373" />,
-      label: "Akun",
+      label: t("tab.account"),
     },
   };
 

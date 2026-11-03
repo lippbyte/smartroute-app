@@ -24,6 +24,7 @@ import {
 import { unavailableMessage } from "@/services/apiClient";
 import { putRoute } from "@/services/routeStore";
 import { ApiResponse, RouteItem } from "@/type";
+import { t, type TKey } from "@/i18n";
 import { formatRupiah } from "@/utils/currency";
 import { formatRange } from "@/utils/tripFormat";
 import { formatDepartureLabel } from "@/utils/departureTime";
@@ -130,7 +131,7 @@ const RouteOptionCard = ({
       <View className="flex-row justify-between items-center">
         <View className="flex-row items-center gap-1.5 flex-shrink">
           <Text className="bg-surface-2 font-bold text-ink text-xs px-2.5 py-1 rounded-md capitalize border border-line">
-            {typeLabel}
+            {criteriaText(typeLabel)}
           </Text>
           {/* Hari 2: maks. satu lencana, info saja (bukan filter/urutan).
               Diketuk -> penjelasan + "bukan saran medis". */}
@@ -139,7 +140,7 @@ const RouteOptionCard = ({
               onPress={() => onBadgePress?.(badge)}
               hitSlop={8}
               accessibilityRole="button"
-              accessibilityLabel={`Lencana ${badge.label}. Ketuk untuk penjelasan.`}
+              accessibilityLabel={t("route.badgeLabel", { label: badge.label })}
               className="flex-row items-center gap-1 px-2 py-1 rounded-md"
               style={{ backgroundColor: BADGE_STYLE[badge.kind].bg }}
             >
@@ -153,7 +154,7 @@ const RouteOptionCard = ({
         {item.crowd?.predicted_level === "HIGH" && (
           <View className="flex-row items-center gap-1 bg-red-500/20 px-2 py-0.5 rounded">
             <Ionicons name="people" size={12} color="#EF4444" />
-            <Text className="text-red-400 text-[10px] font-bold">PADAT</Text>
+            <Text className="text-red-400 text-[10px] font-bold">{t("route.crowded")}</Text>
           </View>
         )}
       </View>
@@ -200,7 +201,7 @@ const RouteOptionCard = ({
             <Text className="text-sm text-muted">/10</Text>
           </Text>
         ) : (
-          <Text className="text-xs text-muted">Skor belum tersedia</Text>
+          <Text className="text-xs text-muted">{t("route.noScore")}</Text>
         )}
       </View>
 
@@ -211,18 +212,18 @@ const RouteOptionCard = ({
           className="flex-row flex-wrap gap-x-4 gap-y-1 rounded-lg px-3 py-2"
           style={{ backgroundColor: "#EEF2FF" }}
           accessible
-          accessibilityLabel={`Jalan kaki total ${formatDistance(item.walking_distance_m)}, ${item.transfers} kali transit`}
+          accessibilityLabel={t("route.walkTotalLabel", { distance: formatDistance(item.walking_distance_m), n: item.transfers })}
         >
           <View className="flex-row items-center gap-1.5">
             <Ionicons name="walk" size={18} color="#1E3A8A" />
             <Text className="text-sm" weight="bold" style={{ color: "#1E3A8A" }}>
-              Jalan kaki {formatDistance(item.walking_distance_m)}
+              {t("route.walkDistance", { distance: formatDistance(item.walking_distance_m) })}
             </Text>
           </View>
           <View className="flex-row items-center gap-1.5">
             <Ionicons name="swap-horizontal" size={18} color="#1E3A8A" />
             <Text className="text-sm" weight="bold" style={{ color: "#1E3A8A" }}>
-              {item.transfers === 0 ? "Tanpa transit" : `${item.transfers}x transit`}
+              {item.transfers === 0 ? t("route.noTransfer") : t("common.transfers", { n: item.transfers })}
             </Text>
           </View>
         </View>
@@ -236,14 +237,14 @@ const RouteOptionCard = ({
               {/* Hari 4: rentang prediksi ("92–106 mnt"), cadangan nilai
                   tunggal bila rentang tidak ada. Label "Cepat", filter, dan
                   urutan tetap memakai travel_time_minutes. */}
-              {formatRange(item.travel_time_range) ?? `${item.travel_time_minutes} mnt`}
+              {formatRange(item.travel_time_range) ?? t("format.minutes", { n: item.travel_time_minutes })}
               {startClock && endClock ? ` · ${startClock}–${endClock}` : ""}
             </Text>
           </View>
           <View className="flex-row items-center gap-1">
             <Ionicons name="swap-horizontal" size={14} color="#737373" />
             <Text className="text-xs text-ink-2">
-              {item.transfers}x transit
+              {t("common.transfers", { n: item.transfers })}
             </Text>
           </View>
           {/* Hari 2: menumpang di grup flex-wrap — di layar sempit turun ke
@@ -255,14 +256,14 @@ const RouteOptionCard = ({
             <View
               className="flex-row items-center gap-1 max-w-full"
               accessible
-              accessibilityLabel={`Estimasi ${formatCo2(item.co2.estimate_g)} CO₂${
-                percentVs(item.co2.estimate_g, item.co2.car_g) ? `, ${percentVs(item.co2.estimate_g, item.co2.car_g)} dibanding mobil sendirian` : ""
+              accessibilityLabel={`${t("route.co2Label", { co2: formatCo2(item.co2.estimate_g) })}${
+                percentVs(item.co2.estimate_g, item.co2.car_g) ? t("route.co2VsCarLabel", { pct: percentVs(item.co2.estimate_g, item.co2.car_g)! }) : ""
               }`}
             >
               <Ionicons name="leaf-outline" size={14} color="#065F46" />
               <Text className="text-xs text-ink-2 flex-shrink">
-                ≈ {formatCo2(item.co2.estimate_g)} CO₂ · Estimasi
-                {percentVs(item.co2.estimate_g, item.co2.car_g) ? ` · ${percentVs(item.co2.estimate_g, item.co2.car_g)} vs mobil sendirian` : ""}
+                ≈ {formatCo2(item.co2.estimate_g)} CO₂ · {t("common.estimate")}
+                {percentVs(item.co2.estimate_g, item.co2.car_g) ? ` · ${t("route.vsCar", { pct: percentVs(item.co2.estimate_g, item.co2.car_g)! })}` : ""}
               </Text>
             </View>
           )}
@@ -275,7 +276,7 @@ const RouteOptionCard = ({
                 onPress={() => onA11yPress?.(item)}
                 hitSlop={6}
                 accessibilityRole="button"
-                accessibilityLabel={`${d.label}. Ketuk untuk rincian per halte.`}
+                accessibilityLabel={t("route.a11yChipLabel", { label: d.label })}
                 className="flex-row items-center gap-1 rounded-md px-2 py-1"
                 style={{ backgroundColor: d.bg }}
               >
@@ -296,6 +297,17 @@ const RouteOptionCard = ({
 };
 
 const CRITERIA = ["Semua", "Rekomendasi", "Cepat", "Murah", "Tenang"];
+
+// Label & kriteria di atas adalah nilai logika (filter, urutan). Terjemahan hanya saat tampil.
+const CRITERIA_TEXT: Record<string, TKey> = {
+  Semua: "route.criteria.all",
+  Rekomendasi: "route.criteria.recommended",
+  Cepat: "route.criteria.fast",
+  Murah: "route.criteria.cheap",
+  Tenang: "route.criteria.quiet",
+  Nyaman: "route.criteria.comfortable",
+};
+const criteriaText = (value: string) => t(CRITERIA_TEXT[value]);
 
 // Backend mengembalikan maksimal 4 kandidat (MAX_CANDIDATES); batas di sini
 // menjaga layar tetap 4 opsi walau backend berubah.
@@ -373,21 +385,21 @@ function FilterSheet({
       <Pressable
         className="flex-1 bg-black/60"
         onPress={onClose}
-        accessibilityLabel="Tutup filter"
+        accessibilityLabel={t("route.closeFilters")}
       />
       <View className="bg-surface rounded-t-3xl px-5 pt-3 pb-8 gap-5 border-t border-line">
         <View className="items-center">
           <View className="w-10 h-1 rounded-full bg-line" />
         </View>
         <View className="flex-row items-center justify-between">
-          <Text className="text-ink font-bold text-lg">Filter Rute</Text>
-          <Pressable onPress={onClose} hitSlop={10} accessibilityLabel="Tutup">
+          <Text className="text-ink font-bold text-lg">{t("route.filters")}</Text>
+          <Pressable onPress={onClose} hitSlop={10} accessibilityLabel={t("common.close")}>
             <Ionicons name="close" size={22} color="#737373" />
           </Pressable>
         </View>
 
         <View className="gap-2.5">
-          <Text className="text-ink-2 text-sm font-semibold">Moda transportasi</Text>
+          <Text className="text-ink-2 text-sm font-semibold">{t("route.modes")}</Text>
           <View className="flex-row flex-wrap gap-2">
             {MODE_FILTERS.map((m) => (
               <FilterChip
@@ -396,23 +408,22 @@ function FilterSheet({
                 icon={m.icon}
                 active={draftMode === m.key}
                 onPress={() => setDraftMode(m.key)}
-                accessibilityLabel={`Tampilkan rute ${m.label}`}
+                accessibilityLabel={t("route.showMode", { mode: m.label })}
               />
             ))}
           </View>
           <Text className="text-muted text-xs">
-            Memilih satu moda mencari ulang rute yang hanya memakai moda itu
-            (plus jalan kaki).
+            {t("route.modeNote")}
           </Text>
         </View>
 
         <View className="gap-2.5">
-          <Text className="text-ink-2 text-sm font-semibold">Prioritas</Text>
+          <Text className="text-ink-2 text-sm font-semibold">{t("route.priority")}</Text>
           <View className="flex-row flex-wrap gap-2">
             {CRITERIA.map((c) => (
               <FilterChip
                 key={c}
-                label={c}
+                label={criteriaText(c)}
                 active={draftCriteria === c}
                 onPress={() => setDraftCriteria(c)}
               />
@@ -435,7 +446,7 @@ function FilterSheet({
             className="flex-[2] py-3.5 rounded-xl items-center bg-[#018959]"
           >
             <Text className="font-bold text-sm" style={{ color: "#FFFFFF" }}>
-              Terapkan
+              {t("route.apply")}
             </Text>
           </Pressable>
         </View>
@@ -519,11 +530,7 @@ export default function RouteScreen() {
           parseCoordParam(destinationCoordParam) ?? geocodePlace(destinationParam),
         ]);
         if (!originCoord || !destCoord) {
-          throw new Error(
-            `Tidak bisa menemukan koordinat untuk "${
-              !originCoord ? originParam : destinationParam
-            }". Coba pilih salah satu saran lokasi saat mengetik.`,
-          );
+          throw new Error(t("route.noCoordinates", { place: !originCoord ? originParam : destinationParam }));
         }
 
         // fetchRealRoutes + adaptToLegacyShape menggantikan mockApiResponse
@@ -595,7 +602,7 @@ export default function RouteScreen() {
 
   const activeFilterLabels = [
     modeKey !== MODE_FILTERS[0].key ? modeFilter.label : null,
-    selectedFilter !== CRITERIA[0] ? selectedFilter : null,
+    selectedFilter !== CRITERIA[0] ? criteriaText(selectedFilter) : null,
   ].filter((x): x is string => x !== null);
 
   return (
@@ -608,12 +615,12 @@ export default function RouteScreen() {
             <Pressable
               onPress={() => (router.canGoBack() ? router.back() : router.navigate("/"))}
               accessibilityRole="button"
-              accessibilityLabel="Kembali"
+              accessibilityLabel={t("common.back")}
               className="bg-surface p-2.5 rounded-full border border-line"
             >
               <Ionicons name="arrow-back" size={20} color="#0A0A0A" />
             </Pressable>
-            <Text className="text-2xl font-bold text-white">Hasil Rute</Text>
+            <Text className="text-2xl font-bold text-white">{t("route.title")}</Text>
           </View>
 
           {originLabel && destinationLabel && (
@@ -643,7 +650,7 @@ export default function RouteScreen() {
               <Pressable
                 onPress={() => setIsFilterOpen(true)}
                 accessibilityRole="button"
-                accessibilityLabel="Buka filter rute"
+                accessibilityLabel={t("route.openFilters")}
                 className={`flex-row items-center gap-1.5 px-3.5 py-2 rounded-full border ${
                   activeFilterLabels.length
                     ? "bg-brand-blue border-brand-blue"
@@ -677,7 +684,7 @@ export default function RouteScreen() {
                 <View className="flex-row items-center gap-1 ml-auto">
                   <Ionicons name="time-outline" size={13} color="#737373" />
                   <Text className="text-muted text-xs">
-                    Berangkat {departureLabel}
+                    {t("route.departs", { time: departureLabel })}
                   </Text>
                 </View>
               )}
@@ -696,15 +703,14 @@ export default function RouteScreen() {
           <View className="items-center gap-3 py-10 px-4">
             <Ionicons name="search-outline" size={32} color="#737373" />
             <Text className="text-surface-2 text-sm text-center">
-              Belum ada pencarian rute. Isi asal & tujuan di halaman Beranda
-              dulu.
+              {t("route.noSearch")}
             </Text>
           </View>
         ) : isLoading ? (
           <View className="items-center gap-3 py-10">
             <ActivityIndicator size="large" color="#018959" />
             <Text className="text-surface-2 text-sm">
-              Mencari rute...
+              {t("route.searching")}
             </Text>
           </View>
         ) : errorMessage ? (
@@ -717,10 +723,10 @@ export default function RouteScreen() {
             <Pressable
               onPress={() => setRetryKey((k) => k + 1)}
               accessibilityRole="button"
-              accessibilityLabel="Coba lagi mencari rute"
+              accessibilityLabel={t("route.retryLabel")}
               className="bg-brand-blue px-5 py-2.5 rounded-xl mt-2"
             >
-              <Text className="text-white font-bold">Coba Lagi</Text>
+              <Text className="text-white font-bold">{t("common.retryTitle")}</Text>
             </Pressable>
           </View>
         ) : apiResponse && apiResponse.routes.length === 0 ? (
@@ -728,16 +734,15 @@ export default function RouteScreen() {
             <Ionicons name="alert-circle-outline" size={32} color="#737373" />
             <Text className="text-surface-2 text-sm text-center">
               {modeFilter.backendModes
-                ? `Tidak ada rute yang hanya memakai ${modeFilter.label} untuk perjalanan ini. Pilih "Semua moda" di Filter untuk melihat rute gabungan.`
-                : "Tidak ada rute yang ditemukan untuk perjalanan ini."}
+                ? t("route.noneForMode", { mode: modeFilter.label })
+                : t("route.none")}
             </Text>
           </View>
         ) : filteredRoutes.length === 0 ? (
           <View className="items-center gap-3 py-10 px-4">
             <Ionicons name="funnel-outline" size={32} color="#737373" />
             <Text className="text-surface-2 text-sm text-center">
-              Tidak ada rute berlabel &quot;{selectedFilter}&quot;. Ubah
-              prioritas di Filter.
+              {t("route.noneForLabel", { label: criteriaText(selectedFilter) })}
             </Text>
           </View>
         ) : (
@@ -754,12 +759,12 @@ export default function RouteScreen() {
                 onPress={() => setA11yOn((v) => !v)}
                 accessibilityRole="switch"
                 accessibilityState={{ checked: a11yOn }}
-                accessibilityLabel="Tampilkan info aksesibilitas"
+                accessibilityLabel={t("route.showA11y")}
                 className="flex-row items-center justify-between gap-3"
                 style={{ minHeight: 44 }}
               >
                 <Text className="text-ink text-sm flex-1" weight="bold">
-                  Tampilkan info aksesibilitas
+                  {t("route.showA11y")}
                 </Text>
                 <Switch
                   value={a11yOn}
@@ -775,7 +780,7 @@ export default function RouteScreen() {
                 return (
                   <>
                     <Text className="text-ink-2 text-xs" style={{ lineHeight: 17 }}>
-                      {banner.general} Status halte menurut data GTFS; urutan rute tidak diubah.
+                      {banner.general} {t("route.a11yNote")}
                     </Text>
                     {banner.allLow && (
                       <View className="rounded-xl p-2.5" style={{ backgroundColor: "#FEF2F2", borderWidth: 1, borderColor: "#FCA5A5" }} accessibilityRole="alert">
@@ -793,7 +798,7 @@ export default function RouteScreen() {
             <Pressable onPress={() => router.push("/co2-info")} accessibilityRole="link" hitSlop={6} className="self-start flex-row items-center gap-1">
               <Ionicons name="information-circle-outline" size={14} color="#E2E8F0" />
               <Text className="text-xs underline" style={{ color: "#E2E8F0" }}>
-                Angka CO₂ adalah estimasi — tentang angka ini
+                {t("route.co2Note")}
               </Text>
             </Pressable>
           )}
