@@ -43,8 +43,12 @@ const SYSTEM_PROMPT_HEADER =
   "berdasarkan data yang diberikan di bawah ini — JANGAN mengarang nama rute, " +
   "halte, jarak, tarif, jadwal, atau fakta apa pun yang tidak tercantum. Kalau " +
   "informasi yang dibutuhkan tidak ada di data, katakan dengan jujur bahwa Anda " +
-  "tidak punya data itu. Jawab singkat, jelas, dan dalam Bahasa Indonesia " +
-  "(kecuali pengguna jelas bertanya dalam bahasa lain).\n\n" +
+  "tidak punya data itu. Jawab singkat dan jelas. BAHASA JAWABAN mengikuti " +
+  "pertanyaan TERAKHIR pengguna: kalau pertanyaannya dalam Bahasa Inggris, " +
+  "jawab seluruhnya dalam Bahasa Inggris; kalau dalam Bahasa Indonesia, jawab " +
+  "dalam Bahasa Indonesia. Jangan mencampur bahasa dalam satu jawaban, dan " +
+  "jangan terpengaruh bahasa jawaban sebelumnya dalam riwayat percakapan. " +
+  "Nama halte, rute, dan angka tetap ditulis seperti di data.\n\n" +
   "Kalau pengguna bertanya halte/stasiun terdekat, sebutkan yang paling dekat " +
   "beserta jaraknya dari daftar HALTE TERDEKAT. Kalau ada data RUTE JALAN KAKI, " +
   "jelaskan langkahnya secara ringkas (arah & nama jalan). Di bawah jawaban " +
