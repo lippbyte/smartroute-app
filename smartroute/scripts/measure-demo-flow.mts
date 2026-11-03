@@ -11,6 +11,7 @@ import { writeFileSync } from "node:fs";
 import { fetchAirQuality } from "../src/services/airQualityService";
 import { submitCrowdReport } from "../src/services/crowdService";
 import { adaptToLegacyShape, fetchRealRoutes } from "../src/services/routeService";
+import { searchStationSuggestions } from "../src/services/stationSearchService";
 import { a11yBanner } from "../src/utils/a11yDisplay";
 import { formatCo2, percentVs } from "../src/utils/co2Format";
 import { computeRouteBadges } from "../src/utils/routeBadges";
@@ -68,14 +69,27 @@ const P = {
   lebakBulus: [-6.2892744, 106.7749355] as [number, number],
 };
 
+// Yang dilihat presenter: koordinat saran TERATAS di Beranda, bukan titik baseline
+// regresi. Angkanya berbeda beberapa menit, jadi runbook mengutip yang ini.
+const topPick = async (q: string): Promise<[number, number]> => {
+  const [top] = await searchStationSuggestions(q);
+  console.log(`saran teratas "${q}": ${top.displayName} (${top.coordinate.latitude}, ${top.coordinate.longitude})`);
+  return [top.coordinate.latitude, top.coordinate.longitude];
+};
+const pick = { blokM: await topPick("Blok M"), kota: await topPick("Kota"), pasarBaru: await topPick("Pasar Baru"), lebakBulus: await topPick("Lebak Bulus") };
+
 const results = [];
 results.push(await scenario("S1", P.blokM, P.kota));
 results.push(await scenario("S1+a11y", P.blokM, P.kota, { a11y: true }));
+results.push(await scenario("S1-saran", pick.blokM, pick.kota));
+results.push(await scenario("S1-saran+a11y", pick.blokM, pick.kota, { a11y: true }));
 results.push(await scenario("S2-sebelum", P.pasarBaru, P.lebakBulus));
+results.push(await scenario("S2-saran-sebelum", pick.pasarBaru, pick.lebakBulus));
 const t0 = Date.now();
 await submitCrowdReport("1:G00753", "high"); // seperti melapor dari UI
 const reportMs = Date.now() - t0;
 results.push(await scenario("S2-sesudah-Monas", P.pasarBaru, P.lebakBulus));
+results.push(await scenario("S2-saran-sesudah-Monas", pick.pasarBaru, pick.lebakBulus));
 
 for (const r of results) {
   console.log(`\n== ${r.id} (${r.ms} ms, berangkat ${r.departure_time})`);
