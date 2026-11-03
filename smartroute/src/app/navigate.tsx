@@ -19,6 +19,7 @@ import { plainStep } from "@/utils/simpleSteps";
 import { type GpsIssue, gpsIssueFromPermission, gpsNotice } from "@/utils/gpsNotice";
 import type { MapSegment, MapStop } from "@/components/navigate/navigateMapTypes";
 import NavPanel from "@/components/navigate/NavPanel";
+import TripCompleteOverlay from "@/components/navigate/TripCompleteOverlay";
 import TripSummary from "@/components/navigate/TripSummary";
 import { legModeStyle } from "@/components/transit/legModes";
 import Text from "@/components/Text";
@@ -29,15 +30,8 @@ import { computeLegProgress, legPath, nearestVertex } from "@/utils/navProgress"
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import {
-  AccessibilityInfo,
-  Animated,
-  LayoutChangeEvent,
-  Pressable,
-  Vibration,
-  View,
-} from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AccessibilityInfo, LayoutChangeEvent, Pressable, Vibration, View } from "react-native";
 import { t } from "@/i18n";
 
 // Hari 3 Task 2: peringatan teks besar tampil sekian lama lalu hilang sendiri.
@@ -65,6 +59,7 @@ export default function NavigateScreen() {
 
   const [currentLegIndex, setCurrentLegIndex] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
+  const [completeShown, setCompleteShown] = useState(false);
   const [isFollowingUser, setIsFollowingUser] = useState(false);
   const [userLocation, setUserLocation] = useState<LatLng | null>(null);
   // Hari 4 Task 1: alasan posisi tidak tersedia (pesan satu kalimat).
@@ -393,66 +388,25 @@ export default function NavigateScreen() {
       )}
 
       {isFinished && (
-        <SummaryEntrance>
-          <TripSummary
-            route={stored.route}
-            originName={stored.originName}
-            destinationName={stored.destinationName}
-            actualMinutes={actualMinutes}
-            clientRef={clientRefRef.current}
-            onGoHome={handleGoHome}
-          />
-        </SummaryEntrance>
+        <TripSummary
+          route={stored.route}
+          originName={stored.originName}
+          destinationName={stored.destinationName}
+          actualMinutes={actualMinutes}
+          clientRef={clientRefRef.current}
+          onGoHome={handleGoHome}
+        />
+      )}
+
+      {isFinished && !completeShown && (
+        <TripCompleteOverlay
+          destinationName={stored.destinationName}
+          onDone={() => setCompleteShown(true)}
+        />
       )}
 
       {/* Hari 3: peringatan teks besar (hanya bila bantuan aktif). */}
       {navAlert && <NavAlert alert={navAlert} onDismiss={() => setNavAlert(null)} />}
     </View>
-  );
-}
-
-// Transisi tipis saat rute selesai: Ringkasan muncul dengan fade dan naik
-// 12 px dalam 350 ms. Dilewati kalau sistem meminta gerakan dikurangi.
-const SUMMARY_ENTRANCE_MS = 350;
-function SummaryEntrance({ children }: { children: ReactNode }) {
-  const progress = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    let cancelled = false;
-    let animation: Animated.CompositeAnimation | null = null;
-    AccessibilityInfo.isReduceMotionEnabled()
-      .then((reduceMotion) => {
-        if (cancelled) return;
-        if (reduceMotion) {
-          progress.setValue(1);
-          return;
-        }
-        animation = Animated.timing(progress, {
-          toValue: 1,
-          duration: SUMMARY_ENTRANCE_MS,
-          useNativeDriver: true,
-        });
-        animation.start();
-      })
-      .catch(() => progress.setValue(1));
-    return () => {
-      cancelled = true;
-      animation?.stop();
-    };
-  }, [progress]);
-
-  return (
-    <Animated.View
-      style={{
-        flex: 1,
-        opacity: progress,
-        transform: [
-          {
-            translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }),
-          },
-        ],
-      }}
-    >
-      {children}
-    </Animated.View>
   );
 }

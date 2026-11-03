@@ -375,6 +375,7 @@ export const id = {
   "nav.exitFull": "Keluar dari navigasi",
   "summary.saveError": "Gagal menyimpan perjalanan.",
   "summary.title": "Ringkasan Perjalanan",
+  "summary.complete": "Perjalanan selesai!",
   "summary.modes": "Moda yang dipakai",
   "summary.transfers": "Transfer",
   "summary.walking": "Jalan kaki",

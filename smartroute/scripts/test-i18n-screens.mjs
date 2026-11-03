@@ -274,6 +274,14 @@ async function runFlow({ lang, width, shots, scenario = "flow" }) {
     const waitText = async (re, ms = 20_000) => {
       if (!(await waitFor(`${re}.test(document.body.innerText)`, ms))) throw new Error(`Teks tidak muncul: ${re}`);
     };
+    // Animasi "Perjalanan selesai" menutupi Ringkasan sebentar: harus tampil, lalu
+    // hilang sendiri. Ringkasan baru direkam setelahnya, supaya baseline tetap utuh.
+    const COMPLETE_OVERLAY = `document.querySelector('[data-testid="trip-complete-overlay"]')`;
+    const settleTripComplete = async (name) => {
+      if (!(await ev(`!!${COMPLETE_OVERLAY}`))) throw new Error("Animasi selesai tidak tampil");
+      await shoot(`${name}-animasi`);
+      if (!(await waitFor(`!${COMPLETE_OVERLAY}`, 6_000))) throw new Error("Animasi selesai tidak hilang");
+    };
 
     const ROUTE_URL = `/route?origin=${encodeURIComponent("Stasiun MRT Blok M, Jakarta")}&destination=${encodeURIComponent("Halte TransJakarta Kota, Jakarta")}&originCoord=${encodeURIComponent("-6.2444643,106.7981332")}&destinationCoord=${encodeURIComponent("-6.136827,106.814876")}&departureTime=${encodeURIComponent("2026-09-21T07:30:00+07:00")}`;
     const RESULT_MARK = "/88–102 (mnt|min)/";
@@ -521,6 +529,7 @@ async function runFlow({ lang, width, shots, scenario = "flow" }) {
       await sleep(350);
     }
     await waitText("/Ringkasan Perjalanan|Trip Summary/");
+    await settleTripComplete("ringkasan-tamu");
     await capture("ringkasan-tamu");
 
     // --- 4. Galat & hasil kosong.
@@ -602,6 +611,7 @@ async function runFlow({ lang, width, shots, scenario = "flow" }) {
       await tapAria("/^(Langkah berikutnya|Next step|Selesai|Finish)$/");
       await sleep(350);
     }
+    await settleTripComplete("ringkasan-masuk");
     await waitText("/Tersimpan di Riwayat|Saved to History/");
     await capture("ringkasan-masuk");
 

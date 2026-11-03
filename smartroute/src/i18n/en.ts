@@ -376,6 +376,7 @@ export const en: Record<TKey, string> = {
   "nav.exitFull": "Exit navigation",
   "summary.saveError": "Couldn't save the trip.",
   "summary.title": "Trip Summary",
+  "summary.complete": "Trip complete!",
   "summary.modes": "Modes used",
   "summary.transfers": "Transfers",
   "summary.walking": "Walking",
