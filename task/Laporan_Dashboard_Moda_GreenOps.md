@@ -2,6 +2,8 @@
 
 Cabang: `feat/dashboard-moda-greenops`, dari `feat/hotfix-scroll-bahasa` (`1549e0a`). Tidak di-merge ke `main`.
 
+**Status terbaru (3 Nov 2026):** panel GreenOps tersembunyi di balik flag yang mati, `/moda` tidak ditautkan dari mana pun, dan tabel faktor belum disetujui. Hasil penyelidikan 88 trip BRT dan laporan regresi ada di bagian [Tinjauan Khalifa](#tinjauan-khalifa-3-nov-2026) di akhir dokumen. Bagian di antaranya adalah catatan pekerjaan awal, sudah dikoreksi bila tidak berlaku lagi.
+
 ## Task 0: Audit
 
 Rujukan berkas merujuk ke `smartroute-dashboard/` pada `1549e0a`, kecuali disebut lain.
@@ -34,7 +36,7 @@ Semua di `backend/otp2-setup/data/`, terlacak di git.
 
 **Dua keterbatasan data TransJakarta yang perlu diketahui:**
 
-1. **88 trip BRT tertulis beroperasi 00:00-23:59 dengan headway tetap**, misalnya `10-R01` tiap 3 menit sepanjang malam. Akibatnya simulasi menampilkan ±575 BRT pukul 03:00. Ini isi feed dan tidak dikoreksi, tetapi disebutkan di dialog Tentang.
+1. **88 trip BRT tertulis beroperasi 00:00-23:59 dengan headway tetap**, misalnya `10-R01` tiap 3 menit sepanjang malam. Akibatnya simulasi menampilkan ±575 BRT pukul 03:00. Ini isi feed dan tidak dikoreksi, tetapi disebutkan di dialog Tentang. Rincian penyebab dan usulan perbaikan ada di bagian Tinjauan Khalifa.
 2. **Kecepatan `stop_times` seragam:** median ±12 km/j di hampir semua kategori (BRT 12,6, Mikrotrans 11,7), dengan persentil 10-90 yang sangat sempit. Ini tampak seperti nilai bawaan feed, bukan hasil pengukuran. Karena armada = durasi ÷ headway, jumlah kendaraan dan jarak tempuh ikut terpengaruh.
 
 ### c. Sumber data rel: milik kita atau salinan Simpul
@@ -76,11 +78,11 @@ Target dokumen tugas 300-800 kendaraan **tidak realistis untuk semua moda**. Ter
 
 | Set moda | Kendaraan simultan | `getSnapshot` | FPS (Chrome headless, WebGL perangkat lunak) |
 |---|---:|---:|---:|
-| Rel + BRT (bawaan) | ±1.090 | 0,5 ms | 52 |
+| Rel + BRT (bawaan) | ±1.090 | 0,5 ms | 35-54 |
 | + Bus besar | ±2.370 | 1,0 ms | 60 (saat dijeda) |
-| Semua + Mikrotrans | ±4.980 | 2,6 ms | 39 |
+| Semua + Mikrotrans | ±4.980 | 2,6 ms | 23-39 |
 
-**Rekomendasi: layer `circle` MapLibre (sudah WebGL) dengan `setData` tiap 500 ms.** Tidak perlu deck.gl atau paket baru. Yang harus dihindari adalah `MapMarker` berbasis DOM yang dipakai `pages/Map.tsx`, karena ribuan elemen DOM tidak akan sanggup. Bawaan peta hanya rel + BRT supaya tetap terbaca dan paling dekat dengan target; bus lain dan Mikrotrans bisa dinyalakan lewat centang. Angka FPS ini dari GPU perangkat lunak, jadi laptop sungguhan seharusnya lebih baik, tetapi itu belum saya uji.
+**Rekomendasi: layer `circle` MapLibre (sudah WebGL) dengan `setData` tiap 500 ms.** Tidak perlu deck.gl atau paket baru. Yang harus dihindari adalah `MapMarker` berbasis DOM yang dipakai `pages/Map.tsx`, karena ribuan elemen DOM tidak akan sanggup. Bawaan peta hanya rel + BRT supaya tetap terbaca dan paling dekat dengan target; bus lain dan Mikrotrans bisa dinyalakan lewat centang. Angka FPS ini dari GPU perangkat lunak dan berubah-ubah menurut beban mesin. Laptop dengan GPU sungguhan seharusnya lebih baik, tetapi itu belum saya uji.
 
 ### e. Faktor emisi yang sudah ada
 
@@ -115,9 +117,9 @@ Faktor per penumpang-km **tidak bisa** dipakai untuk emisi kendaraan tanpa asums
 | 1 Tabel faktor | **Draf, belum disetujui.** 4 moda punya faktor, 4 tidak tersedia. Lihat `task/Dashboard_GreenOps_Tabel_Faktor.md` | `933caaa` |
 | 2 Mesin simulasi | Selesai | `5816846` |
 | 3 Peta | Selesai, di `/moda` | `456cce5` |
-| 4 GreenOps | Selesai, angka berlabel draf | commit Task 4 |
+| 4 GreenOps | Selesai. Sejak tinjauan, tersembunyi di balik flag yang mati | `cad4dbb` |
 
-Task 5 dan 6 tidak dikerjakan karena di luar permintaan.
+Task 5 tidak dikerjakan. Dari Task 6, hanya bagian regresi yang dikerjakan, atas permintaan.
 
 **Gerbang yang dilewati:** dokumen tugas meminta berhenti setelah Task 0 dan Task 1 untuk persetujuan. Karena permintaannya “kerjakan task 0-4”, saya lanjut sampai Task 4, memilih opsi yang direkomendasikan dokumen, dan memasang penanda draf. Semua ini masih di cabang kerja, jadi keputusan di bawah tetap bisa diubah.
 
@@ -127,11 +129,11 @@ Jalankan dari `smartroute-dashboard/`.
 
 | Uji | Perintah | Hasil |
 |---|---|---|
-| Unit | `npm test` | 35/35 lulus |
+| Unit | `npm test` | 41/41 lulus |
 | Tipe | `npx tsc -b` | 0 galat |
 | Lint berkas baru | `npx eslint src/pages/Moda.tsx src/components/moda src/greenops src/simulation` | 0 galat |
 | Build | `npx vite build` | Berhasil |
-| Chrome headless | `node scripts/test_moda_browser.mjs` | 35/35 lulus, 0 galat konsol di `/moda` |
+| Chrome headless | `node scripts/test_moda_browser.mjs` | Flag mati 31/31, flag menyala 37/37, 0 galat konsol |
 
 Yang dicakup uji Chrome: label simulasi, galat data dan tombol coba lagi, peta dasar gagal, filter, putar/jeda/kecepatan, kartu kendaraan, atribusi, 360 px tanpa gulir mendatar, serta `/`, `/map`, `/login` yang tetap jalan.
 
@@ -152,23 +154,22 @@ Yang dicakup uji Chrome: label simulasi, galat data dan tombol coba lagi, peta d
 
 Jarak dihitung tepat dari linimasa trip, jadi hasilnya sama pada kecepatan putar apa pun. Contoh Senin 08:00 semua moda berfaktor: 75.468 kg CO₂/jam, 46.734 kWh/jam, 13.466 liter/jam.
 
-**`/routes` dan app mobile:** tidak ada berkas di luar `smartroute-dashboard/` dan `task/` yang berubah dari `feat/hotfix-scroll-bahasa` (`git diff --name-only`). Karena itu regresi `/routes` tidak dijalankan.
+**`/routes` dan app mobile:** tidak ada berkas di luar `smartroute-dashboard/` dan `task/` yang berubah dari `feat/hotfix-scroll-bahasa` (`git diff --name-only`). Regresinya sudah dijalankan, lihat bagian Tinjauan Khalifa.
 
 ### Perubahan pada kode dashboard lama
 
 - `tsconfig.json`, `tsconfig.app.json`: menghapus `baseUrl` usang, supaya `tsc` lulus.
 - `src/main.tsx`, `src/App.tsx`: `FlagProvider` ganda dilepas dan dipasang sebagai layout, supaya `/moda` tidak memanggil `localhost:5000`.
-- `src/components/ui/ViewToggle.tsx`: tombol “Moda”.
 
 ### Keputusan yang saya ambil, mohon ditinjau
 
 1. **Cabang dasar `feat/hotfix-scroll-bahasa`,** sesuai usulan dokumen. Dikerjakan di worktree `.claude/worktrees/dashboard-moda-greenops`, karena checkout utama sedang di `feat/bahasa-id-en` dengan perubahan yang belum di-commit.
 2. **Sumber rel: OSM dan GTFS kita.** Salinan Simpul tidak masuk repo dan tidak disebut di UI.
-3. **`/moda` publik tanpa login.** Datanya publik dan simulasi, dan login lama butuh backend port 5000. Mudah dipindah ke balik `ProtectedRoute` bila tidak dikehendaki.
+3. **`/moda` publik tanpa login,** tetapi kini tidak ditautkan dari mana pun. Datanya publik dan simulasi, dan login lama butuh backend port 5000. Mudah dipindah ke balik `ProtectedRoute` bila tidak dikehendaki.
 4. **Bawaan peta: rel + BRT.** Bus lain dan Mikrotrans menambah ±3.900 titik.
 5. **Okupansi 25%, 50%, 75%.** Ini asumsi saya, tidak ada sumbernya, dan berlabel asumsi di panel.
 6. **Satuan “kg CO₂”, bukan “kg CO₂e”** seperti di dokumen tugas, karena CH₄ dan N₂O tidak dihitung.
-7. **Angka emisi tampil dengan penanda draf,** padahal dokumen meminta persetujuan dulu. Tujuannya agar tabel bisa dinilai di layar. Tidak ada yang di-merge atau di-deploy.
+7. **Dibatalkan:** angka emisi semula tampil dengan penanda draf. Sejak tinjauan, angka tidak tampil sampai flag dinyalakan.
 
 ### Risiko tersisa
 
@@ -177,7 +178,7 @@ Jarak dihitung tepat dari linimasa trip, jadi hasilnya sama pada kecepatan putar
   - Headway malam di feed dan kecepatan seragam ±12 km/j cenderung melebihkan jumlah bus.
   - Mikrotrans dan LRT Jabodebek tidak dihitung.
   - Faktor listrik dan solar cenderung atas.
-- **Beda angka dengan app mobile:** KRL 16 g/pkm di panel (okupansi 50%) berbanding 41 g/pkm di kartu CO₂ mobile.
+- **Beda angka dengan app mobile:** KRL 15,5 g/pkm di panel (okupansi 50%) berbanding 41 g/pkm di kartu CO₂ mobile. Lihat tabel perbandingan.
 - **Peta butuh internet:** worker MapLibre dari unpkg dan peta dasar dari CARTO. Bila CARTO gagal, jaringan tetap tampil di atas latar polos. Bila unpkg gagal, peta tidak berjalan; skenario ini belum diuji.
 - **FPS diukur dengan GPU perangkat lunak,** belum di laptop presentasi sungguhan.
 - **Lisensi:** lihat “Perlu dicek manusia” di Task 0c.
@@ -185,7 +186,7 @@ Jarak dihitung tepat dari linimasa trip, jadi hasilnya sama pada kecepatan putar
 
 ### Daftar cek manual di browser
 
-Jalankan: `cd smartroute-dashboard && npm install && npm run dev`, lalu buka `http://localhost:5173/moda`.
+Jalankan: `cd smartroute-dashboard && npm install && npm run dev`, lalu buka `http://localhost:5173/moda`. Butir yang menyebut CSV, dialog sumber, atau ikon info butuh flag GreenOps menyala (lihat Tinjauan Khalifa).
 
 - [ ] Kendaraan terlihat bergerak mulus pada 1×, 5×, dan 15× di laptop presentasi.
 - [ ] Nyalakan semua moda: peta masih nyaman digeser dan diperbesar.
@@ -200,7 +201,163 @@ Jalankan: `cd smartroute-dashboard && npm install && npm run dev`, lalu buka `ht
 
 ### Keputusan yang dibutuhkan
 
-1. Persetujuan tabel faktor, dan selisih dengan faktor per penumpang-km.
-2. `/moda` publik atau di balik login.
-3. Lanjut Task 5 dan 6 atau tidak.
-4. Dari dokumen tugas, tetap urusan Khalifa: menghubungi pemilik Simpul, dan repo `hasbywira90/RekapModaJakarta`.
+1. **Tabel faktor:** setujui, ubah, atau tolak, dan pilih opsi untuk selisih dengan angka app (`task/Dashboard_GreenOps_Tabel_Faktor.md` bagian 4).
+2. **88 trip BRT:** terapkan skenario C, pilih B atau D, atau tunggu jawaban TransJakarta.
+3. **`/moda`:** tetap publik di URL langsung atau di balik login.
+4. **Push:** commit terakhir hanya ada di lokal, sedangkan GitHub masih memuat versi dengan panel menyala.
+5. **Dari dokumen tugas, tetap urusan Khalifa:** menghubungi pemilik Simpul, dan repo `hasbywira90/RekapModaJakarta`.
+
+
+## Tinjauan Khalifa, 3 Nov 2026
+
+Lima permintaan: GreenOps di balik flag, `/moda` disembunyikan, penyelidikan 88 trip BRT, tabel perbandingan, dan laporan regresi. Task 5 tidak dikerjakan.
+
+### 1. GreenOps di balik flag
+
+- `FACTORS_APPROVED` tetap `false`, dijaga uji otomatis.
+- Flag baru `VITE_GREENOPS_ENABLED`, bawaannya mati, hanya menyala bila bernilai persis `true`.
+- Saat mati, yang hilang: panel kanan, bagian GreenOps di kartu kendaraan, dan paragraf GreenOps di dialog Tentang.
+- **Angkanya juga tidak terkirim.** Kode GreenOps dimuat lewat impor dinamis yang dibuang bundler saat flag mati. Di `dist/assets/*.js` hasil build bawaan, `theicct.org`, `GreenOps`, `17.856`, dan `kg CO` muncul 0 kali.
+
+Untuk meninjau di lokal (PowerShell):
+
+```powershell
+cd smartroute-dashboard
+$env:VITE_GREENOPS_ENABLED="true"; npm run dev
+```
+
+### 2. `/moda` disembunyikan
+
+- Tombol “Moda” di `ViewToggle` dihapus. Berkas itu kembali sama seperti sebelum pekerjaan ini.
+- Uji otomatis memastikan `/moda` hanya muncul sebagai deklarasi rute di `App.tsx`. Chrome memastikan tidak ada tombol atau tautan ke sana di `/` dan `/map`.
+- **Ini penyembunyian, bukan pembatasan akses:** siapa pun yang tahu URL-nya tetap bisa membuka `/moda` tanpa login. Karena belum di-deploy, ini baru berlaku di lokal.
+
+### 3. Penyelidikan 88 trip BRT “24 jam”
+
+**Kesimpulan: bukan salah `end_time`. Layanan 24 jamnya nyata, tetapi headway dan cakupan variannya adalah artefak feed.**
+
+**Bukan salah `end_time`.** Semua 88 baris bernilai persis `00:00:00`–`23:59:59`. Tidak ada `24:00:00` atau waktu lewat tengah malam di `frequencies.txt`.
+
+**Yang nyata: 14 koridor utama memang 24 jam.** Ke-88 baris hanya berada di rute 1 sampai 14, cocok dengan [daftar 14 koridor AMARI](https://money.kompas.com/read/2024/12/28/153200926/per-1-januari-2025-kode-rute-layanan-malam-hari-transjakarta-diubah). [TransJakarta sendiri menyebut](https://transjakarta.co.id/berita/meriahkan-malam-pergantian-tahun-transjakarta-operasikan-2026-unit-armada-khusus-dan-layanan-24-jam) 14 koridor utama beroperasi 24 jam (30 Des 2025). Rute turunan seperti 10H, 13B, atau 9A tetap `05:00`–`22:00`.
+
+**Artefak 1: tidak ada headway malam.** Tiap baris hanya punya satu headway untuk sehari penuh, misalnya `10-R01` tiap 180 detik, termasuk pukul 03:00. Bandingkan dengan laporan media tentang waktu tunggu malam: [20-40 menit](https://www.popmama.com/life/health/ini-daftar-transjakarta-yang-beroperasi-24-jam-dan-rutenya-00-wjk9l-b1mgxh/amp) (Popmama, Agu 2026) dan [hingga 30-60 menit](https://travel.kompas.com/read/2026/01/09/130000627/naik-transjakarta-tengah-malam-ini-panduan-rute-yang-beroperasi-24-jam) (Kompas, Jan 2026). Saya tidak menemukan angka resmi TransJakarta.
+
+**Artefak 2: semua varian ikut 24 jam.** 88 dari 102 baris di ke-14 rute itu berjendela penuh, termasuk:
+
+- 35 varian dengan headsign lingkar seperti “Tosari dan Blok M”.
+- Trip yang templat `stop_times`-nya baru mulai siang, seperti `1-P94` (08:00) dan `1-P95` (14:00).
+- Secara umum, 76 dari 88 templat dimulai pukul 05:00, sama dengan jam mulai layanan reguler. Hanya 3 yang dimulai 00:00.
+
+Kompas juga menyebut layanan malam hanya berhenti di halte utama, dan feed tidak mencerminkan itu.
+
+**Dugaan penyebab, belum terbukti:** sejak 1 Jan 2025 kode M1-M14 digabung ke nomor koridor, sehingga layanan malam mungkin dilebur ke rute yang sama dengan menandai seluruh varian 24 jam. Saya tidak bisa membuktikannya karena riwayat git kita hanya punya satu versi feed.
+
+**Memperbarui feed tidak menyelesaikan ini.** Feed resmi sudah terbit lagi 30 Okt 2026, sedangkan salinan kita bertanggal 24 Jul 2026. Versi baru masih punya 86 baris pola yang sama. Bedanya: 165 baris frekuensi berubah, 66 trip hilang, dan 60 trip baru.
+
+#### Dampak
+
+**Pada dashboard**, dihitung di memori untuk hari Senin, tanpa mengubah `network.json`:
+
+| Skenario | BRT 03:00 | BRT 12:00 | BRT 23:00 | Km BRT per hari | Porsi malam | CO₂ BRT per hari |
+|---:|---:|---:|---:|---:|---:|---:|
+| A. Feed apa adanya (sekarang) | 575 | 1.017 | 769 | 259.339 | 21% | 320,5 t |
+| B. Semua jadi 05:00-22:00, tanpa malam | 0 | 1.013 | 369 | 211.179 | 5% | 261,0 t |
+| **C. Malam hanya pola utama, tiap 30 menit** | **91** | **1.013** | **430** | **217.655** | **8%** | **269,0 t** |
+| D. Sama dengan C, tiap 15 menit | 162 | 1.013 | 481 | 224.132 | 10% | 277,0 t |
+
+Jadi angka emisi BRT harian saat ini **±19% lebih tinggi daripada skenario C** (320,5 t berbanding 269,0 t), hanya karena artefak ini. Bila asumsi malamnya benar, total sebenarnya lebih dekat ke C.
+
+**Pada `/routes` dan app mobile: ikut terdampak.** Permintaan S1 Blok M → Kota pada Senin selalu menjawab bus berangkat 15 menit kemudian, berapa pun jamnya:
+
+| Diminta | Bus koridor 1 berangkat |
+|---:|---:|
+| 03:00 | 03:15 |
+| 03:10 | 03:25 |
+| 03:20 | 03:35 |
+| 03:40 | 03:55 |
+| 07:30 | 07:45 |
+
+App memberi kesan tidak ada waktu tunggu malam, sedangkan laporan media menyebut 20-60 menit. Skenario demo terkunci pada 07:30 sehingga regresinya tidak terpengaruh. Ini baru menjadi masalah bila app dipakai larut malam.
+
+#### Usulan, belum diterapkan
+
+1. **Dashboard: terapkan skenario C** sebagai aturan saat membangun data di `scripts/build_network.py`, dengan tabel aturan dan sumbernya di `data-src/`. Siang tetap dari feed. Malam (22:00-05:00) hanya satu pola utama per koridor per arah (26 pola), tiap 30 menit, berlabel asumsi. Varian lain dibatasi 05:00-22:00.
+   - Angka 30 menit adalah titik tengah kira-kira dari laporan media, bukan angka resmi.
+   - “Pola utama” saya pilih dari akhiran `R` dengan headway tersingkat. Arti akhiran `R`/`P`/`L` adalah tebakan saya.
+2. **`/routes`: jangan diubah sekarang.** Mengubahnya berarti menambal feed dan membangun ulang graph OTP2, yang bisa menggeser hasil rute. Sebaiknya jadi keputusan terpisah setelah demo, dengan regresi penuh.
+3. **Memperbarui feed ke versi 30 Okt: keputusan terpisah,** alasannya sama.
+4. **Minta konfirmasi TransJakarta** lewat kontak di `agency.txt` (`naektije@transjakarta.co.id`): headway malam per koridor dan varian mana yang benar-benar berjalan malam. Ini yang akan mengganti asumsi 30 menit.
+
+**Keputusan untukmu:** setujui skenario C, pilih B atau D, atau tunggu jawaban TransJakarta.
+
+### 4. Tabel perbandingan per penumpang-km
+
+Ada di `task/Dashboard_GreenOps_Tabel_Faktor.md` bagian 4, lengkap dengan opsi dan rekomendasi. Uji otomatis memastikan angka di dokumen sama dengan modul.
+
+### 5. Laporan regresi
+
+**Hasil: tidak ada regresi pada semua yang dijalankan.** Cabang ini tidak mengubah satu pun berkas di luar `smartroute-dashboard/` dan `task/` dibanding `feat/hotfix-scroll-bahasa`.
+
+**Cara menguji.** Backend dijalankan terpisah dari kode cabang ini di port 3120, dengan database sementara dan tanpa kunci API. Backend utama port 3000 tidak ikut diuji karena skenario Monas meninggalkan laporan kepadatan 15 menit, dan checkout utama sedang aktif dikerjakan. OTP2 yang dipakai sama. Sesudah pengujian, backend utama tetap sehat dengan 0 laporan kepadatan. Baseline dan hasil tersimpan di `task/regresi/`.
+
+**`/routes` terkunci 21 Sep 2026 07:30 vs baseline Hari 3.** Dibandingkan: urutan, moda, menit, tarif, transfer, risiko, kepadatan, dan skor tiap kandidat.
+
+| Skenario | Hasil | Kandidat | #1 |
+|---|---|---:|---|
+| S1 Blok M → Kota | Identik | 4 | `1`, Rp3.500, 92-106 menit |
+| S2 Pasar Baru → Lebak Bulus, sebelum Monas | Identik | 4 | `2+1+M`, Rp17.500, 76-88 menit |
+| S2 sesudah lapor Monas | Identik | 4 | `Bogor+Cikarang+M`, Rp17.000, 73-84 menit |
+| S3 Grogol → Kampung Melayu | Identik | 4 | `3+8+5C`, Rp3.500, 93-107 menit |
+| L1 Jati Mulya → Dukuh Atas | Identik | 3 | `Cikarang`, Rp3.000, 83-96 menit |
+| L2 Harjamukti → Kuningan | Identik | 3 | `Cibubur Line`, Rp19.000, 39-45 menit |
+
+Latensi tidak dibandingkan. L1 dan L2 adalah panggilan pertama ke instance baru (6,1 dan 9,5 detik), sedangkan S1, S2, dan S3 mendekati baseline (0,6-2,2 detik).
+
+**Pemeriksaan lain:**
+
+| Rangkaian | Hasil |
+|---|---|
+| Chip moda Bus/KRL/MRT/LRT | 4/4 |
+| `tsc` backend-skeleton, smartroute, smartroute-dashboard | 0 galat |
+| Backend: akun-riwayat ratelimit / main / persist | 6 / 48 / 3 |
+| Backend: feedback | 10 |
+| Backend, provider tiruan: toto-privacy, toto-refund, toto-grounding, air-quality | 16, 19, 29, 12 |
+| Backend: otp-down | 9 |
+| App: route-badges, co2-pipeline, accessibility-pipeline, assistive-settings | 19, 11, 54, 34 |
+| App: trip-pass main/reopen, feedback-draft offline/online | 27/1, 2/5 |
+| App: error-mapping mock / backend-dead | 69 / 17 |
+| App: gps-notice, about-partnership, scan-ui-text | 17, 7, 4 |
+| Dashboard: `npm test` | 41/41 |
+| Dashboard: Chrome, flag mati / menyala | 31/31, 37/37, 0 galat konsol |
+| Dashboard: ESLint berkas baru dan `ViewToggle`, build | 0 galat, berhasil |
+| `git ls-files`: bundel Simpul, profil peramban, `.env`, kredensial | Tidak ada |
+
+**Angka rendah dibanding laporan lama:** ratelimit 6 (dulu 10) dan feedback 10 (dulu 11), karena kali ini tanpa fase tunnel.
+
+**Tidak dijalankan:**
+
+| Uji | Alasan |
+|---|---|
+| `npm run preflight`, `test-demo-preflight` | Memanggil TOTO ke OpenRouter berbayar (aturan 7) dan butuh restart backend utama |
+| `test-toto`, `test-toto-live` | OpenRouter berbayar |
+| Fase tunnel, error-mapping `otp-down` dan `tunnel` | Butuh tunnel atau mematikan layanan yang sedang dipakai |
+| Browser app: route-card-layout, location-picker-scroll, toto-screen, trip-pass, dan lainnya | Butuh server web Expo. Kode app sama persis dengan cabang tempat uji itu terakhir lulus |
+| HP sungguhan | Di luar kemampuan saya |
+
+**Catatan lingkungan.** Tiga kegagalan awal berasal dari worktree, bukan kode, dan lulus setelah dibetulkan:
+
+- `tsc` smartroute butuh `expo-env.d.ts` yang di-gitignore, saya salin dari checkout utama.
+- Tiga uji backend membuka `data/smartroute.db` langsung, jadi saya jalankan dengan database baru di folder `data/` worktree, lalu menghapusnya.
+- `tsc` dashboard gagal sekali karena berjalan saat saya sedang mengedit.
+
+### Koreksi atas pekerjaan sebelumnya
+
+- **Saya melewatkan regresi `/routes`** dengan alasan kode backend tidak berubah. Sekarang sudah dijalankan, hasilnya di atas.
+- **Uji “Simpul tidak disebut” di `456cce5` kosong makna:** `\b` di regex-nya tertulis sebagai karakter backspace, sehingga tidak pernah cocok. Sudah diperbaiki, dan dibuktikan bisa gagal dengan menyuntik kata itu ke sumber. Hasil pemeriksaan sebenarnya tetap bersih.
+- **Angka FPS di Task 0d terlalu optimistis.** Pengukuran ulang saat mesin lebih sibuk memberi angka lebih rendah, jadi tabelnya kini memakai rentang.
+
+### Status git
+
+- **Commit perubahan ini hanya ada di lokal, tidak di-push,** sesuai permintaan.
+- **Versi di GitHub masih yang lama:** `origin/feat/dashboard-moda-greenops` di `cad4dbb` masih punya panel GreenOps menyala dan tombol “Moda”. Repo itu publik, walau cabang ini belum di-merge atau di-deploy. Bila itu perlu ditutup lebih cepat, kamu perlu menyetujui push.
+- Task 5 tidak dikerjakan.

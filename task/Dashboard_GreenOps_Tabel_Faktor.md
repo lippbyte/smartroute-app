@@ -1,13 +1,13 @@
 # Tabel Faktor GreenOps per Kendaraan-km
 
-**Status: DRAF, menunggu persetujuan Khalifa.** Selama `FACTORS_APPROVED` di `smartroute-dashboard/src/greenops/greenopsFactors.ts` bernilai `false`, dashboard menampilkan penanda draf.
+**Status: DRAF, menunggu persetujuan Khalifa.** `FACTORS_APPROVED` di `smartroute-dashboard/src/greenops/greenopsFactors.ts` bernilai `false`, dan panel GreenOps tersembunyi di balik `VITE_GREENOPS_ENABLED` yang bawaannya mati. Saat mati, tidak ada angka faktor di bundel yang terkirim ke peramban.
 
 **Ringkasnya:** dari 8 moda, 4 punya faktor dan 4 “tidak tersedia”. **Tidak ada faktor yang berkekuatan “kuat”.** Bus paling kokoh; angka KRL dan MRT lemah dan paling butuh verifikasi.
 
 ## Keputusan yang diminta
 
-1. **Setujui, ubah, atau tolak tabel ini.** Bila disetujui, ubah `FACTORS_APPROVED` menjadi `true`.
-2. **Selisih besar dengan faktor per penumpang-km** (bagian 4), terutama KRL dan MRT. Angka lama tidak saya ubah.
+1. **Setujui, ubah, atau tolak tabel ini.** Bila disetujui: ubah `FACTORS_APPROVED` menjadi `true` beserta ujinya, dan nyalakan `VITE_GREENOPS_ENABLED` saat build.
+2. **Pilih salah satu opsi di bagian 4 untuk selisih dengan angka app.** Angka lama tidak saya ubah.
 3. **Faktor listrik 870 g/kWh atau rata-rata jaringan?** Bagian 2 menjelaskan pengaruhnya.
 
 ## 1. Tabel per moda
@@ -82,23 +82,59 @@ Hanya dipakai untuk skenario okupansi.
 
 Angka kapasitas rel dari berita, bukan spesifikasi operator (`TODO:verifikasi`). KRL 12 kereta jauh lebih besar dan tidak dibedakan.
 
-## 4. Konsistensi dengan faktor per penumpang-km yang sudah ada
+## 4. Perbandingan per penumpang-km: dashboard vs app
 
-Faktor lama: MRT 19, LRT 19, KRL 41, bus 36 g/pkm. **Faktor lama tidak diubah.**
+**Kesimpulannya:** kedua set angka sepakat bahwa angkutan umum jauh di bawah mobil, tetapi **urutan antarmoda terbalik**. Di app: MRT 19 < BRT 36 < KRL 41. Di dashboard pada okupansi 50%: KRL 15,5 < MRT 31,4 < BRT 49,4. Faktor app tidak saya ubah.
 
-| Moda | g/km baru | g/pkm lama | Penumpang tersirat (g/km ÷ g/pkm) | Porsi kapasitas | g/pkm baru pada okupansi 50% | Selisih dari lama |
-|---|---:|---:|---:|---:|---:|---:|
-| MRT | 30.659 | 19 | 1.614 | 83% | 31,4 | +65% |
-| KRL | 15.535 | 41 | 379 | 19% | 15,5 | -62% |
-| BRT | 1.236 | 36 | 34 | 69% | 49,4 | +37% |
+### Tabel utama
 
-**Penjelasan:**
+Angka dashboard = g CO₂/km ÷ (kapasitas nominal × okupansi). Satuan semua angka g per penumpang-km.
 
-- **BRT paling masuk akal.** Studi LCA di balik angka 36 mengasumsikan okupansi ±50%, dan selisihnya bisa dijelaskan oleh perbedaan metode dan armada.
-- **MRT tinggi** kemungkinan karena listrik seluruh sistem dan faktor jaringan 870. Dengan ±26,8 kWh/km dan 680 g/kWh, angka okupansi 50% turun menjadi ±18,7 g/pkm, cocok dengan angka lama. Ini menandakan selisihnya berasal dari asumsi, tetapi bukan bukti bahwa salah satunya benar.
-- **KRL arahnya terbalik.** Angka lama 41 g adalah batas atas klaim perusahaan (19-41 g), sedangkan 17,856 kWh/km mungkin hanya mencakup sebagian konsumsi. Keduanya lemah.
+| Moda | App | Okupansi di balik angka app | Dashboard 25% | Dashboard 50% | Dashboard 75% | Dashboard 50% vs app | Okupansi agar sama dengan app |
+|---|---:|---|---:|---:|---:|---:|---:|
+| MRT Jakarta | 19 | ±50%, batas masa COVID-19 | 62,9 | 31,4 | 21,0 | +65% | 83% |
+| LRT Jakarta | tidak ada | — | tidak tersedia | tidak tersedia | tidak tersedia | — | — |
+| LRT Jabodebek | 19 (proksi MRT) | Sama dengan MRT | tidak tersedia | tidak tersedia | tidak tersedia | — | — |
+| KRL Commuter Line | 41 (batas atas klaim) | Tidak disebut sumber | 31,1 | 15,5 | 10,4 | -62% | 19% |
+| Whoosh | tidak ada | — | tidak tersedia | tidak tersedia | tidak tersedia | — | — |
+| BRT TransJakarta | 36 | ±50%, batas masa COVID-19 | 98,9 | 49,4 | 33,0 | +37% | 69% |
+| Bus besar non-BRT | 36 (angka BRT) | Sama dengan BRT | 98,9 | 49,4 | 33,0 | +37% | 69% |
+| Mikrotrans | 36 (angka BRT) | Sama dengan BRT | tidak tersedia | tidak tersedia | tidak tersedia | — | — |
 
-**Akibatnya:** panel per penumpang-km di dashboard bisa menampilkan angka yang berbeda dari kartu CO₂ di app mobile, misalnya KRL 16 g berbanding 41 g pada okupansi 50%. Ini perlu keputusan sebelum keduanya diperlihatkan berdampingan ke investor.
+Pembanding: mobil 170 di keduanya, karena dashboard memakai faktor app. Motor 100 hanya di app.
+
+**Cara membaca:**
+
+- **“Okupansi yang sama” hanya benar-benar sama untuk MRT dan BRT.** Studi di balik angka app menyebut ±50%, walau basis kapasitasnya belum saya periksa karena teks lengkapnya belum terbaca. Untuk KRL, sumber app tidak menyebut okupansi, jadi kolom 50% hanya asumsi saya.
+- **Kolom terakhir** menunjukkan okupansi yang membuat kedua angka sama. MRT butuh 83% dan BRT 69%, lebih tinggi dari ±50% di studi app. KRL hanya 19%.
+- **Semua sel tetap di bawah mobil.** Nilai tertinggi 98,9 (bus pada okupansi 25%) berbanding 170.
+- **Kapasitas MRT dan KRL berasal dari berita,** dan KRL 12 kereta tidak dibedakan.
+
+### Seberapa peka terhadap asumsi
+
+Okupansi 50%, g per penumpang-km.
+
+| Moda | Dasar | Listrik 680 g/kWh | 26,76 kWh/km | Keduanya |
+|---|---:|---:|---:|---:|
+| MRT (app 19) | 31,4 | 24,6 | 23,9 | 18,7 |
+| KRL (app 41) | 15,5 | 12,1 | — | — |
+| BRT (app 36) | 49,4 | tidak berpengaruh | — | — |
+
+- **680 g/kWh** adalah rata-rata nasional dari situs pihak ketiga (bagian 2), belum saya periksa ke data asalnya.
+- **26,76 kWh/km** memakai 3.163.654 kWh/bulan dari hasil pencarian atas makalah Unpam yang tidak bisa saya buka.
+- **MRT bisa menyamai app, tetapi hanya dengan dua asumsi lemah sekaligus.** Itu menunjukkan selisihnya mungkin berasal dari asumsi, bukan bukti angka mana yang benar.
+- **KRL tidak bisa mendekati 41 dengan asumsi ini.** Angka 17,856 kWh/km mungkin hanya sebagian konsumsi, dan 41 adalah batas atas klaim perusahaan. Keduanya lemah.
+
+### Opsi
+
+| Opsi | Akibat | Risiko |
+|---|---|---|
+| **A. Panel tetap mati, app tetap** | Tidak ada pertentangan yang terlihat | GreenOps tidak bisa dipamerkan |
+| **B. Panel menyala tanpa bagian per penumpang-km** | Hanya per kendaraan-km dan energi, tidak bertabrakan langsung dengan app | Angka KRL dan MRT yang lemah tetap tampil |
+| **C. Panel menyala lengkap dengan penjelasan selisih** | Paling terbuka | Investor melihat dua angka berbeda untuk moda yang sama |
+| **D. Ganti faktor app dengan angka baru** | Satu set angka | Mengubah CO₂ di setiap kartu rute dari sumber lemah; perlu kenaikan `FACTORS_VERSION` dan regresi |
+
+**Rekomendasi: A sekarang, sambil memeriksa dua sumber secara manual:** laporan keberlanjutan MRT Jakarta dan teks lengkap skripsi UGM. Selisih terbesar ada di dua moda yang sumbernya paling lemah, jadi memilih B, C, atau D sebelum itu berarti memutuskan dengan angka yang mungkin berubah. Setelah keduanya terbaca, angka yang lebih kuat bisa menentukan pilihan antara B dan D.
 
 ## 5. Yang belum diverifikasi
 
