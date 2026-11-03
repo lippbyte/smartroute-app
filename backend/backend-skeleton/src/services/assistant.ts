@@ -157,6 +157,15 @@ function describeLeg(leg: RouteCandidate["legs"][number]): string {
   return `naik ${leg.mode} (${trip})`;
 }
 
+// reliability.risk = risiko sambungan antarmoda, jadi "low" itu BAGUS. Dulu
+// dikirim sebagai "keandalan sambungan: low", dan TOTO membacanya terbalik:
+// rute reliabilitas 90% disebut "rendah", rute 50% disebut "lebih andal".
+const TRANSFER_RISK_LABEL: Record<NonNullable<RouteCandidate["reliability"]>["risk"], string> = {
+  low: "rendah",
+  medium: "sedang",
+  high: "tinggi",
+};
+
 function describeCandidate(route: RouteCandidate): string {
   const legs = route.legs.map(describeLeg).join(", lalu ");
   const parts = [
@@ -166,7 +175,7 @@ function describeCandidate(route: RouteCandidate): string {
     `tarif Rp${route.cost_idr.toLocaleString("id-ID")}`,
   ];
   if (route.crowd_level) parts.push(`kepadatan: ${route.crowd_level}`);
-  if (route.reliability) parts.push(`keandalan sambungan: ${route.reliability.risk}`);
+  if (route.reliability) parts.push(`risiko sambungan: ${TRANSFER_RISK_LABEL[route.reliability.risk]}`);
   return `- ${parts.join(", ")}`;
 }
 
