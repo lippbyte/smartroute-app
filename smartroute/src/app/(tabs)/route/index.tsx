@@ -746,7 +746,7 @@ export default function RouteScreen() {
           // setiap hasil filter baru datang.
           <>
           {/* Hari 2: info udara ringkas + tautan penjelasan angka CO₂. */}
-          <AirQualityCard air={air} compact />
+          <AirQualityCard air={air} compact onPress={() => router.push("/air-quality")} />
           {/* Hari 3: toggle info aksesibilitas + pernyataan jujur. */}
           {showA11yToggle && (
             <View className="bg-surface rounded-2xl border border-line px-4 py-3 gap-2">

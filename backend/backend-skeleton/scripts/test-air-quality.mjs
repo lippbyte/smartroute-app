@@ -43,7 +43,7 @@ const stub = http.createServer((req, res) => {
     return res.end(JSON.stringify({ status: "fail", data: { message: "incorrect_api_key" } }));
   }
   res.writeHead(200, { "Content-Type": "application/json" });
-  res.end(JSON.stringify({ status: "success", data: { city: "Jakarta", current: { pollution: { ts: "2026-10-30T09:00:00.000Z", aqius: aqi, mainus: "p2" } } } }));
+  res.end(JSON.stringify({ status: "success", data: { city: "Jakarta", current: { pollution: { ts: "2026-10-30T09:00:00.000Z", aqius: aqi, mainus: "p2" }, weather: { ts: "2026-10-30T09:30:00.000Z", tp: 31, hu: 66, ws: 2.5, wd: 120, pr: "bukan-angka" } } } }));
 });
 await new Promise((r) => stub.listen(0, "127.0.0.1", r));
 
@@ -93,6 +93,9 @@ try {
     a3.json.available === true && a3.json.aqi_us === 85 && a3.json.category === "Sedang" && a3.json.pollutant_main === "PM2.5" && a3.json.stale === false && a3.json.source === "IQAir" && !!a3.json.fetched_at,
     `${a3.json.aqi_us} ${a3.json.category}`,
   );
+  const wx = a3.json.weather;
+  check("A3a cuaca dari respons IQAir ikut terkirim", wx?.temp_c === 31 && wx?.humidity_pct === 66 && wx?.wind_ms === 2.5 && wx?.wind_deg === 120 && wx?.observed_at === "2026-10-30T09:30:00.000Z", JSON.stringify(wx));
+  check("A3b nilai cuaca yang tidak valid menjadi null, bukan teks asal", wx?.pressure_hpa === null);
   check("A4 kunci dikirim ke provider (query) — dan tidak muncul di respons", sawKeyInQuery && !JSON.stringify(a3.json).includes("uji-bukan-kunci-asli"));
   const beforeBurst = calls.length;
   const burst = await Promise.all(Array.from({ length: 10 }, get));

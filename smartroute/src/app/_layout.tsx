@@ -66,6 +66,7 @@ export default function RootLayout() {
             <Stack.Screen name="onboarding" />
             <Stack.Screen name="trip/[id]" />
             <Stack.Screen name="co2-info" />
+            <Stack.Screen name="air-quality" />
             <Stack.Screen name="trip-pass" />
             <Stack.Screen name="about" />
           </Stack>

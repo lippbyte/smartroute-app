@@ -362,7 +362,7 @@ export default function Index() {
         {/* Hari 2 Task 3: kualitas udara Jakarta — di bawah tombol cari,
             supaya form pencarian tidak bergeser. Tidak tampil bila data
             tidak tersedia. */}
-        <AirQualityCard air={air} />
+        <AirQualityCard air={air} onPress={() => router.push("/air-quality")} />
 
         {/* Task App-01: entry point ke layar peta kepadatan (web-only) */}
         <Pressable

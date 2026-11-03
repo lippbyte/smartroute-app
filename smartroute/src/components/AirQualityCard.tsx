@@ -3,28 +3,25 @@
 // Hari 2 Task 3: info kualitas udara Jakarta (IQAir, tingkat kota). Tidak
 // dirender sama sekali bila data tidak tersedia (tanpa galat ke pengguna).
 // stale -> "data tidak terbaru". Saran satu kalimat, bukan saran medis.
+// Dengan onPress, kartu bisa diketuk untuk membuka layar detail.
 import Text from "@/components/Text";
 import { AQI_ADVICE, AQI_COLORS, type AirQuality } from "@/services/airQualityService";
 import { Ionicons } from "@expo/vector-icons";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 
 const hhmm = (iso: string) => {
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? "" : `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 };
 
-export default function AirQualityCard({ air, compact }: { air: AirQuality | null; compact?: boolean }) {
+export default function AirQualityCard({ air, compact, onPress }: { air: AirQuality | null; compact?: boolean; onPress?: () => void }) {
   if (!air) return null;
   const colors = AQI_COLORS[air.category_key];
   const updated = `Diperbarui ${hhmm(air.fetched_at)} · Sumber: IQAir`;
+  const label = `Kualitas udara ${air.city}: ${air.category}, AQI ${air.aqi_us}. ${air.stale ? "Data tidak terbaru. " : ""}${updated}.`;
 
-  return (
-    <View
-      className="w-full bg-surface rounded-2xl border border-line flex-row items-start gap-3"
-      style={{ padding: compact ? 12 : 16 }}
-      accessible
-      accessibilityLabel={`Kualitas udara ${air.city}: ${air.category}, AQI ${air.aqi_us}. ${air.stale ? "Data tidak terbaru. " : ""}${updated}.`}
-    >
+  const content = (
+    <>
       <View className="rounded-xl items-center justify-center" style={{ backgroundColor: colors.bg, width: compact ? 44 : 52, height: compact ? 44 : 52 }}>
         <Text className={compact ? "text-base" : "text-lg"} weight="bold" style={{ color: colors.text }}>
           {air.aqi_us}
@@ -53,6 +50,31 @@ export default function AirQualityCard({ air, compact }: { air: AirQuality | nul
           {air.pollutant_main ? ` · Polutan utama ${air.pollutant_main}` : ""}
         </Text>
       </View>
+      {onPress && <Ionicons name="chevron-forward" size={18} color="#737373" style={{ alignSelf: "center" }} />}
+    </>
+  );
+
+  const className = "w-full bg-surface rounded-2xl border border-line flex-row items-start gap-3";
+  const padding = { padding: compact ? 12 : 16 };
+
+  if (onPress) {
+    return (
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityHint="Buka detail kualitas udara"
+        className={`${className} active:opacity-80`}
+        style={padding}
+      >
+        {content}
+      </Pressable>
+    );
+  }
+
+  return (
+    <View className={className} style={padding} accessible accessibilityLabel={label}>
+      {content}
     </View>
   );
 }

@@ -49,6 +49,18 @@ export function categorize(aqiUs: number): { key: AqiCategoryKey; label: string 
 
 const POLLUTANTS: Record<string, string> = { p2: "PM2.5", p1: "PM10", o3: "Ozon (O₃)", n2: "NO₂", s2: "SO₂", co: "CO" };
 
+/** Cuaca kota dari respons IQAir yang sama. Nilai yang tidak valid menjadi null. */
+interface Weather {
+  temp_c: number | null;
+  humidity_pct: number | null;
+  wind_ms: number | null;
+  wind_deg: number | null;
+  pressure_hpa: number | null;
+  observed_at: string | null;
+}
+
+const numberOrNull = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
+
 interface Reading {
   aqi_us: number;
   category: string;
@@ -58,6 +70,8 @@ interface Reading {
   observed_at: string | null;
   /** Waktu backend berhasil mengambil data (ISO). */
   fetched_at: string;
+  /** undefined hanya pada nilai lama di DB, sebelum cuaca disimpan. */
+  weather?: Weather | null;
 }
 
 export type AirQualityResponse =
@@ -100,9 +114,16 @@ async function refresh(): Promise<boolean> {
     const res = await fetch(url, { signal: controller.signal });
     const body = (await res.json().catch(() => null)) as {
       status?: string;
-      data?: { message?: string; current?: { pollution?: { aqius?: number; mainus?: string; ts?: string } } };
+      data?: {
+        message?: string;
+        current?: {
+          pollution?: { aqius?: number; mainus?: string; ts?: string };
+          weather?: { ts?: string; tp?: unknown; hu?: unknown; ws?: unknown; wd?: unknown; pr?: unknown };
+        };
+      };
     } | null;
     const pollution = body?.data?.current?.pollution;
+    const weather = body?.data?.current?.weather;
     if (!res.ok || body?.status !== "success" || typeof pollution?.aqius !== "number") {
       // Tanpa URL (berisi kunci): hanya status & pesan galat IQAir.
       console.warn(`[air-quality] IQAir gagal: HTTP ${res.status} ${body?.data?.message ?? ""}`.trim());
@@ -117,6 +138,16 @@ async function refresh(): Promise<boolean> {
       pollutant_main: pollution.mainus ? (POLLUTANTS[pollution.mainus] ?? pollution.mainus) : null,
       observed_at: pollution.ts ?? null,
       fetched_at: new Date().toISOString(),
+      weather: weather
+        ? {
+            temp_c: numberOrNull(weather.tp),
+            humidity_pct: numberOrNull(weather.hu),
+            wind_ms: numberOrNull(weather.ws),
+            wind_deg: numberOrNull(weather.wd),
+            pressure_hpa: numberOrNull(weather.pr),
+            observed_at: weather.ts ?? null,
+          }
+        : null,
     };
     memo = { reading, fetchedAtMs: Date.now() };
     db.prepare(
@@ -134,7 +165,8 @@ async function refresh(): Promise<boolean> {
 
 export async function getAirQuality(): Promise<AirQualityResponse> {
   loadPersisted();
-  const fresh = memo && Date.now() - memo.fetchedAtMs < CACHE_MS;
+  // Nilai lama di DB belum memuat cuaca: ambil ulang sekali, tetap lewat pagar pemakaian.
+  const fresh = memo && memo.reading.weather !== undefined && Date.now() - memo.fetchedAtMs < CACHE_MS;
   if (!fresh) {
     inFlight ??= refresh().finally(() => {
       inFlight = null;
@@ -149,6 +181,7 @@ export async function getAirQuality(): Promise<AirQualityResponse> {
     source: "IQAir",
     city: LOCATION.city,
     ...memo.reading,
+    weather: memo.reading.weather ?? null,
     stale: Date.now() - memo.fetchedAtMs >= CACHE_MS,
   };
 }
