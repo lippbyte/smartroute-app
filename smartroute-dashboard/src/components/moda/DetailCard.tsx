@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { Info, X } from "lucide-react";
-import { vehicleEstimate } from "@/greenops/calculate";
-import { FACTORS, FACTORS_APPROVED } from "@/greenops/greenopsFactors";
+import { lazy, Suspense } from "react";
+import { X } from "lucide-react";
 import type { Network, NetworkRoute, NetworkStop, Pattern, Vehicle } from "@/simulation/types";
-import FactorInfoDialog from "./FactorInfoDialog";
-import { fmt0, fmt1, fmt2, MODE_META, SIM_LABEL } from "./modaMeta";
+import { fmt0, MODE_META, SIM_LABEL } from "./modaMeta";
+
+// Syarat ditulis di tempat, bukan lewat konstanta, supaya saat flag mati bundler
+// membuang impornya dan angka faktor tidak ikut terkirim ke peramban.
+const VehicleGreenOps = import.meta.env.VITE_GREENOPS_ENABLED === "true" ? lazy(() => import("./VehicleGreenOps")) : null;
 
 function Shell({ onClose, title, children }: { onClose: () => void; title: string; children: React.ReactNode }) {
   return (
@@ -37,7 +38,6 @@ interface VehicleProps {
 }
 
 export function VehicleCard({ vehicle, route, pattern, stopName, onClose }: VehicleProps) {
-  const [showInfo, setShowInfo] = useState(false);
   if (!vehicle) {
     return (
       <Shell onClose={onClose} title="Kendaraan">
@@ -45,8 +45,6 @@ export function VehicleCard({ vehicle, route, pattern, stopName, onClose }: Vehi
       </Shell>
     );
   }
-  const est = vehicleEstimate(vehicle);
-  const factor = FACTORS[vehicle.mode];
   const meta = MODE_META.find((m) => m.key === vehicle.mode)!;
   return (
     <Shell onClose={onClose} title={`${route?.code ?? vehicle.routeId} · ${meta.label}`}>
@@ -62,43 +60,11 @@ export function VehicleCard({ vehicle, route, pattern, stopName, onClose }: Vehi
         <dt>Kemajuan trip</dt>
         <dd className={valCls}>{fmt0(vehicle.progress * 100)}%</dd>
       </dl>
-      <div className="mt-3 border-t border-light-1/10 pt-2">
-        <div className="flex items-center justify-between">
-          <h4 className="text-xs font-bold">
-            Estimasi GreenOps{!FACTORS_APPROVED && <span className="font-normal text-amber-200"> · draf</span>}
-          </h4>
-          <button
-            type="button"
-            onClick={() => setShowInfo(true)}
-            aria-label={`Sumber dan asumsi ${factor.label}`}
-            className="inline-flex size-8 items-center justify-center rounded-md text-light-2 hover:bg-light-1/10 cursor-pointer"
-          >
-            <Info className="size-4" />
-          </button>
-        </div>
-        <dl className={rowCls} data-testid="vehicle-greenops">
-          <dt>Jarak trip sejauh ini</dt>
-          <dd className={valCls}>{fmt2(est.distanceKm)} km</dd>
-          {est.gPerKm === null ? (
-            <>
-              <dt>Energi dan emisi</dt>
-              <dd className={valCls}>tidak tersedia</dd>
-            </>
-          ) : (
-            <>
-              <dt>Energi per km</dt>
-              <dd className={valCls}>
-                {fmt2(est.energyPerKm!.value)} {est.energyPerKm!.unit}
-              </dd>
-              <dt>Emisi per km</dt>
-              <dd className={valCls}>{fmt0(est.gPerKm)} g CO₂/km</dd>
-              <dt>Emisi trip sejauh ini</dt>
-              <dd className={valCls}>{fmt1(est.tripKgCo2!)} kg CO₂</dd>
-            </>
-          )}
-        </dl>
-      </div>
-      {showInfo && <FactorInfoDialog mode={vehicle.mode} onClose={() => setShowInfo(false)} />}
+      {VehicleGreenOps && (
+        <Suspense fallback={null}>
+          <VehicleGreenOps vehicle={vehicle} />
+        </Suspense>
+      )}
     </Shell>
   );
 }

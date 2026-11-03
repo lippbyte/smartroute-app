@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { RiDashboardLine, RiMapPinLine, RiRouteLine } from "react-icons/ri";
+import { RiDashboardLine, RiMapPinLine } from "react-icons/ri";
 
 export default function ViewToggle() {
   const location = useLocation();
@@ -46,15 +46,6 @@ export default function ViewToggle() {
         )}
         <RiMapPinLine className="relative z-10 text-sm" />
         <span className="relative z-10 text-sm">Peta Interaktif</span>
-      </button>
-
-      {/* Halaman simulasi moda & GreenOps */}
-      <button
-        onClick={() => navigate("/moda")}
-        className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-colors cursor-pointer select-none text-light-2 hover:text-light-1"
-      >
-        <RiRouteLine className="relative z-10 text-sm" />
-        <span className="relative z-10 text-sm">Moda</span>
       </button>
     </div>
   );

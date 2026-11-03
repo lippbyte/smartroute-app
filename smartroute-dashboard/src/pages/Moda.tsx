@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Pause, Play } from "lucide-react";
 import AboutDialog from "@/components/moda/AboutDialog";
 import { StopCard, VehicleCard } from "@/components/moda/DetailCard";
-import GreenOpsPanel from "@/components/moda/GreenOpsPanel";
 import { clock, DAY_NAMES, fmt0, MODE_META, SIM_LABEL } from "@/components/moda/modaMeta";
 import TransitMapLayers from "@/components/moda/TransitMapLayers";
 import { Map, MapControls } from "@/components/ui/map";
@@ -11,6 +10,11 @@ import { useNetwork } from "@/hooks/useNetwork";
 import { DAY_SEC } from "@/simulation/constants";
 import { createSimulation, toWibTime } from "@/simulation/engine";
 import type { ModeKey, Network, WibTime } from "@/simulation/types";
+
+// GreenOps MATI secara bawaan sampai tabel faktor disetujui. Menyala hanya bila
+// VITE_GREENOPS_ENABLED=true saat dev/build. Syarat ditulis di tempat supaya saat
+// mati bundler membuang impornya dan angka faktor tidak terkirim ke peramban.
+const GreenOpsPanel = import.meta.env.VITE_GREENOPS_ENABLED === "true" ? lazy(() => import("@/components/moda/GreenOpsPanel")) : null;
 
 const TICK_MS = 500;
 const SPEEDS = [1, 5, 15];
@@ -114,7 +118,11 @@ function ModaView({ network }: { network: Network }) {
         </nav>
       </header>
 
-      <main className="flex-1 min-h-0 flex flex-col md:grid md:grid-cols-[270px_minmax(0,1fr)_340px]">
+      <main
+        className={`flex-1 min-h-0 flex flex-col md:grid ${
+          GreenOpsPanel ? "md:grid-cols-[270px_minmax(0,1fr)_340px]" : "md:grid-cols-[270px_minmax(0,1fr)]"
+        }`}
+      >
         <div className="relative order-1 md:order-2 h-[55dvh] md:h-auto min-h-0">
           <Map
             theme="dark"
@@ -253,9 +261,13 @@ function ModaView({ network }: { network: Network }) {
           </section>
         </aside>
 
-        <aside className="order-3 md:overflow-y-auto border-t md:border-t-0 md:border-l border-light-1/10 p-3">
-          <GreenOpsPanel sim={sim} time={time} vehicles={vehicles} />
-        </aside>
+        {GreenOpsPanel && (
+          <aside className="order-3 md:overflow-y-auto border-t md:border-t-0 md:border-l border-light-1/10 p-3">
+            <Suspense fallback={null}>
+              <GreenOpsPanel sim={sim} time={time} vehicles={vehicles} />
+            </Suspense>
+          </aside>
+        )}
       </main>
 
       {showAbout && <AboutDialog network={network} onClose={() => setShowAbout(false)} />}

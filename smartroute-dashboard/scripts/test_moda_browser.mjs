@@ -1,6 +1,8 @@
 // Uji /moda di Chrome headless lewat CDP. Tanpa dependensi.
 // Pakai: npx vite build && npx vite preview --port 5199 --strictPort --host 127.0.0.1
 //        node scripts/test_moda_browser.mjs <folder hasil> [url dasar]
+// Bawaan menguji build dengan GreenOps MATI. Untuk build dengan
+// VITE_GREENOPS_ENABLED=true, jalankan dengan MODA_GREENOPS=true.
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
@@ -9,6 +11,8 @@ const OUT = process.argv[2] ?? 'moda-browser-hasil';
 const BASE = process.argv[3] ?? 'http://127.0.0.1:5199';
 const CHROME = process.env.CHROME_PATH ?? 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const PORT = 9333;
+const GREENOPS = process.env.MODA_GREENOPS === 'true';
+console.log(`Mode: GreenOps ${GREENOPS ? 'MENYALA' : 'MATI (bawaan)'}`);
 mkdirSync(OUT, { recursive: true });
 const profile = join(OUT, 'profil');
 const chrome = spawn(CHROME, [
@@ -116,7 +120,9 @@ await ev(`document.querySelector('button[aria-label="Jeda"]').click()`);
 console.log('KINERJA (Chrome headless, WebGL perangkat lunak):', JSON.stringify({ bawaan: { n: base, ...fDef }, tambahBus: { n: withBus, ...f1, catatan: 'dijeda' }, semua: { n: all, ...fAll } }));
 
 // GreenOps panel
-const panel = await ev(`document.querySelector('[data-testid="greenops-panel"]').innerText`);
+let panel = '';
+if (GREENOPS) {
+panel = await ev(`document.querySelector('[data-testid="greenops-panel"]').innerText`);
 check('panel: kata Estimasi ada', /Estimasi/.test(panel));
 check('panel: tanpa kata terukur/real-time', !/terukur|real-?time/i.test(panel));
 check('panel: Mikrotrans "tidak tersedia"', /tidak tersedia/.test(await text('mode-row-mikrotrans')), (await text('mode-row-mikrotrans')).replace(/\n/g, ' '));
@@ -136,6 +142,13 @@ check('info faktor: sumber, tahun, asumsi', /ICCT/.test(dlg) && /Tahun/.test(dlg
 await shot('info-faktor');
 await clickBtn('Tutup');
 
+} else {
+  const page = await ev(`document.body.innerText`);
+  check('flag mati: panel GreenOps tidak ada', !(await ev(`!!document.querySelector('[data-testid="greenops-panel"]')`)));
+  check('flag mati: halaman tanpa angka energi dan emisi', !/GreenOps|CO₂|kWh|liter|g\/pkm|Estimasi|Draf/.test(page));
+  check('flag mati: peta memakai lebar panel kanan', await ev(`document.querySelector('canvas.maplibregl-canvas').getBoundingClientRect().right >= innerWidth - 2`));
+}
+
 // Klik kendaraan: pindai peta sampai kartu muncul
 const rect = await ev(`(()=>{const r=document.querySelector('canvas.maplibregl-canvas').getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height}})()`);
 const click = async (x, y) => { for (const type of ['mousePressed', 'mouseReleased']) await cdp('Input.dispatchMouseEvent', { type, x, y, button: 'left', clickCount: 1 }); };
@@ -148,15 +161,20 @@ scan: for (let fy = 0.3; fy < 0.8; fy += 0.04) for (let fx = 0.3; fx < 0.8; fx +
 check('klik kendaraan membuka kartu', found);
 if (found) {
   const card = await text('vehicle-card');
-  const gre = await text('vehicle-greenops');
+  // Bagian GreenOps dimuat lambat, jadi muncul sesaat setelah kartu.
+  if (GREENOPS) await waitFor(`!!document.querySelector('[data-testid="vehicle-greenops"]')`, 8000);
+  const gre = GREENOPS ? await text('vehicle-greenops') : null;
   console.log('kartu:', card.replace(/\n/g, ' | '));
-  console.log('estimasi:', gre.replace(/\n/g, ' | '));
+  if (GREENOPS) console.log('estimasi:', gre.replace(/\n/g, ' | '));
+  else check('flag mati: kartu kendaraan tanpa GreenOps', !(await ev(`/GreenOps|CO₂|kWh|L\\/km/.test(document.body.innerText)`)));
   check('kartu memuat arah, halte berikut, status', /Arah/.test(card) && /Halte berikut/.test(card) && /Status/.test(card));
+  if (GREENOPS) {
   const num = (t) => parseFloat(t.replace(/\./g, '').replace(',', '.'));
   const km = num(/sejauh ini\s+([\d.,]+) km/.exec(gre)?.[1] ?? '');
   const gkm = num(/Emisi per km\s+([\d.,]+) g/.exec(gre)?.[1] ?? '');
   const kg = num(/Emisi trip sejauh ini\s+([\d.,]+) kg/.exec(gre)?.[1] ?? '');
   check('angka di kartu: jarak × faktor = emisi trip', Math.abs((km * gkm) / 1000 - kg) <= 0.06, `${km} km × ${gkm} g = ${((km * gkm) / 1000).toFixed(2)} kg, tampil ${kg} kg`);
+  }
   await shot('kartu-kendaraan');
   await ev(`document.querySelector('button[aria-label="Tutup kartu"]')?.click()`);
 }
@@ -166,6 +184,7 @@ await clickBtn('Tentang & Atribusi'); await sleep(300);
 const about = await ev(`document.querySelector('[role=dialog]').innerText`);
 for (const needle of ['© PT Transportasi Jakarta', 'CC BY 4.0', 'OpenStreetMap contributors', 'ODbL 1.0', 'bukan data armada real-time']) check(`atribusi: ${needle}`, about.includes(needle));
 check('tidak menyebut Simpul', !/simpul/i.test(about + panel));
+if (!GREENOPS) check('flag mati: Tentang tanpa bagian GreenOps', !/GreenOps/.test(about));
 const hrefs = await ev(`[...document.querySelectorAll('[role=dialog] a')].map(a=>a.href)`);
 console.log('tautan:', hrefs.join(' '));
 await shot('tentang');
@@ -192,7 +211,7 @@ check('360 px: tanpa gulir mendatar', ov.sw <= 360, JSON.stringify(ov));
 check('360 px: label simulasi terlihat di layar', await ev(`(()=>{const r=document.querySelector('[data-testid="sim-label"]').getBoundingClientRect();return r.top>=0&&r.bottom<=740&&r.width>0})()`));
 await shot('hp-atas');
 await ev(`window.scrollTo(0, 500)`); await sleep(300); await shot('hp-tengah');
-await ev(`document.querySelector('[data-testid="greenops-panel"]').scrollIntoView()`); await sleep(300); await shot('hp-greenops');
+if (GREENOPS) { await ev(`document.querySelector('[data-testid="greenops-panel"]').scrollIntoView()`); await sleep(300); await shot('hp-greenops'); }
 await ev(`window.scrollTo(0, 0)`);
 
 const errs = [...new Set(logs)];
@@ -211,8 +230,14 @@ for (const path of ['/', '/map']) {
   const crash = logs.filter((l) => /must be used within/.test(l));
   check(`halaman lama ${path} tampil tanpa galat provider`, body > 20 && crash.length === 0, `teks ${body}, galat ${crash.length}`);
 }
-await clickBtn('Moda');
-check('tombol Moda membuka /moda', await waitFor(`location.pathname === '/moda'`, 5000));
+for (const path of ['/', '/map']) {
+  await cdp('Page.navigate', { url: BASE + path });
+  await sleep(1800);
+  const link = await ev(`({btn:[...document.querySelectorAll('button,a')].filter(e=>/moda/i.test(e.innerText)).map(e=>e.innerText),href:[...document.querySelectorAll('a')].filter(a=>/moda/i.test(a.getAttribute('href')||'')).length})`);
+  check(`navigasi ${path}: tidak ada tautan atau tombol ke /moda`, link.btn.length === 0 && link.href === 0, JSON.stringify(link));
+}
+await cdp('Page.navigate', { url: BASE + '/moda' });
+check('/moda tetap bisa dibuka lewat URL langsung', await waitFor(`!!document.querySelector('[data-testid="sim-label"]')`, 10000));
 await ev(`localStorage.removeItem('token')`);
 console.log('galat konsol:', errs.length, errs.slice(0, 12).map((e) => e.slice(0, 220)).join('\n  '));
 writeFileSync(join(OUT, 'hasil.json'), JSON.stringify({ results, errs }, null, 1));
