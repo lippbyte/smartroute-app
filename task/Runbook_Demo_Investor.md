@@ -8,7 +8,7 @@
 
 > **Kode DIBEKUKAN sejak 31 Okt 2026 (keputusan Khalifa).** Yang boleh masuk hanya perbaikan yang menghalangi demo, masing-masing dengan uji dan regresi `/routes`. Tidak ada tag atau merge ke `main` sebelum hasil uji HP dari Khalifa.
 
-> **Bahasa (cabang `feat/bahasa-id-en`, belum diuji di HP):** demo memakai bawaan Indonesia. Pilihan English ada di Akun dan layar Masuk. Kalau memakai Inggris, Peta Kepadatan dan Lapor Kepadatan (Segmen 3) masih Indonesia, kategori udara dan teks server lain tetap Indonesia, dan jawaban TOTO belum diuji dalam bahasa Inggris. Rincian di `Laporan_Bahasa_ID_EN.md`.
+> **Bahasa (cabang `feat/bahasa-id-en`, belum diuji di HP):** demo memakai bawaan Indonesia. Pilihan English ada di Akun dan layar Masuk. Kalau memakai Inggris, Halte Terdekat, Semua Halte, Tentang angka ini, dan teks server (ringkasan aksesibilitas, rincian tarif) tetap Indonesia, dan jawaban TOTO belum diuji dalam bahasa Inggris. Rincian di `Laporan_Bahasa_ID_EN.md`.
 
 > **Bila layar merah muncul saat app dibuka** (`Cannot read property 'EventEmitter'`): tutup paksa app dari Pengaturan Android, lalu buka lagi. Penyebabnya belum terbukti; siapkan video cadangan.
 
@@ -224,7 +224,7 @@ Akun, riwayat, dan rating tersimpan di SQLite, tidak ikut terhapus. Tunnel dan M
 |---|---|
 | Sisa jawaban TOTO yang keliru: tarif layanan khusus "berbeda", tombol yang tidak ada, janji palsu (lihat `Laporan_Hotfix_Scroll_TOTO.md`) | Keputusan Khalifa |
 | Tarif Royaltrans dan Transjabodetabek dicocokkan ke sumber resmi operator (`TODO:verifikasi`) | Tim/Khalifa |
-| Bahasa Inggris: uji HP, terjemahan Peta Kepadatan & Lapor Kepadatan, jawaban TOTO (`Laporan_Bahasa_ID_EN.md`) | Tim HP → keputusan Khalifa |
+| Bahasa Inggris: uji HP dan jawaban TOTO; 10 kali cold start di HP (`Laporan_Bahasa_ID_EN.md` bagian 7) | Tim HP → keputusan Khalifa |
 | Build APK untuk ikon logo baru dan versi 1.1.1 | Keputusan Khalifa |
 | Uji gulir pilihan lokasi & layar TOTO di HP | Tim HP |
 | Kontak kemitraan resmi, tagline final | Khalifa |

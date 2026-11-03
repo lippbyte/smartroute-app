@@ -15,6 +15,9 @@
 | Task B: modul bahasa, pilihan bahasa, Profil, Masuk/Daftar, Onboarding | Selesai (web) | `39abe4d` |
 | Task B: Beranda, pemilih lokasi, Hasil Rute, Detail, udara | Selesai (web) | `2c0575b` |
 | Task B: Navigasi, Ringkasan, Riwayat, Penilaian, Trip Pass, Tentang, TOTO | Selesai (web) | `e117550` |
+| Task B: Peta Kepadatan & Lapor Kepadatan | Selesai (web); kartu info native belum teruji | `c73ba0b` |
+| Kategori udara dari kode ke label bahasa aktif | Selesai (web) | `10ac12a` |
+| 10 kali cold start di HP | **Belum dilakukan**, butuh HP (bagian 7) | — |
 | Bagian Kemitraan | **Tetap tersembunyi**, menunggu konfirmasi Khalifa; hanya teksnya masuk kamus | — |
 
 Commit terakhir yang gulirnya sudah dicoba Khalifa di HP adalah `e4d4031`. Commit sesudahnya belum diuji di perangkat.
@@ -39,21 +42,21 @@ Commit terakhir yang gulirnya sudah dicoba Khalifa di HP adalah `e4d4031`. Commi
 | Status | Layar |
 |---|---|
 | **Sudah (dokumen Task B)** | Profil, Masuk, Daftar, Onboarding, Beranda, pemilih lokasi, Tujuan Cepat, Hasil Rute (kartu, chip, lencana, filter), Detail, Navigasi, Mode sederhana, Ringkasan, Riwayat, Detail perjalanan, Penilaian, Trip Pass, Tentang, TOTO (teks antarmuka), menu samping, tab |
-| **Sudah (tambahan)** | Detail kualitas udara |
-| **Belum (di luar daftar dokumen)** | **Peta Kepadatan & Lapor Kepadatan**, Halte Terdekat, Semua Halte, Tentang angka ini |
+| **Sudah (tambahan)** | Detail kualitas udara, Peta Kepadatan, Lapor Kepadatan |
+| **Belum (di luar daftar dokumen)** | Halte Terdekat, Semua Halte, Tentang angka ini |
 
-**Tetap Indonesia sesuai dokumen, karena dari server:** nama kategori udara ("Tidak sehat"), ringkasan aksesibilitas rute, label dan catatan rincian tarif, pesan galat server, jawaban TOTO, nama tempat dan rute.
+**Tetap Indonesia sesuai dokumen, karena dari server:** ringkasan aksesibilitas rute, label dan catatan rincian tarif, nama polutan "Ozon (O₃)" bila itu polutan utamanya, pesan galat server, jawaban TOTO, nama tempat dan rute.
 
-**Perlu diketahui bila demo memakai Inggris:** Segmen 3 (lapor Monas) melewati Lapor Kepadatan yang masih Indonesia, dan kartu udara di Beranda tampil campur ("Air in Jakarta: Tidak sehat").
+**Kategori udara kini mengikuti bahasa aktif**, dipetakan dari `category_key`; teks server hanya cadangan untuk kode yang tidak dikenal.
 
 ## 5. Hasil uji
 
 | Uji | Hasil |
 |---|---|
-| Kamus & modul (`test-i18n`) | 32/32: kunci `id` = `en`, placeholder sama, fallback ke ID, tanpa kunci mentah, pilihan bertahan setelah dibuka ulang, `t()` tidak di tingkat modul, setiap kunci dipakai, 52 berkas cakupan tanpa teks Indonesia tersisa |
-| **Kesetaraan ID** (`test-i18n-screens parity`) | 53/53: 51 layar & keadaan, 2.687 string, **identik** dengan baseline dari `1549e0a`. Tambahan hanya pilihan bahasa dan catatannya |
+| Kamus & modul (`test-i18n`) | 36/36: kunci `id` = `en`, placeholder sama, fallback ke ID, tanpa kunci mentah, pilihan bertahan setelah dibuka ulang, `t()` tidak di tingkat modul, setiap kunci dipakai, kategori udara ID sama persis dengan label backend, 58 berkas cakupan tanpa teks Indonesia tersisa |
+| **Kesetaraan ID** (`test-i18n-screens parity`) | 63/63: 61 layar & keadaan **identik** dengan baseline. 51 direkam dari `1549e0a`, 10 layar kepadatan dari `16b29b9` sebelum diterjemahkan. Tambahan hanya pilihan bahasa dan catatannya |
 | **Kesetaraan SSR web** | 25 halaman identik, 194 string di 23 halaman. Tambahan hanya pilihan bahasa di Masuk |
-| **Bahasa Inggris, 320 px** (`english`) | 308/308 di 51 layar: tanpa teks Indonesia buatan app, tanpa kunci mentah, tidak lebih buruk dari ID |
+| **Bahasa Inggris, 320 px** (`english`) | 369/369 di 61 layar: tanpa teks Indonesia buatan app, tanpa kategori udara Indonesia, tanpa kunci mentah, tidak lebih buruk dari ID |
 | **Berganti bahasa** (`switch`) | 16/16: tetap di layar yang sama, hasil rute ikut berganti termasuk tarif, kembali ke ID identik, bertahan setelah dimuat ulang |
 | Regresi `/routes` | S1, S2 sebelum/sesudah Monas, S3, L1, L2 **identik** baseline; chip moda 4/4 |
 | `tsc` | 0 galat |
@@ -70,12 +73,10 @@ Commit terakhir yang gulirnya sudah dicoba Khalifa di HP adalah `e4d4031`. Commi
 - Tarif di Ringkasan terpotong di web; native memakai `adjustsFontSizeToFit`.
 
 **Keputusan untuk Khalifa:**
-1. **Apakah Peta Kepadatan & Lapor Kepadatan ikut diterjemahkan?** Di luar daftar dokumen, tetapi bagian dari Segmen 3 demo.
-2. **Apakah kategori udara dipetakan di app?** Perubahan kecil, dan menghilangkan teks campur di kartu udara. Dokumen menyatakan teks ini tetap Indonesia pada iterasi ini.
-3. **TOTO dalam bahasa Inggris** `TODO:verifikasi`: tombol saran mengirim pertanyaan Inggris, prompt tidak diubah, dan jawabannya belum diuji karena tanpa panggilan berbayar. Saran: jangan dipakai di demo sebelum diuji.
-4. **Tautan "Buka di situs IQAir"** `TODO:verifikasi`: `https://www.iqair.com/indonesia/jakarta` menjawab 429 dari laptop ini, jadi halamannya belum terkonfirmasi.
-5. **Build APK untuk ikon dan versi:** kapan, dan profil apa.
-6. **Tag `demo-candidate-1`:** `e4d4031` yang gulirnya sudah dicoba di HP, atau commit lebih baru setelah uji HP berikutnya.
+1. **TOTO dalam bahasa Inggris** `TODO:verifikasi`: tombol saran mengirim pertanyaan Inggris, prompt tidak diubah, dan jawabannya belum diuji karena tanpa panggilan berbayar. Saran: jangan dipakai di demo sebelum diuji.
+2. **Tautan "Buka di situs IQAir"** `TODO:verifikasi`: `https://www.iqair.com/indonesia/jakarta` menjawab 429 dari laptop ini, jadi halamannya belum terkonfirmasi.
+3. **Build APK untuk ikon dan versi:** kapan, dan profil apa. Tidak dikerjakan sebelum diminta.
+4. **Tag `demo-candidate-1`:** tidak dibuat sebelum diminta. `e4d4031` adalah commit terakhir yang gulirnya sudah dicoba di HP.
 
 ## 6. Daftar cek HP (Android dan iOS bila ada)
 
@@ -92,7 +93,13 @@ Tutup app sepenuhnya lalu buka lagi supaya memuat bundle terbaru. Yang paling pe
 - [ ] Dalam Inggris: peringatan teks besar dan mode sederhana navigasi terbaca benar.
 - [ ] Modal top-up dan penilaian di HP layar kecil: tidak keluar tepi (di web keluar tepi, ID maupun EN).
 
+**Peta Kepadatan & Lapor Kepadatan, dalam Inggris**
+- [ ] ★ Peta, legenda, dan tombol Report berbahasa Inggris.
+- [ ] ★ Ketuk penanda di peta: kartu info berbahasa Inggris (tidak teruji di web, karena web memakai popup).
+- [ ] Report > cari halte > pilih tingkat: laporan terkirim dan penanda muncul. Kirim hanya saat tidak mengganggu skenario S1 (laporan berlaku 15 menit).
+
 **Kartu udara**
+- [ ] ★ Dalam Inggris, kartu menulis "Air in Jakarta: Unhealthy" atau kategori aktif lain, tanpa teks Indonesia.
 - [ ] ★ Beranda > kartu udara: layar detail terbuka, dengan AQI, polutan, cuaca, dan skala.
 - [ ] Hasil Rute > kartu udara ringkas: layar yang sama.
 - [ ] "Buka di situs IQAir" membuka halaman Jakarta yang benar.
@@ -103,3 +110,29 @@ Tutup app sepenuhnya lalu buka lagi supaya memuat bundle terbaru. Yang paling pe
 
 **Tetap dari daftar sebelumnya**
 - [ ] Sisa butir di `Laporan_Hotfix_Scroll_TOTO.md` bagian 5, selain gulir yang sudah dikonfirmasi.
+
+## 7. Cold start di HP: 10 kali
+
+**Belum dilakukan, dan tabel di bawah masih kosong.** HP tidak tersambung ke laptop (`adb devices` kosong), jadi hasilnya harus datang dari perangkat. Tujuannya menjawab apakah layar merah `Cannot read property 'EventEmitter'` muncul lagi.
+
+**Cara A, HP disambung USB dengan USB debugging menyala:** Claude Code atau tim menjalankan `powershell -File smartroute/scripts/cold-start-check.ps1 -Runs 10` dari root repo. Skrip mencatat status dan waktu tiap putaran ke CSV. Skrip ini belum pernah dijalankan pada perangkat.
+
+**Cara B, manual, tiap putaran:**
+1. Pengaturan Android > Aplikasi > smartroute > Paksa berhenti.
+2. Buka app, masuk ke `https://a3c0lx4-lippbyte-8081.exp.direct` bila diminta.
+3. Hitung sampai Beranda tampil. Bila layar merah muncul, foto dan catat; jangan tekan RELOAD sebelum dicatat.
+
+| # | Jam | Beranda tampil? | Layar merah? | Detik | Catatan |
+|---|---|---|---|---|---|
+| 1 | | | | | |
+| 2 | | | | | |
+| 3 | | | | | |
+| 4 | | | | | |
+| 5 | | | | | |
+| 6 | | | | | |
+| 7 | | | | | |
+| 8 | | | | | |
+| 9 | | | | | |
+| 10 | | | | | |
+
+**Catat juga:** model HP dan versi Android, jaringan yang dipakai (Wi-Fi atau data seluler), dan commit `10ac12a` atau sesudahnya. Metro mencatat satu baris `Android Bundled` untuk tiap muatan, jadi jumlah muatannya bisa dicocokkan dari laptop.
