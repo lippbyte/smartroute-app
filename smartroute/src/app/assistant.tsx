@@ -27,7 +27,7 @@ import ScreenBackground from "@/components/ScreenBackground";
 import AssistantAnswerText from "@/components/assistant/AssistantAnswerText";
 import PrimaryButton from "@/components/form/PrimaryButton";
 import Text from "@/components/Text";
-import { TOTO_SCOPE_NOTE } from "@/constants/developerInfo";
+import { TOTO_CHAT_NOTE, TOTO_SCOPE_NOTE } from "@/constants/developerInfo";
 import { useAuth } from "@/context/AuthContext";
 import StopActionButtons from "@/components/transit/StopActionButtons";
 import {
@@ -402,7 +402,9 @@ function AssistantScreen({ token }: { token: string }) {
                 <Pressable
                   key={q}
                   onPress={() => handleAsk(q)}
-                  className="bg-surface border border-line px-3 py-2 rounded-full"
+                  // max-w-full: pertanyaan panjang membungkus di layar sempit,
+                  // bukan keluar dari tepi layar.
+                  className="bg-surface border border-line px-3 py-2 rounded-2xl max-w-full"
                 >
                   <Text className="text-ink-2 text-xs">{q}</Text>
                 </Pressable>
@@ -411,6 +413,15 @@ function AssistantScreen({ token }: { token: string }) {
           </View>
         )}
       </ScrollView>
+
+      {/* Selalu tampil, juga setelah ada jawaban: pembuka di atas hilang begitu
+          percakapan dimulai. */}
+      <View className="flex-row items-start gap-1.5 px-5 pt-2" accessibilityLiveRegion="none">
+        <Ionicons name="information-circle-outline" size={14} color="#D4D4D4" />
+        <Text className="text-xs flex-1" style={{ color: "#D4D4D4" }}>
+          {TOTO_CHAT_NOTE}
+        </Text>
+      </View>
 
       {/* Perluasan diminta user langsung: kotak ketik didesain ulang jadi
           satu pill menyatu (input + tombol kirim dalam satu wadah), gaya

@@ -27,6 +27,7 @@ const BROWSERS = [
 ];
 const EXPECTED_CHIPS = ["Berapa tarif TransJakarta?", "Jam berapa TransJakarta mulai dan berhenti beroperasi?"];
 const HONEST = "TOTO paling akurat untuk tarif dan jam operasional; untuk rute gunakan pencarian rute.";
+const CHAT_NOTE = "Jawaban TOTO bisa keliru. Untuk rute, waktu tempuh, dan transfer, gunakan pencarian rute.";
 
 let failures = 0;
 let checks = 0;
@@ -158,6 +159,7 @@ try {
   check("T3 tombol saran rute sudah hilang", !/Dari Blok M ke Kota|Dari sini ke Monas|Halte terdekat dari saya/.test(text));
   check("T4 teks pembuka jujur, tanpa 'bukan mengarang' atau ajakan rute", text.includes(HONEST) && !/mengarang|Mau ke mana|data transit asli/.test(text));
   check("T5 teks lokasi tidak mengajak bertanya rute", !/tanya halte terdekat & rute/.test(text));
+  check("T5a catatan 'bisa keliru' tampil sebelum ada percakapan", text.includes(CHAT_NOTE));
 
   // --- Ketuk tombol saran: permintaan terkirim, tanpa tombol buka rute.
   const chip = await textRect(EXPECTED_CHIPS[0]);
@@ -182,6 +184,28 @@ try {
   check("T10 layar TOTO tidak lagi memanggil geocode", captured.filter((c) => c.geocode).length === 0, `${captured.filter((c) => c.geocode).length} panggilan`);
   check("T11 tetap tanpa tombol 'Lihat Hasil Rute'", !/Lihat Hasil Rute/.test(await ev("document.body.innerText")));
   check("T12 riwayat percakapan tetap terkirim", Array.isArray(body?.history) && body.history.length === 2, `${body?.history?.length ?? 0} pesan`);
+  // Catatan harus tetap terlihat setelah ada jawaban (pembuka sudah hilang),
+  // termasuk di layar 320 px, dan tidak menutupi kotak ketik.
+  const NOTE_BOX = `(() => { const el = [...document.querySelectorAll("div")].find((d) => d.children.length === 0 && d.textContent === ${JSON.stringify(CHAT_NOTE)}); if (!el) return null; const r = el.getBoundingClientRect(); const i = document.querySelector('textarea[placeholder="Tanya TOTO..."]').getBoundingClientRect(); return { top: r.top, bottom: r.bottom, right: r.right, vw: innerWidth, vh: innerHeight, inputTop: i.top, scrollW: document.documentElement.scrollWidth }; })()`;
+  const noteAfter = await ev(NOTE_BOX);
+  check("T12a catatan tetap terlihat setelah ada jawaban, di atas kotak ketik", !!noteAfter && noteAfter.top >= 0 && noteAfter.bottom <= noteAfter.inputTop && !(await ev("document.body.innerText")).includes(HONEST), noteAfter ? `bawah ${Math.round(noteAfter.bottom)} / kotak ketik ${Math.round(noteAfter.inputTop)}` : "tidak ada");
+  // Muat ulang pada lebar itu: mengubah ukuran setelah dimuat membuat viewport
+  // emulasi melebar (402 px), sehingga pemeriksaan batas layar jadi longgar.
+  for (const width of [320, 360]) {
+    await cdp.send("Emulation.setDeviceMetricsOverride", { width, height: 640, deviceScaleFactor: 2, mobile: true });
+    await cdp.send("Page.navigate", { url: `${WEB}/assistant` });
+    await waitFor(`/Contoh pertanyaan/.test(document.body.innerText) && !/Navigate Smarter/.test(document.body.innerText)`, 60_000);
+    await sleep(500);
+    const narrow = await ev(NOTE_BOX);
+    const chipBox = await ev(`[...document.querySelectorAll("div")].filter((d) => d.children.length === 0 && ${JSON.stringify(EXPECTED_CHIPS)}.includes(d.textContent)).map((d) => { const pill = d.closest('[tabindex="0"]') ?? d; return Math.round(pill.getBoundingClientRect().right); })`);
+    await shot(`toto-${width}.png`);
+    // scrollWidth tidak dipakai: di web, gambar latar ScreenBackground selebar
+    // 402 px melebarkan layar ini di bawah 402 px (sudah ada sebelum hotfix, web
+    // saja, dicatat di laporan). Yang diuji: catatan tetap di dalam lebar layar.
+    check(`T12b layar ${width} px: catatan utuh di dalam lebar layar, di atas kotak ketik`, !!narrow && narrow.right <= width && narrow.bottom <= narrow.inputTop, narrow ? `kanan ${Math.round(narrow.right)}/${width}` : "tidak ada");
+    check(`T12c layar ${width} px: kedua tombol saran di dalam layar`, chipBox.length === 2 && chipBox.every((r) => r <= width - 8), `tepi kanan ${chipBox.join(", ")}`);
+  }
+  await cdp.send("Emulation.setDeviceMetricsOverride", { width: 360, height: 820, deviceScaleFactor: 2, mobile: true });
 
   // --- Layar Tentang.
   await cdp.send("Page.navigate", { url: `${WEB}/about` });
@@ -212,7 +236,7 @@ try {
 const src = readFileSync(path.join(ROOT, "src", "app", "assistant.tsx"), "utf8");
 check("T15 sumber: penguraian rute & geocode sudah dihapus dari layar TOTO", !/extractRouteQuery|resolveRouteQuery|geocodePlace|openRoute/.test(src));
 
-const MIN = 15;
+const MIN = 21;
 check(`jumlah cek >= ${MIN}`, checks >= MIN, `${checks}`);
 console.log(failures === 0 ? `\nSemua ${checks} uji layar TOTO lulus.` : `\n${failures} uji GAGAL.`);
 process.exitCode = failures ? 1 : 0;
