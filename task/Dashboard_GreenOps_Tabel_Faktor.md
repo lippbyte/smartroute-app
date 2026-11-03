@@ -1,3 +1,5 @@
+**DRAF, BELUM DISETUJUI**
+
 # Tabel Faktor GreenOps per Kendaraan-km
 
 **Status: DRAF, menunggu persetujuan Khalifa.** `FACTORS_APPROVED` di `smartroute-dashboard/src/greenops/greenopsFactors.ts` bernilai `false`, panel GreenOps tersembunyi di balik `VITE_GREENOPS_ENABLED`, dan rute `/moda` di balik `VITE_MODA_ENABLED`, keduanya mati secara bawaan. Saat mati, tidak ada angka faktor di bundel yang terkirim ke peramban. Angka faktor tetap ada di kode sumber dan dokumen ini.

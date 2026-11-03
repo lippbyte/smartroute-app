@@ -1,3 +1,4 @@
+// DRAF, BELUM DISETUJUI
 // Task 1: faktor energi & emisi per kendaraan-km. Satu-satunya tempat angka ini.
 // Rincian, cara hitung, dan perbandingan: task/Dashboard_GreenOps_Tabel_Faktor.md.
 //
