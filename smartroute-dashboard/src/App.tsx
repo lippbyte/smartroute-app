@@ -1,8 +1,9 @@
 import Map from './pages/Map';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
+import Moda from './pages/Moda';
 import ProtectedRoute from './components/ui/ProtectedRoute';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Outlet, Routes, Route } from 'react-router-dom';
 import { FlagProvider } from './context/FlagContext';
 import { AuthProvider } from './context/AuthContext';
 
@@ -14,12 +15,24 @@ function NotFound() {
   );
 }
 
+// FlagProvider memanggil backend dashboard, jadi tidak dipasang di rute /moda.
+function WithFlags() {
+  return (
+    <FlagProvider>
+      <Outlet />
+    </FlagProvider>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <FlagProvider>
-          <Routes>
+        <Routes>
+          {/* Data publik dan simulasi, tidak butuh backend atau akun */}
+          <Route path='/moda' element={<Moda />} />
+
+          <Route element={<WithFlags />}>
             {/* Public Route */}
             <Route path='/login' element={<Login />} />
 
@@ -31,8 +44,8 @@ export default function App() {
 
             {/* Fallback Route */}
             <Route path='*' element={<NotFound />} />
-          </Routes>
-        </FlagProvider>
+          </Route>
+        </Routes>
       </AuthProvider>
     </BrowserRouter>
   );
