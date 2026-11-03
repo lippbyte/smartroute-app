@@ -5,7 +5,7 @@
 // stale -> "data tidak terbaru". Saran satu kalimat, bukan saran medis.
 // Dengan onPress, kartu bisa diketuk untuk membuka layar detail.
 import Text from "@/components/Text";
-import { AQI_ADVICE, AQI_COLORS, aqiCategoryLabel, type AirQuality } from "@/services/airQualityService";
+import { AQI_ADVICE, AQI_COLORS, aqiCategoryLabel, pollutantLabel, type AirQuality } from "@/services/airQualityService";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, View } from "react-native";
 import { t } from "@/i18n";
@@ -49,7 +49,7 @@ export default function AirQualityCard({ air, compact, onPress }: { air: AirQual
         {!compact && <Text className="text-ink-2 text-sm">{AQI_ADVICE[air.category_key]}</Text>}
         <Text className="text-ink-2 text-xs">
           {updated}
-          {air.pollutant_main ? ` · ${t("air.mainPollutantValue", { value: air.pollutant_main })}` : ""}
+          {air.pollutant_main ? ` · ${t("air.mainPollutantValue", { value: pollutantLabel(air.pollutant_main) })}` : ""}
         </Text>
       </View>
       {onPress && <Ionicons name="chevron-forward" size={18} color="#737373" style={{ alignSelf: "center" }} />}

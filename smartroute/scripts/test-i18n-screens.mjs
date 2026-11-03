@@ -4,6 +4,7 @@
 //   node scripts/test-i18n-screens.mjs parity                  (ID sekarang vs baseline)
 //   node scripts/test-i18n-screens.mjs english                 (EN + layar sempit 320 px)
 //   node scripts/test-i18n-screens.mjs switch                  (berganti bahasa saat app berjalan)
+//   node scripts/test-i18n-screens.mjs pollutant [--shots dir] (polutan utama, ID & EN, 320 px)
 //
 // Berjalan melalui seluruh jalur demo lewat ketukan sungguhan: Masuk, Daftar,
 // Onboarding, Beranda, Hasil Rute, Detail, Trip Pass, Navigasi, Ringkasan, Riwayat,
@@ -160,6 +161,7 @@ async function runFlow({ lang, width, shots, scenario = "flow" }) {
     let routesMode = "ok";
     let crowdMode = "ok";
     let reportMode = "ok";
+    let airOverride = null;
     const asked = [];
 
     await send("Page.enable");
@@ -185,7 +187,7 @@ async function runFlow({ lang, width, shots, scenario = "flow" }) {
       const body = request.postData ? JSON.parse(request.postData) : {};
       switch (true) {
         case url.pathname === "/air-quality":
-          return reply(AIR);
+          return reply(airOverride ?? AIR);
         case url.pathname === "/routes":
           if (routesMode === "error") return reply({ error: "internal", message: "Layanan rute sedang tidak tersedia. Coba lagi sebentar lagi." }, 503);
           if (routesMode === "empty") return reply({ ...FIXTURE.plain, routes: [] });
@@ -281,6 +283,39 @@ async function runFlow({ lang, width, shots, scenario = "flow" }) {
       await tapText("/^88–102 (mnt|min) · 07:30/", "kartu rute pertama");
       await waitText("/Detail Perjalanan|Trip Details/");
     };
+
+    if (scenario === "pollutant") {
+      const label = lang === "en" ? "Main pollutant" : "Polutan utama";
+      const CARD_RE = "/Udara Jakarta|Air in Jakarta/";
+      const judge = (name, where, want) => {
+        const s = screens[name];
+        const cut = s.clipped.filter((c) => /pollutant|Polutan|Ozon/i.test(c));
+        check(`K ${lang} ${width} px ${where}: ${want}`, s.lines.some((l) => l.includes(want)), s.lines.find((l) => /pollutant|Polutan/.test(l))?.slice(0, 70) ?? "");
+        check(`K ${lang} ${width} px ${where}: tidak keluar tepi & tidak terpotong`, s.overflow.length === 0 && cut.length === 0, [...s.overflow, ...cut].slice(0, 3).join(" | "));
+      };
+      await setStorage({ "smartroute.guestChosen.v1": "1" });
+      const NAMES = [["PM2.5", "PM2.5"], ["PM10", "PM10"], ["Ozon (O₃)", lang === "en" ? "Ozone (O₃)" : "Ozon (O₃)"], ["NO₂", "NO₂"], ["SO₂", "SO₂"], ["CO", "CO"]];
+      for (const [server, shown] of NAMES) {
+        airOverride = { ...AIR, pollutant_main: server };
+        await go("/", CARD_RE);
+        await capture(`beranda-${server}`);
+        judge(`beranda-${server}`, `Beranda ${server}`, `${label} ${shown}`);
+        await go("/air-quality", "/Detail pengukuran|Measurement details/");
+        await capture(`udara-${server}`);
+        judge(`udara-${server}`, `detail ${server}`, shown);
+      }
+      // Kasus terpanjang: ozon dengan kategori terpanjang, di kartu ringkas Hasil Rute.
+      airOverride = { ...AIR, pollutant_main: "Ozon (O₃)", category: "Tidak sehat bagi kelompok sensitif", category_key: "sensitif" };
+      const longest = lang === "en" ? "Ozone (O₃)" : "Ozon (O₃)";
+      await go("/", CARD_RE);
+      await capture("beranda-terpanjang");
+      judge("beranda-terpanjang", "Beranda terpanjang", `${label} ${longest}`);
+      await go(ROUTE_URL, RESULT_MARK);
+      await sleep(600);
+      await capture("rute-terpanjang");
+      judge("rute-terpanjang", "Hasil Rute terpanjang", `${label} ${longest}`);
+      return { screens };
+    }
 
     if (scenario === "switch") {
       const text = () => ev("document.body.innerText");
@@ -677,6 +712,13 @@ if (MODE === "capture") {
   const fareCount = Object.values(screens).reduce((n, s) => n + s.fares.length, 0);
   check("E+ uji tarif tidak kosong", fareCount >= 20, `${fareCount} tarif`);
   console.log(failures === 0 ? `\nSemua ${checks} uji bahasa Inggris lulus.` : `\n${failures} uji GAGAL.`);
+  process.exitCode = failures ? 1 : 0;
+} else if (MODE === "pollutant") {
+  const shots = flag("shots", null);
+  if (shots) mkdirSync(shots, { recursive: true });
+  await runFlow({ lang: "id", width: 320, shots: null, scenario: "pollutant" });
+  await runFlow({ lang: "en", width: 320, shots, scenario: "pollutant" });
+  console.log(failures === 0 ? `\nSemua ${checks} uji polutan lulus.` : `\n${failures} uji GAGAL.`);
   process.exitCode = failures ? 1 : 0;
 } else if (MODE === "switch") {
   await runFlow({ lang: "id", width: 360, shots: flag("shots", null), scenario: "switch" });

@@ -17,6 +17,7 @@
 | Task B: Navigasi, Ringkasan, Riwayat, Penilaian, Trip Pass, Tentang, TOTO | Selesai (web) | `e117550` |
 | Task B: Peta Kepadatan & Lapor Kepadatan | Selesai (web); kartu info native belum teruji | `c73ba0b` |
 | Kategori udara dari kode ke label bahasa aktif | Selesai (web) | `10ac12a` |
+| Nama polutan utama mengikuti bahasa aktif | Selesai (web) | commit laporan ini |
 | 10 kali cold start di HP | **Belum dilakukan**, butuh HP (bagian 7) | — |
 | Bagian Kemitraan | **Tetap tersembunyi**, menunggu konfirmasi Khalifa; hanya teksnya masuk kamus | — |
 
@@ -45,15 +46,18 @@ Commit terakhir yang gulirnya sudah dicoba Khalifa di HP adalah `e4d4031`. Commi
 | **Sudah (tambahan)** | Detail kualitas udara, Peta Kepadatan, Lapor Kepadatan |
 | **Belum (di luar daftar dokumen)** | Halte Terdekat, Semua Halte, Tentang angka ini |
 
-**Tetap Indonesia sesuai dokumen, karena dari server:** ringkasan aksesibilitas rute, label dan catatan rincian tarif, nama polutan "Ozon (O₃)" bila itu polutan utamanya, pesan galat server, jawaban TOTO, nama tempat dan rute.
+**Tetap Indonesia sesuai dokumen, karena dari server:** ringkasan aksesibilitas rute, label dan catatan rincian tarif, pesan galat server, jawaban TOTO, nama tempat dan rute.
 
 **Kategori udara kini mengikuti bahasa aktif**, dipetakan dari `category_key`; teks server hanya cadangan untuk kode yang tidak dikenal.
+
+**Polutan utama juga mengikuti bahasa aktif.** Backend mengirim nama, bukan kode IQAir, jadi pemetaan memakai nama itu: "Ozon (O₃)" menjadi "Ozone (O₃)", sedangkan PM2.5, PM10, NO₂, SO₂, dan CO adalah simbol yang sama. Nama yang tidak dikenal ditampilkan apa adanya.
 
 ## 5. Hasil uji
 
 | Uji | Hasil |
 |---|---|
-| Kamus & modul (`test-i18n`) | 36/36: kunci `id` = `en`, placeholder sama, fallback ke ID, tanpa kunci mentah, pilihan bertahan setelah dibuka ulang, `t()` tidak di tingkat modul, setiap kunci dipakai, kategori udara ID sama persis dengan label backend, 58 berkas cakupan tanpa teks Indonesia tersisa |
+| Kamus & modul (`test-i18n`) | 40/40: kunci `id` = `en`, placeholder sama, fallback ke ID, tanpa kunci mentah, pilihan bertahan setelah dibuka ulang, `t()` tidak di tingkat modul, setiap kunci dipakai, kategori dan polutan ID sama persis dengan backend, 58 berkas cakupan tanpa teks Indonesia tersisa |
+| **Polutan utama** (`pollutant`) | 56/56: keenam nama di kartu Beranda dan layar detail, ID dan EN pada 320 px, plus ozon dengan kategori terpanjang di Beranda dan Hasil Rute; tidak keluar tepi, tidak terpotong |
 | **Kesetaraan ID** (`test-i18n-screens parity`) | 63/63: 61 layar & keadaan **identik** dengan baseline. 51 direkam dari `1549e0a`, 10 layar kepadatan dari `16b29b9` sebelum diterjemahkan. Tambahan hanya pilihan bahasa dan catatannya |
 | **Kesetaraan SSR web** | 25 halaman identik, 194 string di 23 halaman. Tambahan hanya pilihan bahasa di Masuk |
 | **Bahasa Inggris, 320 px** (`english`) | 369/369 di 61 layar: tanpa teks Indonesia buatan app, tanpa kategori udara Indonesia, tanpa kunci mentah, tidak lebih buruk dari ID |
@@ -99,7 +103,9 @@ Tutup app sepenuhnya lalu buka lagi supaya memuat bundle terbaru. Yang paling pe
 - [ ] Report > cari halte > pilih tingkat: laporan terkirim dan penanda muncul. Kirim hanya saat tidak mengganggu skenario S1 (laporan berlaku 15 menit).
 
 **Kartu udara**
-- [ ] ★ Dalam Inggris, kartu menulis "Air in Jakarta: Unhealthy" atau kategori aktif lain, tanpa teks Indonesia.
+- [ ] ★ Dalam Inggris, kartu menulis "Air in Jakarta: Unhealthy" atau kategori aktif lain, dan "Main pollutant ...", tanpa teks Indonesia.
+- [ ] Bila polutan utama hari itu ozon: Inggris "Ozone (O₃)", Indonesia "Ozon (O₃)". Polutan mengikuti data hari itu; PM2.5 tampil sama di kedua bahasa, jadi ozon sudah teruji di web bila tidak muncul.
+- [ ] Di HP layar kecil, kartu udara tidak terpotong di Beranda dan Hasil Rute.
 - [ ] ★ Beranda > kartu udara: layar detail terbuka, dengan AQI, polutan, cuaca, dan skala.
 - [ ] Hasil Rute > kartu udara ringkas: layar yang sama.
 - [ ] "Buka di situs IQAir" membuka halaman Jakarta yang benar.

@@ -615,6 +615,8 @@ export const id = {
   "crowd.level.high": "Padat",
   "crowd.noStops": "Tidak ada halte untuk \"{query}\"",
   "crowd.lastReport": "Laporan terakhir: {time}",
+
+  "air.pollutant.o3": "Ozon (O₃)",
 } as const;
 
 export type TKey = keyof typeof id;

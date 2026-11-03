@@ -616,4 +616,6 @@ export const en: Record<TKey, string> = {
   "crowd.level.high": "Crowded",
   "crowd.noStops": "No stops for \"{query}\"",
   "crowd.lastReport": "Last report: {time}",
+
+  "air.pollutant.o3": "Ozone (O₃)",
 };

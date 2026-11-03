@@ -61,6 +61,16 @@ export function aqiCategoryLabel(air: Pick<AirQuality, "category" | "category_ke
   return AQI_SCALE.find((s) => s.key === air.category_key)?.label ?? air.category;
 }
 
+// Backend mengirim nama polutan, bukan kode IQAir (services/airQuality.ts). Hanya ozon yang
+// berbeda antarbahasa; PM2.5, PM10, NO₂, SO₂, dan CO adalah simbol yang sama.
+const POLLUTANT_TEXT: Record<string, TKey> = { "Ozon (O₃)": "air.pollutant.o3" };
+
+/** Nama polutan dalam bahasa aktif. Nilai yang tidak dikenal ditampilkan apa adanya. */
+export function pollutantLabel(value: string): string {
+  const key = POLLUTANT_TEXT[value];
+  return key ? t(key) : value;
+}
+
 type AirQualityResponse = AirQuality | { available: false; source: "IQAir"; reason: string };
 
 export async function fetchAirQuality(): Promise<AirQuality | null> {

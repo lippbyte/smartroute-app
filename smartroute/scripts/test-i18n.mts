@@ -17,7 +17,7 @@ import { formatRupiah } from "../src/utils/currency";
 import { formatDistance } from "../src/utils/navInstructions";
 import { formatRange, formatTripDate } from "../src/utils/tripFormat";
 import { formatReportedAt } from "../src/components/crowd/crowdLevel";
-import { AQI_SCALE, aqiCategoryLabel } from "../src/services/airQualityService";
+import { AQI_SCALE, aqiCategoryLabel, pollutantLabel } from "../src/services/airQualityService";
 
 // Proses anak: membaca pilihan seperti saat app dibuka.
 if (process.argv[2] === "child") {
@@ -121,6 +121,18 @@ setLanguage("en");
 const enLabels = AQI_SCALE.map((s) => labelFor(s.key));
 check("Q2 EN: keenam kategori berbahasa Inggris", enLabels.join("|") === "Good|Moderate|Unhealthy for sensitive groups|Unhealthy|Very unhealthy|Hazardous", enLabels.join("|"));
 check("Q3 kode tak dikenal: memakai teks server, tidak kosong", labelFor("kode_baru") === "TEKS-SERVER");
+setLanguage("id");
+
+// --- Polutan utama: nama dari backend ke bahasa aktif.
+const pollutantBlock = /const POLLUTANTS[^=]*= \{([^}]*)\}/.exec(backendAir)?.[1] ?? "";
+const backendPollutants = [...pollutantBlock.matchAll(/\w+: "([^"]+)"/g)].map((m) => m[1]);
+check("O0 nama polutan backend terbaca (uji tidak kosong)", backendPollutants.length === 6, backendPollutants.join(", "));
+const idChanged = backendPollutants.filter((p) => pollutantLabel(p) !== p);
+check("O1 ID: keenam nama sama persis dengan backend", idChanged.length === 0, idChanged.join(", "));
+setLanguage("en");
+const enPollutants = backendPollutants.map((p) => pollutantLabel(p));
+check("O2 EN: ozon diterjemahkan, simbol lain tetap", enPollutants.join("|") === "PM2.5|PM10|Ozone (O₃)|NO₂|SO₂|CO", enPollutants.join("|"));
+check("O3 nama tak dikenal ditampilkan apa adanya", pollutantLabel("XYZ") === "XYZ");
 setLanguage("id");
 
 // --- Pilihan bertahan setelah app dibuka ulang.

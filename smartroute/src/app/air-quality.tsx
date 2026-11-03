@@ -9,7 +9,7 @@ import { FormMessage } from "@/components/form/FormField";
 import PrimaryButton from "@/components/form/PrimaryButton";
 import ScreenBackground from "@/components/ScreenBackground";
 import Text from "@/components/Text";
-import { AQI_ADVICE, AQI_COLORS, AQI_SCALE, aqiCategoryLabel, fetchAirQuality, IQAIR_CITY_URL, type AirQuality } from "@/services/airQualityService";
+import { AQI_ADVICE, AQI_COLORS, AQI_SCALE, aqiCategoryLabel, fetchAirQuality, IQAIR_CITY_URL, pollutantLabel, type AirQuality } from "@/services/airQualityService";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { ReactNode, useCallback, useEffect, useState } from "react";
@@ -117,7 +117,7 @@ export default function AirQualityScreen() {
 
             <Card title={t("air.details")}>
               <Row label={t("air.aqiUs")} value={String(air.aqi_us)} />
-              <Row label={t("air.mainPollutant")} value={air.pollutant_main} />
+              <Row label={t("air.mainPollutant")} value={air.pollutant_main ? pollutantLabel(air.pollutant_main) : null} />
               <Row label={t("air.measuredAt")} value={dateTimeOrNull(air.observed_at)} />
               <Row label={t("air.fetchedAt")} value={dateTimeOrNull(air.fetched_at)} />
             </Card>
