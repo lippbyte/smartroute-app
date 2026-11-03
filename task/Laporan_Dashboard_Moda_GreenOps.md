@@ -2,7 +2,7 @@
 
 Cabang: `feat/dashboard-moda-greenops`, dari `feat/hotfix-scroll-bahasa` (`1549e0a`). Tidak di-merge ke `main`.
 
-**Status terbaru (3 Nov 2026):** `30b0581` sudah di GitHub. Commit sesudahnya hanya di lokal: rute `/moda` di balik `VITE_MODA_ENABLED`, dan skenario C untuk BRT malam. Tabel faktor belum disetujui dan panel GreenOps tetap mati. Lihat [Tinjauan kedua](#tinjauan-kedua-khalifa-3-nov-2026) di akhir dokumen untuk hash push, hasil verifikasi GitHub, dan temuan pascademo. Bagian lain adalah catatan pekerjaan sebelumnya, sudah dikoreksi bila tidak berlaku lagi.
+**Status terbaru (3 Nov 2026):** semua pekerjaan sudah di GitHub. Commit terakhir yang menyentuh kode atau tabel faktor adalah `781f13f`. Rute `/moda` terverifikasi tidak terdaftar tanpa `VITE_MODA_ENABLED`, skenario C aktif untuk data dashboard, tabel faktor belum disetujui dan berpenanda draf, dan panel GreenOps tetap mati. Lihat [Verifikasi setelah push](#verifikasi-setelah-push-3-nov-2026) di akhir dokumen untuk hasil terbaru, dan [Tinjauan kedua](#tinjauan-kedua-khalifa-3-nov-2026) untuk temuan pascademo. Bagian lain adalah catatan pekerjaan sebelumnya, sudah dikoreksi bila tidak berlaku lagi.
 
 ## Task 0: Audit
 
@@ -203,10 +203,10 @@ Jalankan dengan `VITE_MODA_ENABLED=true` (perintahnya ada di Tinjauan kedua), la
 
 1. **Label aturan malam:** “asumsi, menunggu konfirmasi TransJakarta” sudah benar, atau konfirmasinya memang sudah ada?
 2. **Tabel faktor:** setujui, ubah, atau tolak, dan pilih opsi untuk selisih dengan angka app (`task/Dashboard_GreenOps_Tabel_Faktor.md` bagian 4).
-3. **Push:** commit tinjauan kedua hanya ada di lokal.
-4. **GreenOps di repo publik:** 14 berkas sumber dan riwayat cabang masih memuatnya. Biarkan, atau pindahkan dan tulis ulang riwayat?
-5. **Koridor 5 arah balik:** jadikan `5-R02` pola utama atau biarkan.
-6. **Dari dokumen tugas, tetap urusan Khalifa:** menghubungi pemilik Simpul, dan repo `hasbywira90/RekapModaJakarta`.
+3. **GreenOps di repo publik:** 14 berkas sumber dan riwayat cabang masih memuatnya. Biarkan, atau pindahkan dan tulis ulang riwayat?
+4. **Dari dokumen tugas, tetap urusan Khalifa:** menghubungi pemilik Simpul, dan repo `hasbywira90/RekapModaJakarta`.
+
+Sudah diputuskan Khalifa: koridor 5 dan skenario BRT tidak diubah, dan commit tinjauan kedua sudah di-push.
 
 ## Tinjauan Khalifa, 3 Nov 2026
 
@@ -406,7 +406,7 @@ Angka hari Senin sama dengan tabel yang disetujui, dan dikunci uji otomatis:
 | 3 | Arah 1 hanya Juanda → Kalideres (`3-P06`) | Arah balik utama `3-R06` hanya 05:00-06:00 |
 | 6, 13 | Arah 0 memakai trip lingkar (`6-L05`, `13-L01`) | Arah 0 biasa tidak punya baris 24 jam |
 
-**Usulan, belum diterapkan:** jadikan `5-R02` pola utama juga. Dampaknya kecil: BRT 03:00 dari 91 menjadi 93, CO₂ dari 269,0 menjadi 269,2 t per hari. Koridor 2 tidak bisa diperbaiki dari data yang ada, jadi menunggu jawaban TransJakarta.
+**Usulan yang tidak diterapkan:** jadikan `5-R02` pola utama juga. Dampaknya kecil: BRT 03:00 dari 91 menjadi 93, CO₂ dari 269,0 menjadi 269,2 t per hari. Khalifa memutuskan koridor 5 tidak diubah. Koridor 2 tidak bisa diperbaiki dari data yang ada, jadi menunggu jawaban TransJakarta.
 
 ### 3. Push dan verifikasi GitHub
 
@@ -436,7 +436,7 @@ Angka hari Senin sama dengan tabel yang disetujui, dan dikunci uji otomatis:
 **Yang juga masih terbuka di GitHub:**
 
 - Riwayat cabang: `456cce5` sampai `cad4dbb` masih memuat tombol Moda dan panel yang menyala.
-- Pada `30b0581`, rute `/moda` masih terdaftar tanpa flag dan masih bisa dibuka lewat URL. Flag rute baru ada di commit lokal.
+- Pada `30b0581`, rute `/moda` masih terdaftar tanpa flag dan masih bisa dibuka lewat URL. Flag rutenya masuk di `fd7e46b`, yang kini sudah di GitHub (lihat Verifikasi setelah push).
 
 Menghilangkan GreenOps sepenuhnya dari repo publik berarti memindahkan kodenya dari cabang ini dan menulis ulang riwayat dengan force push. Itu belum dilakukan dan perlu keputusanmu.
 
@@ -472,8 +472,60 @@ Menghilangkan GreenOps sepenuhnya dari repo publik berarti memindahkan kodenya d
 
 Backend dijalankan terpisah di port 3120, seperti sebelumnya. Uji lama backend dan app tidak diulang: kodenya tidak berubah sejak dijalankan di tinjauan pertama. Yang tidak dijalankan tetap sama, termasuk preflight karena memanggil OpenRouter berbayar.
 
-### Status git
+### Status git saat itu
 
-- **Sudah di GitHub:** `de19c18`, `30b0581`.
-- **Hanya di lokal, tidak di-push:** commit pekerjaan tinjauan kedua ini (flag rute, skenario C, laporan). Kamu menyebut dua hash itu saja, dan aturan “jangan push sebelum disetujui” masih saya pegang.
-- Task 5 tidak dikerjakan.
+Hanya `de19c18` dan `30b0581` yang di-push pada tahap ini. Commit tinjauan kedua ditahan di lokal sampai disetujui, lalu di-push (lihat bagian berikut). Task 5 tidak dikerjakan.
+
+## Verifikasi setelah push, 3 Nov 2026
+
+Atas persetujuan Khalifa, tiga commit tinjauan kedua lalu penanda draf di-push ke `origin/feat/dashboard-moda-greenops`. Semuanya fast-forward, tanpa force.
+
+| Rentang push | Commit | Isi |
+|---|---|---|
+| `30b0581..2162ddc` | `fd7e46b`, `9c2ee70`, `2162ddc` | Flag rute, skenario C, laporan |
+| `2162ddc..781f13f` | `781f13f24c6927bd4b874859d729e03f4a7fb100` | Penanda draf pada `greenopsFactors.ts` dan dokumen tabel faktor |
+
+`git ls-remote` dan API GitHub sama-sama menunjukkan `781f13f` sebagai ujung cabang sesudah push itu. Laporan ini ditambahkan sesudahnya, dalam commit yang hanya berisi berkas laporan.
+
+### Rute `/moda` tanpa flag: lulus
+
+Diperiksa pada `2162ddce797891cc9a8a0874e88d2576b82320d6` dari clone baru GitHub, tanpa berkas lokal. Commit `781f13f` sesudahnya hanya menambah satu baris komentar dan penanda di dokumen, dan syarat flag di `App.tsx` terbaca masih ada.
+
+| Pemeriksaan | Hasil |
+|---|---|
+| `App.tsx` dari GitHub | Rute hanya didaftarkan bila `VITE_MODA_ENABLED === 'true'`, tanpa impor statis `pages/Moda` |
+| `tests/route-flag.test.ts` dari clone | 4/4 lulus |
+| Bundel tanpa flag: `Pemantauan Moda`, `Posisi berdasarkan jadwal`, `moda-vehicles`, `GreenOps`, `theicct.org` | Masing-masing 0 |
+| Chunk Moda atau GreenOps di bundel | 0 |
+| Chrome tanpa flag | 23/23 lulus |
+| `/moda`, `/moda/`, `/MODA`, `/moda?x=1` | “Halaman tidak ada.”, tanpa isi Moda, tanpa permintaan `network.json` |
+
+Server tetap menjawab HTTP 200 di alamat itu karena dashboard ini SPA. “Tidak terdaftar” berarti halaman tidak ada dari aplikasi, bukan HTTP 404 sungguhan.
+
+### Penanda draf: lulus
+
+Dibaca dari GitHub pada `781f13f`:
+
+| Berkas | Baris pertama |
+|---|---|
+| `smartroute-dashboard/src/greenops/greenopsFactors.ts` | `// DRAF, BELUM DISETUJUI` |
+| `task/Dashboard_GreenOps_Tabel_Faktor.md` | `**DRAF, BELUM DISETUJUI**` |
+
+`FACTORS_APPROVED` masih `false`.
+
+### Uji pada `781f13f`
+
+- `tsc` dashboard 0 galat, dan `npm test` 50/50.
+- `781f13f` hanya mengubah dua berkas penanda itu. `data-src/`, `public/`, dan `scripts/` tidak berubah.
+- Tidak ada berkas di luar `smartroute-dashboard/` dan `task/` yang berubah dibanding `feat/hotfix-scroll-bahasa`.
+- **Regresi `/routes` tidak diulang pada tahap ini.** Hasil terakhirnya ada di Tinjauan kedua, bagian 5.
+
+### Tidak berubah
+
+Skenario BRT, koridor 5, dan `/routes`. Task 5 tidak dikerjakan.
+
+### Masih terbuka di GitHub
+
+- Angka faktor dan string “GreenOps” tetap ada di kode sumber, kini dengan penanda draf.
+- Riwayat cabang masih memuat versi lama dengan tombol Moda dan panel yang menyala.
+- `/data/network.json` tetap terlayani di setiap build.
