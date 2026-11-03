@@ -7,7 +7,7 @@
 // GET /routes pada instance yang sama. Butuh OTP2 hidup. Database asli tidak disentuh.
 import { spawn, execSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import http from "node:http";
 import os from "node:os";
 import path from "node:path";
@@ -83,6 +83,20 @@ try {
     check(`R6 rute ${r.route_id}: waktu tempuh di prompt sama dengan /routes`, line.includes(`estimasi ${r.travel_time_minutes.min}-${r.travel_time_minutes.max} menit`));
   }
   check("R7 skor tinggi = risiko rendah (arah tidak terbalik)", routes.filter((r) => r.reliability.score >= 0.9).every((r) => r.reliability.risk === "low") && routes.some((r) => r.reliability.score >= 0.9));
+
+  // --- Aturan soal rute ada di instruksi sistem, dengan dan tanpa konteks rute.
+  await post("/assistant/ask", { question: "Dari Blok M ke Kota naik apa?" }, token);
+  const noCtx = systemOf(captured.at(-1));
+  check("A1 tanpa konteks: tidak ada kandidat rute di prompt", !/- Rute "/.test(noCtx) && /ATURAN KETAT SOAL RUTE/.test(noCtx));
+  for (const [name, re] of [
+    ["larangan waktu tempuh", /JANGAN menyebut perkiraan waktu tempuh/],
+    ["larangan transfer", /JANGAN menyarankan atau merangkai transfer/],
+    ["larangan 'real-time'", /JANGAN memakai kata "real-time"/],
+    ["arahan ke pencarian rute", /tekan "Cari Rute Terbaik"/],
+  ]) {
+    check(`A2 instruksi sistem memuat ${name}`, re.test(noCtx) && re.test(sys));
+  }
+  check("A3 tombol 'Cari Rute Terbaik' yang disebut memang ada di Beranda", /Cari Rute Terbaik/.test(readFileSync(path.join(ROOT, "..", "..", "smartroute", "src", "app", "(tabs)", "index.tsx"), "utf8")));
 } catch (err) {
   failures++;
   console.log("GAGAL  uji terhenti:", err instanceof Error ? err.message : err);
@@ -99,7 +113,7 @@ try {
   } catch {}
 }
 
-const MIN = 12;
+const MIN = 18;
 check(`jumlah cek >= ${MIN}`, checks >= MIN, `${checks}`);
 console.log(failures === 0 ? `\nSemua ${checks} uji prompt TOTO lulus.` : `\n${failures} uji GAGAL.`);
 process.exitCode = failures ? 1 : 0;

@@ -53,6 +53,27 @@ const SYSTEM_PROMPT_HEADER =
   "(menjadikan halte itu titik berangkat pencarian rute). Sebut tombol dengan " +
   "nama persis itu kalau menyarankannya. Pencarian rute paling lengkap kalau " +
   "titik berangkatnya tepat di halte/stasiun.\n\n" +
+  // Hotfix TOTO: terbukti mengarang waktu tempuh ("30-45 menit", layar 92-106),
+  // transfer fiktif (Rute 3 -> Rute 10), dan menyebut "real-time" bila ditanya
+  // rute tanpa data kandidat (test-toto-grounding.mjs live).
+  "ATURAN KETAT SOAL RUTE. Bagian \"Hasil pencarian rute konkret\" (kalau ada di " +
+  "bawah) adalah SATU-SATUNYA sumber waktu tempuh, transit, dan perbandingan " +
+  "antarrute.\n" +
+  "- Kalau bagian itu TIDAK ada dan pengguna bertanya cara pergi, naik apa, berapa " +
+  "lama, atau rute antartempat: JANGAN menyebut perkiraan waktu tempuh dalam " +
+  "bentuk apa pun; JANGAN menyarankan atau merangkai transfer/pindah antarrute; " +
+  "JANGAN menyebut nama rute sebagai saran perjalanan; JANGAN menyebut apa pun " +
+  "tercepat, termurah, atau terbaik. Katakan singkat bahwa TOTO tidak menghitung " +
+  "rute, lalu arahkan ke pencarian rute di Beranda: isi Dari dan Tujuan, lalu " +
+  "tekan \"Cari Rute Terbaik\".\n" +
+  "- Kalau bagian itu ada: sebut waktu tempuh, transit, dan tarif persis seperti " +
+  "tertulis, tanpa menambah angka lain. \"risiko sambungan: rendah\" berarti " +
+  "sambungan aman (baik), \"tinggi\" berarti berisiko. Sebut sebuah rute tercepat " +
+  "hanya kalau angkanya memang paling kecil di daftar itu.\n" +
+  "- Waktu jalan kaki boleh disebut hanya kalau tertulis di RUTE JALAN KAKI. " +
+  "Kebijakan transfer gratis boleh disebut hanya untuk menjawab pertanyaan tarif.\n" +
+  "- JANGAN memakai kata \"real-time\" dan jangan menyiratkan ada posisi armada " +
+  "atau kondisi langsung; data kami berupa jadwal dan laporan pengguna.\n\n" +
   // Hari 1 Task 4: aturan untuk blok PROFIL PENGGUNA. Nilai profilnya
   // sendiri TIDAK ditaruh di instruksi sistem ini, melainkan di pesan data
   // terpisah (lihat buildProfileMessage).
