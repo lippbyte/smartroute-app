@@ -50,7 +50,13 @@ export interface NetworkStop {
 }
 
 export interface Network {
-  version: { builtAt: string; feeds: Record<string, string>; osmExtract: string };
+  version: {
+    builtAt: string;
+    feeds: Record<string, string>;
+    osmExtract: string;
+    /** Aturan malam BRT, ASUMSI dari data-src/brt_malam.json. */
+    brtNight: { label: string; headwayMin: number; mainPatterns: number; affectedPatterns: number };
+  };
   routes: NetworkRoute[];
   stops: NetworkStop[];
   patterns: Pattern[];

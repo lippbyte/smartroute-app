@@ -25,6 +25,7 @@ import zipfile
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DATA = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT.parent / "backend" / "otp2-setup" / "data"
 RAIL = ROOT / "data-src" / "rail_segments.json"
+NIGHT_RULE = ROOT / "data-src" / "brt_malam.json"
 OUT = ROOT / "public" / "data" / "network.json"
 
 # Harus sama dengan src/simulation/constants.ts.
@@ -265,6 +266,7 @@ def build_bus(stops_out, routes_out, patterns, stats):
                 "service": {"days": days, **service(windows)},
                 "timing": "gtfs-frequencies",
                 "geometry": "gtfs-shape",
+                "_direction": t.get("direction_id") or "?",
             }
         )
     for rid in used_routes:
@@ -280,6 +282,61 @@ def build_bus(stops_out, routes_out, patterns, stats):
             }
         )
     return feed_date(z)
+
+
+def apply_brt_night(patterns, stats):
+    """Aturan malam BRT dari data-src/brt_malam.json. ASUMSI, bukan isi feed.
+
+    Feed menulis trip BRT 00:00-23:59 dengan satu headway untuk sehari penuh,
+    termasuk semua varian. Rincian ada di laporan Dashboard Moda.
+    """
+    rule = json.loads(NIGHT_RULE.read_text(encoding="utf-8"))
+    day = rule["jendela_siang_menit"]
+    night = rule["jendela_malam_menit"]
+    night_h = rule["headway_malam_menit"]
+
+    targets = [
+        p for p in patterns if p["mode"] == "brt" and p["service"]["startMin"] == 0 and p["service"]["endMin"] > 1439
+    ]
+    best = {}
+    for p in targets:
+        key = (p["routeId"], p["_direction"])
+        regular = p["id"].split("-")[-1].startswith("R")
+        cur = best.get(key)
+        headway = p["service"]["headwayOffMin"]
+        if (
+            cur is None
+            or (regular and not cur["regular"])
+            or (regular == cur["regular"] and headway < cur["pattern"]["service"]["headwayOffMin"])
+        ):
+            best[key] = {"pattern": p, "regular": regular}
+    main_ids = {b["pattern"]["id"] for b in best.values()}
+
+    for p in targets:
+        h = p["service"]["headwayOffMin"]
+        service = {k: p["service"][k] for k in ("days", "headwayPeakMin", "headwayOffMin")}
+        if p["id"] in main_ids:
+            windows = [[night[0][0], night[0][1], night_h], [day[0], day[1], h], [night[1][0], night[1][1], night_h]]
+            service.update(startMin=night[0][0], endMin=night[1][1], windows=windows)
+        else:
+            service.update(startMin=day[0], endMin=day[1], windows=[[day[0], day[1], h]])
+        p["service"] = service
+        p["timing"] = "gtfs-frequencies+aturan-malam"
+    for p in patterns:
+        p.pop("_direction", None)
+
+    stats["brt_night_targets"] = len(targets)
+    stats["brt_night_main"] = len(main_ids)
+    print("pola utama malam:")
+    for key in sorted(best, key=lambda k: (len(k[0]), k)):
+        b = best[key]["pattern"]
+        print(f"  rute {key[0]:>3} arah {key[1]}  {b['id']:9} ke {b['headsign'][:30]:30} siang tiap {b['service']['headwayOffMin']:g} mnt")
+    return {
+        "label": rule["status"],
+        "headwayMin": night_h,
+        "mainPatterns": len(main_ids),
+        "affectedPatterns": len(targets),
+    }
 
 
 def build_rail(feed, mode, segments, stops_out, routes_out, patterns, stats):
@@ -357,6 +414,7 @@ def main():
     stats = collections.Counter()
     stops_out, routes_out, patterns = {}, [], []
     dates = {"transjakarta": build_bus(stops_out, routes_out, patterns, stats)}
+    brt_night = apply_brt_night(patterns, stats)
     for feed, mode in RAIL_FEEDS.items():
         dates[feed] = build_rail(feed, mode, rail["segments"], stops_out, routes_out, patterns, stats)
     network = {
@@ -364,6 +422,7 @@ def main():
             "builtAt": dt.datetime.now(dt.timezone(dt.timedelta(hours=7))).strftime("%Y-%m-%d"),
             "feeds": dates,
             "osmExtract": rail["source"],
+            "brtNight": brt_night,
         },
         "routes": sorted(routes_out, key=lambda r: (r["mode"], r["code"])),
         "stops": [

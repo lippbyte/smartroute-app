@@ -51,6 +51,20 @@ test("/moda tidak ditautkan dari mana pun; hanya didaftarkan sebagai rute", () =
   assert.doesNotMatch(readFileSync(join(root, "index.html"), "utf8"), /moda/i);
 });
 
+test("/moda mati secara bawaan: hanya terdaftar bila flag bernilai persis true", () => {
+  const app = readFileSync(join(root, "src/App.tsx"), "utf8");
+  assert.match(app, /import\.meta\.env\.VITE_MODA_ENABLED === 'true' \? lazy\(\(\) => import\('\.\/pages\/Moda'\)\) : null/);
+  assert.doesNotMatch(app, /^import\s[^;]*pages\/Moda/m, "tidak boleh impor statis");
+});
+
+test("label aturan malam BRT tidak mengklaim sudah dikonfirmasi", () => {
+  const rule = JSON.parse(readFileSync(join(root, "data-src/brt_malam.json"), "utf8"));
+  const net = JSON.parse(readFileSync(join(root, "public/data/network.json"), "utf8"));
+  assert.equal(rule.status, "asumsi, menunggu konfirmasi TransJakarta");
+  assert.equal(net.version.brtNight.label, rule.status, "data harus dibangun dari aturan yang sama");
+  assert.match(readFileSync(join(root, "src/components/moda/AboutDialog.tsx"), "utf8"), /\{brtNight\.label\}/);
+});
+
 test("GreenOps mati secara bawaan: hanya menyala bila flag bernilai persis true", () => {
   for (const f of ["src/pages/Moda.tsx", "src/components/moda/DetailCard.tsx", "src/components/moda/AboutDialog.tsx"]) {
     assert.match(readFileSync(join(root, f), "utf8"), /import\.meta\.env\.VITE_GREENOPS_ENABLED === "true"/, f);

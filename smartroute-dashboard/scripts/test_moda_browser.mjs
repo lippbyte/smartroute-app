@@ -1,8 +1,9 @@
 // Uji /moda di Chrome headless lewat CDP. Tanpa dependensi.
 // Pakai: npx vite build && npx vite preview --port 5199 --strictPort --host 127.0.0.1
 //        node scripts/test_moda_browser.mjs <folder hasil> [url dasar]
-// Bawaan menguji build dengan GreenOps MATI. Untuk build dengan
-// VITE_GREENOPS_ENABLED=true, jalankan dengan MODA_GREENOPS=true.
+// Bawaan menguji build tanpa flag: /moda harus jatuh ke halaman tidak ada.
+// Build dengan VITE_MODA_ENABLED=true: jalankan dengan MODA_ROUTE=true.
+// Build dengan kedua flag: jalankan dengan MODA_ROUTE=true MODA_GREENOPS=true.
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
@@ -12,7 +13,8 @@ const BASE = process.argv[3] ?? 'http://127.0.0.1:5199';
 const CHROME = process.env.CHROME_PATH ?? 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const PORT = 9333;
 const GREENOPS = process.env.MODA_GREENOPS === 'true';
-console.log(`Mode: GreenOps ${GREENOPS ? 'MENYALA' : 'MATI (bawaan)'}`);
+const ROUTE_ON = process.env.MODA_ROUTE === 'true';
+console.log(`Mode: rute /moda ${ROUTE_ON ? 'MENYALA' : 'MATI (bawaan)'}, GreenOps ${GREENOPS ? 'MENYALA' : 'MATI (bawaan)'}`);
 mkdirSync(OUT, { recursive: true });
 const profile = join(OUT, 'profil');
 const chrome = spawn(CHROME, [
@@ -28,10 +30,12 @@ for (let i = 0; i < 40 && !target; i++) {
 }
 const ws = new WebSocket(target.webSocketDebuggerUrl);
 await new Promise((r) => { ws.onopen = r; });
-let id = 0; const pending = new Map(); const logs = [];
+let id = 0; const pending = new Map(); const logs = []; const requests = []; let docStatus = null;
 ws.onmessage = (m) => {
   const d = JSON.parse(m.data);
   if (d.id && pending.has(d.id)) { pending.get(d.id)(d); pending.delete(d.id); return; }
+  if (d.method === 'Network.requestWillBeSent') requests.push(d.params.request.url);
+  if (d.method === 'Network.responseReceived' && d.params.type === 'Document') docStatus = d.params.response.status;
   if (d.method === 'Runtime.exceptionThrown') logs.push('EXC ' + (d.params.exceptionDetails.exception?.description ?? d.params.exceptionDetails.text));
   if (d.method === 'Log.entryAdded' && d.params.entry.level === 'error') logs.push(`LOG ${d.params.entry.text} ${d.params.entry.url ?? ''}`);
   if (d.method === 'Runtime.consoleAPICalled' && ['error', 'warning'].includes(d.params.type)) logs.push(`${d.params.type} ` + d.params.args.map((a) => a.value ?? a.description).join(' '));
@@ -55,6 +59,57 @@ const clickBtn = (t) => ev(`[...document.querySelectorAll('button')].find(b=>b.i
 const fps = (sec) => ev(`new Promise(res=>{let n=0,long=0;const t0=performance.now();const po=new PerformanceObserver(l=>{long+=l.getEntries().length});try{po.observe({entryTypes:['longtask']})}catch{};const f=()=>{n++;if(performance.now()-t0<${sec*1000})requestAnimationFrame(f);else{po.disconnect();res({fps:+(n/${sec}).toFixed(1),longTasks:long})}};requestAnimationFrame(f)})`);
 
 for (const d of ['Runtime', 'Log', 'Page', 'Network']) await cdp(`${d}.enable`);
+
+async function finish() {
+  const failed = results.filter((r) => !r.ok).length;
+  writeFileSync(join(OUT, 'hasil.json'), JSON.stringify({ results, logs: [...new Set(logs)] }, null, 1));
+  console.log(`\nRINGKAS: ${results.length - failed}/${results.length} lulus`);
+  ws.close(); chrome.kill();
+  await sleep(500);
+  try { rmSync(profile, { recursive: true, force: true }); } catch {}
+  process.exit(failed ? 1 : 0);
+}
+
+// ---- Flag rute mati: /moda harus jatuh ke halaman tidak ada ----
+if (!ROUTE_ON) {
+  await viewport(1440, 900);
+  for (const path of ['/moda', '/moda/', '/MODA', '/moda?x=1']) {
+    requests.length = 0;
+    await cdp('Page.navigate', { url: BASE + path });
+    const shown = await waitFor(`document.body.innerText.includes('Halaman tidak ada.')`, 10000);
+    await sleep(800);
+    const page = await ev(`document.body.innerText`);
+    check(`${path}: halaman tidak ada`, shown, `HTTP dokumen ${docStatus}, SPA`);
+    check(`${path}: tanpa isi Moda`, !/Pemantauan Moda|Posisi berdasarkan jadwal|GreenOps|Tentang & Atribusi/.test(page) && !(await ev(`!!document.querySelector('canvas.maplibregl-canvas')`)));
+    check(`${path}: tidak memuat data jaringan atau chunk Moda`, !requests.some((u) => /network\.json|\/assets\/(Moda|GreenOps|VehicleGreenOps|FactorInfo)/.test(u)));
+  }
+  await shot('moda-tidak-ada');
+
+  // Bundel yang dikirim ke peramban.
+  const scripts = await ev(`[...document.querySelectorAll('script[src]')].map(s=>s.src)`);
+  const js = (await Promise.all(scripts.map(async (u) => (await fetch(u)).text()))).join('\n');
+  check('bundel: memuat halaman tidak ada (pembuktian pencarian)', js.includes('Halaman tidak ada.'));
+  for (const banned of ['Pemantauan Moda', 'Posisi berdasarkan jadwal', 'GreenOps', 'theicct.org', '"/moda"']) {
+    check(`bundel: tanpa ${banned}`, !js.includes(banned));
+  }
+
+  // Rute lain tidak ikut hilang, dan tidak ada tautan ke /moda.
+  await cdp('Page.navigate', { url: BASE + '/login' });
+  check('/login tetap tampil', await waitFor(`document.body.innerText.includes('Login Admin')`, 8000));
+  await ev(`localStorage.setItem('token', 'uji-lokal')`);
+  for (const path of ['/', '/map']) {
+    logs.length = 0;
+    await cdp('Page.navigate', { url: BASE + path });
+    await sleep(2500);
+    const body = await ev(`document.getElementById('root').innerText.length`);
+    const crash = logs.filter((l) => /must be used within/.test(l));
+    const link = await ev(`({btn:[...document.querySelectorAll('button,a')].filter(e=>/moda/i.test(e.innerText)).length,href:[...document.querySelectorAll('a')].filter(a=>/moda/i.test(a.getAttribute('href')||'')).length})`);
+    check(`${path} tampil tanpa galat provider`, body > 20 && crash.length === 0, `teks ${body}`);
+    check(`${path}: tanpa tombol atau tautan Moda`, link.btn === 0 && link.href === 0, JSON.stringify(link));
+  }
+  await ev(`localStorage.removeItem('token')`);
+  await finish();
+}
 
 // ---- Keadaan galat ----
 await viewport(1440, 900);
@@ -184,6 +239,9 @@ await clickBtn('Tentang & Atribusi'); await sleep(300);
 const about = await ev(`document.querySelector('[role=dialog]').innerText`);
 for (const needle of ['© PT Transportasi Jakarta', 'CC BY 4.0', 'OpenStreetMap contributors', 'ODbL 1.0', 'bukan data armada real-time']) check(`atribusi: ${needle}`, about.includes(needle));
 check('tidak menyebut Simpul', !/simpul/i.test(about + panel));
+const nightNote = await text('brt-night-note');
+check('Tentang: label aturan malam BRT', /asumsi, menunggu konfirmasi TransJakarta/.test(nightNote ?? ''), (nightNote ?? '').slice(0, 170));
+check('Tentang: tidak mengklaim sudah dikonfirmasi', !/(^|[^n])dikonfirmasi TransJakarta/.test(about));
 if (!GREENOPS) check('flag mati: Tentang tanpa bagian GreenOps', !/GreenOps/.test(about));
 const hrefs = await ev(`[...document.querySelectorAll('[role=dialog] a')].map(a=>a.href)`);
 console.log('tautan:', hrefs.join(' '));
@@ -240,9 +298,4 @@ await cdp('Page.navigate', { url: BASE + '/moda' });
 check('/moda tetap bisa dibuka lewat URL langsung', await waitFor(`!!document.querySelector('[data-testid="sim-label"]')`, 10000));
 await ev(`localStorage.removeItem('token')`);
 console.log('galat konsol:', errs.length, errs.slice(0, 12).map((e) => e.slice(0, 220)).join('\n  '));
-writeFileSync(join(OUT, 'hasil.json'), JSON.stringify({ results, errs }, null, 1));
-console.log(`\nRINGKAS: ${results.filter((r) => r.ok).length}/${results.length} lulus`);
-ws.close(); chrome.kill();
-await sleep(500);
-try { rmSync(profile, { recursive: true, force: true }); } catch {}
-process.exit(0);
+await finish();

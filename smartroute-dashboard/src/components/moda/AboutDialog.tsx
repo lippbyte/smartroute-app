@@ -12,7 +12,7 @@ function Ext({ href, children }: { href: string; children: string }) {
 }
 
 export default function AboutDialog({ network, onClose }: { network: Network; onClose: () => void }) {
-  const { feeds, builtAt, osmExtract } = network.version;
+  const { feeds, builtAt, osmExtract, brtNight } = network.version;
   return (
     <Modal title="Tentang & Atribusi" onClose={onClose}>
       <div className="space-y-4 text-light-2 leading-relaxed">
@@ -26,9 +26,10 @@ export default function AboutDialog({ network, onClose }: { network: Network; on
             <li>Kemacetan tidak dimodelkan. Waktu tempuh memakai kecepatan rata-rata tiap pola dari jadwal.</li>
             <li>Lama berhenti di halte adalah asumsi: 25 detik rel, 20 detik BRT, 15 detik bus.</li>
             <li>Jumlah kendaraan dibatasi paling banyak 14 per pola perjalanan.</li>
-            <li>
-              Banyak koridor BRT di data TransJakarta tertulis beroperasi 24 jam dengan selang yang sama, sehingga jumlah
-              kendaraan malam hari di simulasi kemungkinan lebih tinggi dari keadaan sebenarnya.
+            <li data-testid="brt-night-note">
+              Data TransJakarta menuliskan satu selang untuk sehari penuh pada koridor BRT 24 jam. Untuk pukul 22:00–05:00,
+              simulasi ini hanya menjalankan satu pola utama per koridor per arah, tiap {brtNight.headwayMin} menit:{" "}
+              <span className="font-bold text-light-1">{brtNight.label}</span>.
             </li>
             <li>LRT Jakarta dan Whoosh belum ada di data jaringan ini.</li>
           </ul>

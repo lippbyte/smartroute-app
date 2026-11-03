@@ -142,6 +142,13 @@ test("baris per moda: moda tanpa faktor dikecualikan dari total dan disebutkan",
   );
 });
 
+test("aturan malam: km dan CO₂ BRT hari Senin sesuai skenario C yang disetujui", () => {
+  const sim = createSimulation(network.patterns);
+  const km = vehicleKmByMode(sim, 0, 0, 86400).brt;
+  assert.ok(Math.abs(km - 217655) < 1, `${km}`);
+  near((km * gramsPerVehicleKm("brt")!) / 1e6, 269.0, 0.05);
+});
+
 test("rentang per penumpang-km dan pembanding mobil", () => {
   // BRT: 1.235,77 g/km ÷ (50 × 0,5) = 49,43 g/pkm; rentang 32,95 sampai 98,86.
   const r = perPassengerRange("brt", "sedang")!;

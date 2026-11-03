@@ -194,6 +194,52 @@ test("keberangkatan rel hari Senin sama dengan jadwal GTFS", () => {
   }
 });
 
+test("aturan malam BRT: skenario C sesuai yang disetujui", () => {
+  const rule = network.version.brtNight;
+  assert.equal(rule.affectedPatterns, 88);
+  assert.equal(rule.mainPatterns, 26);
+  assert.equal(rule.headwayMin, 30);
+
+  const affected = network.patterns.filter((p) => p.timing === "gtfs-frequencies+aturan-malam");
+  assert.equal(affected.length, 88);
+  assert.ok(affected.every((p) => p.mode === "brt"), "hanya BRT");
+  const main = affected.filter((p) => p.service.startMin === 0);
+  const variants = affected.filter((p) => p.service.startMin !== 0);
+  assert.equal(main.length, 26);
+  assert.ok(new Set(affected.map((p) => p.routeId)).size === 14, "hanya 14 koridor utama");
+
+  const sim = createSimulation(network.patterns);
+  const brtAt = (h: number) => sim.getSnapshot(at(h)).filter((v) => v.mode === "brt");
+  assert.equal(brtAt(3).length, 91);
+  assert.equal(brtAt(12).length, 1013);
+  assert.equal(brtAt(23).length, 430);
+
+  // Pukul 03:00 hanya pola utama yang berjalan.
+  const mainIds = new Set(main.map((p) => p.id));
+  assert.ok(brtAt(3).every((v) => mainIds.has(v.patternId)));
+
+  for (const p of main) {
+    const deps = [...sim.byPatternId.get(p.id)!.departures];
+    const nightDeps = deps.filter((d) => d < 5 * 3600);
+    assert.ok(nightDeps.length > 0, p.id);
+    for (let i = 1; i < nightDeps.length; i++) assert.equal(nightDeps[i] - nightDeps[i - 1], 1800, `${p.id}: malam tiap 30 menit`);
+    assert.ok(deps.some((d) => d >= 22 * 3600), `${p.id}: berjalan lagi sesudah 22:00`);
+  }
+  for (const p of variants) {
+    for (const d of sim.byPatternId.get(p.id)!.departures) {
+      assert.ok(d >= 5 * 3600 && d < 22 * 3600, `${p.id}: varian hanya siang`);
+    }
+  }
+});
+
+test("aturan malam tidak menyentuh selain trip BRT 24 jam", () => {
+  for (const p of network.patterns) {
+    if (p.timing === "gtfs-frequencies+aturan-malam") continue;
+    if (p.mode === "brt") assert.ok(p.service.endMin <= 1320 || p.service.startMin > 0, `${p.id}: BRT lain tetap`);
+    assert.ok(["gtfs-frequencies", "gtfs-timetable"].includes(p.timing!), p.id);
+  }
+});
+
 test("armada simultan dilaporkan per jam", () => {
   const sim = createSimulation(network.patterns);
   for (const h of [3, 6, 7.5, 12, 18, 22]) {

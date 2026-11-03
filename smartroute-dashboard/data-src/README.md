@@ -8,6 +8,12 @@
 | Geometri rel (`rail_segments.json`) | Ekstrak OpenStreetMap `jabodetabek.osm.pbf` (4 Sep 2026) | [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/), © OpenStreetMap contributors ([hak cipta](https://www.openstreetmap.org/copyright)) |
 | Jadwal dan stasiun rel | GTFS KRL, MRT, LRT Jabodebek di `backend/otp2-setup/data/`, disusun tim dari jadwal terbitan umum; koordinat stasiun dari OpenStreetMap | Koordinat ODbL 1.0. Lisensi jadwal belum dipastikan. |
 
+## Aturan malam BRT (asumsi)
+
+Feed TransJakarta menulis 88 trip BRT di koridor 1-14 sebagai `00:00:00`-`23:59:59` dengan satu headway untuk sehari penuh. `brt_malam.json` menetapkan aturan penggantinya untuk data dashboard: siang memakai headway feed, malam (22:00-05:00) hanya satu pola utama per rute per `direction_id`, tiap 30 menit. Varian lain hanya berjalan siang.
+
+Statusnya **asumsi, menunggu konfirmasi TransJakarta**. Sumber ada di berkas itu. Feed OTP2 dan `/routes` tidak memakai aturan ini.
+
 ## Kewajiban ODbL
 
 Geometri rel adalah basis data turunan OpenStreetMap. Selama ditampilkan atau dibagikan:

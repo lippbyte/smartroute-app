@@ -1,0 +1,36 @@
+{
+  "status": "asumsi, menunggu konfirmasi TransJakarta",
+  "berlaku_untuk": "Trip BRT yang frequencies.txt-nya tertulis 00:00:00-23:59:59 dengan satu headway untuk sehari penuh (88 trip di rute 1-14).",
+  "jendela_siang_menit": [300, 1320],
+  "jendela_malam_menit": [[0, 300], [1320, 1440]],
+  "headway_malam_menit": 30,
+  "pemilihan_pola_utama": "Satu pola per rute per direction_id: utamakan akhiran trip_id R, lalu headway tersingkat, lalu urutan di trips.txt. Arti akhiran R belum dipastikan.",
+  "aturan": "Siang (05:00-22:00) memakai headway feed. Malam (22:00-05:00) hanya pola utama, memakai headway_malam_menit. Varian lain hanya berjalan siang.",
+  "catatan": "Angka 30 menit dipilih dari laporan media, bukan angka resmi. Aturan ini hanya untuk data dashboard: feed OTP2 dan /routes tidak berubah.",
+  "sumber": [
+    {
+      "judul": "TransJakarta, 14 koridor utama beroperasi 24 jam",
+      "url": "https://transjakarta.co.id/berita/meriahkan-malam-pergantian-tahun-transjakarta-operasikan-2026-unit-armada-khusus-dan-layanan-24-jam",
+      "tanggal": "2025-12-30",
+      "dipakai": "Ke-14 koridor memang 24 jam. Tidak menyebut headway."
+    },
+    {
+      "judul": "Kompas, kode rute malam M1-M14 mengikuti nomor koridor",
+      "url": "https://money.kompas.com/read/2024/12/28/153200926/per-1-januari-2025-kode-rute-layanan-malam-hari-transjakarta-diubah",
+      "tanggal": "2024-12-28",
+      "dipakai": "Daftar 14 koridor."
+    },
+    {
+      "judul": "Popmama, daftar TransJakarta yang beroperasi 24 jam",
+      "url": "https://www.popmama.com/life/health/ini-daftar-transjakarta-yang-beroperasi-24-jam-dan-rutenya-00-wjk9l-b1mgxh/amp",
+      "tanggal": "2026-08-04",
+      "dipakai": "Waktu tunggu malam 20-40 menit."
+    },
+    {
+      "judul": "Kompas Travel, panduan rute TransJakarta 24 jam",
+      "url": "https://travel.kompas.com/read/2026/01/09/130000627/naik-transjakarta-tengah-malam-ini-panduan-rute-yang-beroperasi-24-jam",
+      "tanggal": "2026-01-09",
+      "dipakai": "22:00-05:00 frekuensi lebih jarang, waktu tunggu bisa 30 menit hingga satu jam."
+    }
+  ]
+}
