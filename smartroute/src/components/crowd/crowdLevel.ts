@@ -5,14 +5,20 @@
 // (CrowdMapView.web.tsx / CrowdMapView.native.tsx) — supaya warna & label
 // tidak pernah divergen antar platform.
 import { CrowdOverviewStop } from "@/services/crowdService";
-import { getLanguage, monthShort } from "@/i18n";
+import { getLanguage, monthShort, t } from "@/i18n";
 
 export type CrowdLevel = CrowdOverviewStop["level"];
 
 export const LEVEL_LABEL: Record<CrowdLevel, string> = {
-  low: "Lengang",
-  moderate: "Cukup Padat",
-  high: "Padat",
+  get low() {
+    return t("crowd.level.low");
+  },
+  get moderate() {
+    return t("crowd.level.moderate");
+  },
+  get high() {
+    return t("crowd.level.high");
+  },
 };
 
 export const LEVEL_COLOR: Record<CrowdLevel, string> = {

@@ -20,7 +20,7 @@ import CrowdMapView from "@/components/crowd/CrowdMapView";
 import CrowdReportModal, {
   CrowdReportTarget,
 } from "@/components/crowd/CrowdReportModal";
-import { LEVEL_COLOR } from "@/components/crowd/crowdLevel";
+import { LEVEL_COLOR, LEVEL_LABEL } from "@/components/crowd/crowdLevel";
 import Text from "@/components/Text";
 import {
   CrowdOverviewFetchError,
@@ -31,6 +31,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, View } from "react-native";
+import { t } from "@/i18n";
 
 function ScreenHeader({ title }: { title: string }) {
   const router = useRouter();
@@ -51,9 +52,9 @@ function ScreenHeader({ title }: { title: string }) {
 
 function LegendRow() {
   const items: Array<{ level: CrowdOverviewStop["level"]; label: string }> = [
-    { level: "low", label: "Lengang" },
-    { level: "moderate", label: "Cukup Padat" },
-    { level: "high", label: "Padat" },
+    { level: "low", label: LEVEL_LABEL.low },
+    { level: "moderate", label: LEVEL_LABEL.moderate },
+    { level: "high", label: LEVEL_LABEL.high },
   ];
   return (
     <View className="absolute bottom-8 left-5 right-5 flex-row justify-center gap-3 z-10">
@@ -84,7 +85,7 @@ function ReportFab({ onPress }: { onPress: () => void }) {
       className="absolute bottom-24 right-5 z-10 flex-row items-center gap-2 bg-[#018959] px-4 py-3 rounded-full shadow-lg active:opacity-80"
     >
       <Ionicons name="megaphone" size={18} color="#FFFFFF" />
-      <Text className="text-white font-bold text-sm">Lapor</Text>
+      <Text className="text-white font-bold text-sm">{t("crowd.report")}</Text>
     </Pressable>
   );
 }
@@ -109,7 +110,7 @@ export default function CrowdMapScreen() {
       setErrorMessage(
         err instanceof CrowdOverviewFetchError || err instanceof Error
           ? err.message
-          : "Gagal memuat data kepadatan.",
+          : t("crowd.loadError"),
       );
     } finally {
       setIsLoading(false);
@@ -127,12 +128,12 @@ export default function CrowdMapScreen() {
 
   return (
     <View className="flex-1 bg-[#18181B]">
-      <ScreenHeader title="Peta Kepadatan" />
+      <ScreenHeader title={t("menu.crowdMap")} />
 
       {isLoading ? (
         <View className="flex-1 items-center justify-center gap-3">
           <ActivityIndicator size="large" color="#018959" />
-          <Text className="text-surface-2 text-sm">Memuat data kepadatan...</Text>
+          <Text className="text-surface-2 text-sm">{t("crowd.loading")}</Text>
         </View>
       ) : errorMessage ? (
         <View className="flex-1 items-center justify-center gap-3 px-8">
@@ -144,7 +145,7 @@ export default function CrowdMapScreen() {
             onPress={load}
             className="bg-brand-blue px-5 py-2.5 rounded-xl mt-2"
           >
-            <Text className="text-white font-bold">Coba Lagi</Text>
+            <Text className="text-white font-bold">{t("common.retryTitle")}</Text>
           </Pressable>
         </View>
       ) : !stops || stops.length === 0 ? (
@@ -152,11 +153,10 @@ export default function CrowdMapScreen() {
           <View className="flex-1 items-center justify-center gap-3 px-8">
             <Ionicons name="cloud-offline-outline" size={40} color="#737373" />
             <Text className="text-white text-center font-bold">
-              Belum ada laporan kepadatan saat ini
+              {t("crowd.empty")}
             </Text>
             <Text className="text-line text-center text-sm">
-              Marker akan muncul di sini begitu ada laporan kepadatan aktif dari
-              pengguna lain.
+              {t("crowd.emptyBody")}
             </Text>
           </View>
           <ReportFab onPress={() => openReportModal(null)} />

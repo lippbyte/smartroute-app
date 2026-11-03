@@ -3934,6 +3934,208 @@
      "lines": 1
     }
    ]
+  },
+  "peta-kepadatan": {
+   "lines": [
+    "",
+    "Peta Kepadatan",
+    "Lengang",
+    "Cukup Padat",
+    "Padat",
+    "",
+    "Lapor"
+   ],
+   "attrs": [],
+   "overflow": [],
+   "clipped": [],
+   "buttons": [],
+   "fares": []
+  },
+  "peta-popup": {
+   "lines": [
+    "Monumen Nasional 1 | Kepadatan: Padat | Laporan terakhir: 3 Nov 2026, 10.10 | Lapor di sini",
+    "Halte Kota | Kepadatan: Cukup Padat | Laporan terakhir: 3 Nov 2026, 09.40 | Lapor di sini",
+    "Halte Blok M | Kepadatan: Lengang | Laporan terakhir: 3 Nov 2026, 06.05 | Lapor di sini"
+   ],
+   "attrs": [
+    "Peta Kepadatan"
+   ],
+   "overflow": [],
+   "clipped": [],
+   "buttons": [],
+   "fares": []
+  },
+  "lapor-cari": {
+   "lines": [
+    "",
+    "Peta Kepadatan",
+    "Lengang",
+    "Cukup Padat",
+    "Padat",
+    "",
+    "Lapor",
+    "Cari Halte",
+    "",
+    ""
+   ],
+   "attrs": [
+    "Nama halte, mis. Kalideres"
+   ],
+   "overflow": [],
+   "clipped": [],
+   "buttons": [],
+   "fares": []
+  },
+  "lapor-pendek": {
+   "lines": [
+    "",
+    "Peta Kepadatan",
+    "Lengang",
+    "Cukup Padat",
+    "Padat",
+    "",
+    "Lapor",
+    "Cari Halte",
+    "",
+    "",
+    "Ketik minimal 3 karakter."
+   ],
+   "attrs": [
+    "Nama halte, mis. Kalideres",
+    "nilai: Mo"
+   ],
+   "overflow": [],
+   "clipped": [],
+   "buttons": [],
+   "fares": []
+  },
+  "lapor-kosong": {
+   "lines": [
+    "",
+    "Peta Kepadatan",
+    "Lengang",
+    "Cukup Padat",
+    "Padat",
+    "",
+    "Lapor",
+    "Cari Halte",
+    "",
+    "",
+    "Tidak ada halte untuk \"zzzz\""
+   ],
+   "attrs": [
+    "Nama halte, mis. Kalideres",
+    "nilai: zzzz"
+   ],
+   "overflow": [],
+   "clipped": [],
+   "buttons": [],
+   "fares": []
+  },
+  "lapor-hasil": {
+   "lines": [
+    "",
+    "Peta Kepadatan",
+    "Lengang",
+    "Cukup Padat",
+    "Padat",
+    "",
+    "Lapor",
+    "Cari Halte",
+    "",
+    "",
+    "Monumen Nasional 1",
+    "Monumen Nasional 2"
+   ],
+   "attrs": [
+    "Nama halte, mis. Kalideres",
+    "nilai: Monumen"
+   ],
+   "overflow": [],
+   "clipped": [],
+   "buttons": [],
+   "fares": []
+  },
+  "lapor-tingkat": {
+   "lines": [
+    "",
+    "Peta Kepadatan",
+    "Lengang",
+    "Cukup Padat",
+    "Padat",
+    "",
+    "Lapor",
+    "Lapor Kepadatan",
+    "",
+    "",
+    "Monumen Nasional 2",
+    "Ganti",
+    "Seberapa padat halte ini sekarang?",
+    "Lengang",
+    "Cukup Padat",
+    "Padat"
+   ],
+   "attrs": [],
+   "overflow": [],
+   "clipped": [],
+   "buttons": [],
+   "fares": []
+  },
+  "lapor-galat": {
+   "lines": [
+    "",
+    "Peta Kepadatan",
+    "Lengang",
+    "Cukup Padat",
+    "Padat",
+    "",
+    "Lapor",
+    "Lapor Kepadatan",
+    "",
+    "",
+    "Monumen Nasional 2",
+    "Ganti",
+    "Seberapa padat halte ini sekarang?",
+    "Lengang",
+    "Cukup Padat",
+    "Padat",
+    "Layanan sedang tidak tersedia. Coba lagi sebentar lagi."
+   ],
+   "attrs": [],
+   "overflow": [],
+   "clipped": [],
+   "buttons": [],
+   "fares": []
+  },
+  "peta-kosong": {
+   "lines": [
+    "",
+    "Peta Kepadatan",
+    "",
+    "Belum ada laporan kepadatan saat ini",
+    "Marker akan muncul di sini begitu ada laporan kepadatan aktif dari pengguna lain.",
+    "",
+    "Lapor"
+   ],
+   "attrs": [],
+   "overflow": [],
+   "clipped": [],
+   "buttons": [],
+   "fares": []
+  },
+  "peta-galat": {
+   "lines": [
+    "",
+    "Peta Kepadatan",
+    "",
+    "Layanan sedang tidak tersedia. Coba lagi sebentar lagi.",
+    "Coba Lagi"
+   ],
+   "attrs": [],
+   "overflow": [],
+   "clipped": [],
+   "buttons": [],
+   "fares": []
   }
  }
 }

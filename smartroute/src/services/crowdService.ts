@@ -7,6 +7,7 @@
 // See backend/Task_App_01_Crowd_Overview_Map.md for the task this implements.
 
 import { apiRequest, unavailableMessage } from "./apiClient";
+import { t } from "@/i18n";
 
 const CROWD_TIMEOUT_MS = 10_000;
 // Dipanggil dari input yang diketik user — batas lebih pendek supaya saran
@@ -47,7 +48,7 @@ export async function fetchCrowdOverview(): Promise<CrowdOverviewStop[]> {
   try {
     return await apiRequest<CrowdOverviewStop[]>("GET", "/crowd-reports", {
       timeoutMs: CROWD_TIMEOUT_MS,
-      timeoutMessage: "Memuat peta kepadatan terlalu lama. Coba lagi.",
+      timeoutMessage: t("crowd.timeoutLoad"),
     });
   } catch (err) {
     throw new CrowdOverviewFetchError(err instanceof Error ? err.message : unavailableMessage(), err);
@@ -95,7 +96,7 @@ export async function searchStops(
     return await apiRequest<StopSearchResult[]>("GET", `/stops/search?q=${encodeURIComponent(query)}`, {
       signal,
       timeoutMs: STOP_SEARCH_TIMEOUT_MS,
-      timeoutMessage: "Pencarian halte terlalu lama. Coba ketik lagi.",
+      timeoutMessage: t("crowd.timeoutSearch"),
     });
   } catch (err) {
     if (signal?.aborted) throw err;
@@ -128,7 +129,7 @@ export async function submitCrowdReport(
     await apiRequest("POST", "/crowd-reports", {
       body: { stop_id: stopId, level },
       timeoutMs: CROWD_TIMEOUT_MS,
-      timeoutMessage: "Mengirim laporan kepadatan terlalu lama. Coba lagi.",
+      timeoutMessage: t("crowd.timeoutSend"),
     });
   } catch (err) {
     throw new CrowdReportSubmitError(err instanceof Error ? err.message : unavailableMessage(), err);

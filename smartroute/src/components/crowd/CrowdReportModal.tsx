@@ -28,6 +28,7 @@ import {
 } from "react-native";
 import Text from "../Text";
 import { LEVEL_COLOR, LEVEL_LABEL } from "./crowdLevel";
+import { t } from "@/i18n";
 
 export interface CrowdReportTarget {
   gtfsId: string;
@@ -90,7 +91,7 @@ export default function CrowdReportModal({
       setSubmitError(
         err instanceof CrowdReportSubmitError
           ? err.message
-          : "Gagal mengirim laporan. Coba lagi.",
+          : t("crowd.sendError"),
       );
     } finally {
       setIsSubmitting(false);
@@ -115,7 +116,7 @@ export default function CrowdReportModal({
           >
             <View className="flex-row items-center justify-between px-5 pt-5 pb-3">
               <Text className="text-ink font-bold text-lg">
-                {selectedStop ? "Lapor Kepadatan" : "Cari Halte"}
+                {selectedStop ? t("crowd.reportTitle") : t("crowd.findStop")}
               </Text>
               <Pressable onPress={onClose} hitSlop={12}>
                 <Ionicons name="close" size={22} color="#737373" />
@@ -131,7 +132,7 @@ export default function CrowdReportModal({
                   <TextInput
                     value={query}
                     onChangeText={setQuery}
-                    placeholder="Nama halte, mis. Kalideres"
+                    placeholder={t("crowd.searchPlaceholder")}
                     placeholderTextColor="#737373"
                     autoFocus
                     className="flex-1 font-jakarta text-ink text-md"
@@ -141,11 +142,11 @@ export default function CrowdReportModal({
 
                 {query.trim().length > 0 && query.trim().length < 3 ? (
                   <Text className="text-muted text-sm text-center py-4">
-                    Ketik minimal 3 karakter.
+                    {t("quick.minChars")}
                   </Text>
                 ) : query.trim().length >= 3 && !isLoading && results.length === 0 ? (
                   <Text className="text-muted text-sm text-center py-4">
-                    Tidak ada halte untuk &quot;{query.trim()}&quot;
+                    {t("crowd.noStops", { query: query.trim() })}
                   </Text>
                 ) : (
                   // ScrollView, bukan View: dulu baris yang melebihi maxHeight
@@ -177,14 +178,14 @@ export default function CrowdReportModal({
                   {!initialStop && (
                     <Pressable onPress={() => setSelectedStop(null)} hitSlop={8}>
                       <Text className="text-primary-emerald text-xs font-bold">
-                        Ganti
+                        {t("crowd.change")}
                       </Text>
                     </Pressable>
                   )}
                 </View>
 
                 <Text className="text-ink-2 text-sm">
-                  Seberapa padat halte ini sekarang?
+                  {t("crowd.howCrowded")}
                 </Text>
 
                 <View className="gap-2.5">
@@ -216,7 +217,7 @@ export default function CrowdReportModal({
                 {isSubmitting && (
                   <View className="flex-row items-center justify-center gap-2 py-1">
                     <ActivityIndicator size="small" color="#018959" />
-                    <Text className="text-muted text-sm">Mengirim laporan...</Text>
+                    <Text className="text-muted text-sm">{t("crowd.sending")}</Text>
                   </View>
                 )}
 

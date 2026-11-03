@@ -11,8 +11,9 @@
 // tanpa LLM, tanpa OTP2, tanpa menulis data, dan tanpa kredensial asli.
 //
 // Baseline: scripts/test-support/i18n-id-baseline.json, direkam dari 1549e0a,
-// sebelum modul bahasa ada. Teks ID harus identik, kecuali pilihan bahasa dan catatan
-// jujur di Masuk & Profil (ALLOWED_ADDITIONS).
+// sebelum modul bahasa ada. Layar Peta Kepadatan & Lapor Kepadatan direkam dari 16b29b9,
+// sebelum layar itu diterjemahkan. Teks ID harus identik, kecuali pilihan bahasa dan
+// catatan jujur di Masuk & Profil (ALLOWED_ADDITIONS).
 import { execFileSync, spawn } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
@@ -39,6 +40,16 @@ const LEGS = [{ mode: "Walk", from: "Blok M", to: "Halte Blok M" }, { mode: "Tra
 const SUMMARY = { legs: LEGS, transfers: 1, walking_distance_m: 420 };
 const TRIP_RATED = { id: "trip-1", created_at: "2026-10-30T10:05:00.000Z", origin_label: "Blok M", destination_label: "Kota", route_summary: SUMMARY, predicted_min_range: { min: 75, max: 87 }, actual_duration_min: 81, duration_basis: "aktual", fare_total: 3500, co2_estimate_g: 1240, rating: { stars: 4, eta_accurate: true, transfer_risk_accurate: false, crowd_accurate: null, message: "Cukup membantu.", created_at: "2026-10-30T11:00:00.000Z" } };
 const TRIP_OPEN = { ...TRIP_RATED, id: "trip-2", created_at: "2026-09-12T01:30:00.000Z", origin_label: "Pasar Baru", destination_label: "Lebak Bulus", actual_duration_min: null, duration_basis: "estimasi", co2_estimate_g: null, rating: null };
+
+const CROWD = [
+  { stop_id: "1:monas", name: "Monumen Nasional 1", lat: -6.1754, lng: 106.8272, level: "high", reported_at: "2026-11-03T03:10:00.000Z" },
+  { stop_id: "1:kota", name: "Halte Kota", lat: -6.1368, lng: 106.8149, level: "moderate", reported_at: "2026-11-03T02:40:00.000Z" },
+  { stop_id: "1:blokm", name: "Halte Blok M", lat: -6.2444, lng: 106.7981, level: "low", reported_at: "2026-11-02T23:05:00.000Z" },
+];
+const CROWD_SEARCH = [
+  { gtfsId: "1:monas", name: "Monumen Nasional 1", lat: -6.1754, lng: 106.8272 },
+  { gtfsId: "1:monas2", name: "Monumen Nasional 2", lat: -6.1755, lng: 106.8273 },
+];
 
 function routesResponse(body) {
   const base = body.accessibility ? FIXTURE.withAccessibility : FIXTURE.plain;
@@ -147,6 +158,8 @@ async function runFlow({ lang, width, shots, scenario = "flow" }) {
       return false;
     };
     let routesMode = "ok";
+    let crowdMode = "ok";
+    let reportMode = "ok";
     const asked = [];
 
     await send("Page.enable");
@@ -177,6 +190,13 @@ async function runFlow({ lang, width, shots, scenario = "flow" }) {
           if (routesMode === "error") return reply({ error: "internal", message: "Layanan rute sedang tidak tersedia. Coba lagi sebentar lagi." }, 503);
           if (routesMode === "empty") return reply({ ...FIXTURE.plain, routes: [] });
           return reply(routesResponse(body));
+        case url.pathname === "/crowd-reports" && request.method === "GET":
+          if (crowdMode === "error") return reply({}, 503);
+          return reply(crowdMode === "empty" ? [] : CROWD);
+        case url.pathname === "/crowd-reports":
+          return reportMode === "error" ? reply({}, 503) : reply({ ok: true });
+        case url.pathname === "/stops/search":
+          return reply(/zzz/.test(url.searchParams.get("q") ?? "") ? [] : CROWD_SEARCH);
         case url.pathname === "/me":
           return reply(USER);
         case url.pathname.startsWith("/me/"):
@@ -369,6 +389,44 @@ async function runFlow({ lang, width, shots, scenario = "flow" }) {
     await go("/trip/trip-1", "/Masuk untuk melihat riwayat perjalanan|Sign in to see your trip history/");
     await capture("perjalanan-tamu");
 
+    // --- 2b. Peta Kepadatan & Lapor Kepadatan.
+    await go("/crowd-map", "/^[\\s\\S]*(Lapor|Report)/");
+    await capture("peta-kepadatan");
+    const popup = await ev(`(() => { const f = document.querySelector("iframe"); if (!f) return null; const m = /const points = (\\[[\\s\\S]*?\\]);\\n/.exec(f.srcdoc); return { title: f.getAttribute("title"), items: m ? JSON.parse(m[1]).map((p) => p.popupHtml.replace(/<br\\/>/g, " | ").replace(/<[^>]+>/g, "")) : [] }; })()`);
+    if (!popup || popup.items.length !== CROWD.length) throw new Error("Isi popup peta tidak terbaca");
+    screens["peta-popup"] = { lines: popup.items, attrs: [popup.title], overflow: [], clipped: [], buttons: [], fares: [] };
+    await tapText("/^(Lapor|Report)$/", "tombol Lapor");
+    await waitFor(`!!document.querySelector('input[placeholder^="Nama halte"],input[placeholder^="Stop name"]')`, 8_000);
+    await capture("lapor-cari");
+    const typeStop = async (text) => {
+      await ev(`(() => { const i = document.querySelector('input[placeholder^="Nama halte"],input[placeholder^="Stop name"]'); i.focus(); i.select(); return true; })()`);
+      await send("Input.insertText", { text });
+    };
+    await typeStop("Mo");
+    await waitText("/Ketik minimal 3 karakter|Type at least 3 characters/");
+    await capture("lapor-pendek");
+    await typeStop("zzzz");
+    await waitText('/Tidak ada halte untuk|No stops for/');
+    await capture("lapor-kosong");
+    await typeStop("Monumen");
+    await waitText("/Monumen Nasional 2/");
+    await capture("lapor-hasil");
+    await tapText("/^Monumen Nasional 2$/", "hasil pencarian");
+    await waitText("/Seberapa padat halte ini sekarang|How crowded is this stop right now/");
+    await capture("lapor-tingkat");
+    reportMode = "error";
+    await tapText("/^(Padat|Crowded)$/", "tingkat kepadatan");
+    await waitText("/Layanan sedang tidak tersedia|The service is unavailable right now/");
+    await capture("lapor-galat");
+    reportMode = "ok";
+    crowdMode = "empty";
+    await go("/crowd-map", "/Belum ada laporan kepadatan|No crowd reports right now/");
+    await capture("peta-kosong");
+    crowdMode = "error";
+    await go("/crowd-map", "/Coba Lagi|Try Again/");
+    await capture("peta-galat");
+    crowdMode = "ok";
+
     // --- 3. Hasil rute, detail, Trip Pass, navigasi, ringkasan (tamu).
     await go(ROUTE_URL, RESULT_MARK);
     await sleep(600);
@@ -552,17 +610,17 @@ function diffScreen(name, base, now) {
 }
 
 // Kata Indonesia yang tidak boleh tersisa di teks buatan app saat EN aktif.
-const ID_WORDS = /\b(yang|dengan|untuk|dari|atau|dan|tidak|belum|sudah|masuk|daftar|keluar|lewati|simpan|batal|tutup|kembali|coba|lagi|halte|stasiun|jalan kaki|menit|mnt|tarif|saldo|riwayat|perjalanan|penilaian|kepadatan|akun|beranda|rute|tujuan|asal|berangkat|langkah|selesai|estimasi|aktual|sekarang|hari ini|sumber|diperbarui|ketuk|pilih|cari|memuat|menyimpan|gratis|kartu|bantuan|tampilan)\b/i;
+const ID_WORDS = /\b(lapor|laporan|padat|lengang|yang|dengan|untuk|dari|atau|dan|tidak|belum|sudah|masuk|daftar|keluar|lewati|simpan|batal|tutup|kembali|coba|lagi|halte|stasiun|jalan kaki|menit|mnt|tarif|saldo|riwayat|perjalanan|penilaian|kepadatan|akun|beranda|rute|tujuan|asal|berangkat|langkah|selesai|estimasi|aktual|sekarang|hari ini|sumber|diperbarui|ketuk|pilih|cari|memuat|menyimpan|gratis|kartu|bantuan|tampilan)\b/i;
 // Teks dari server dan data uji: dibiarkan Indonesia sesuai dokumen Task B.
 const SERVER_OK = [
   /Tidak sehat/, /Jawaban tiruan/, /^Halte /, /^Stasiun /, /Halte TransJakarta/, /Stasiun MRT/, /Blok M/, /Lebak Bulus/, /Pasar Baru/, /Cukup membantu/,
-  /Sebagian teks dari server/, /^Bahasa( Indonesia)?$/, /Rina/, /Layanan rute sedang tidak tersedia/,
+  /Monumen Nasional/, /Sebagian teks dari server/, /^Bahasa( Indonesia)?$/, /Rina/, /Layanan rute sedang tidak tersedia/,
   // Rincian tarif & ringkasan aksesibilitas dari backend.
   /titik tanpa data aksesibilitas|tercatat bisa diakses|Data aksesibilitas armada|Jalur jalan kaki belum dinilai/, /layanan premium/, /transfer gratis|Gratis transfer|gratis dalam/i,
   // Nama moda, kategori AQI, nama rute, dan nama tempat dari data.
   /^(Baik|Sedang|Sangat tidak sehat|Berbahaya)$/, /Tanjungpriuk|Cikarang|Bogor|Bundaran HI|Dukuh Atas|Kota/,
 ];
-const RAW_KEY = /\b(auth|home|route|detail|nav|trip|pass|about|toto|pref|a11y|air|common|profile|onboarding|history|rating|format|assistive|feedback|error|mode|badge|quick|side|tab|departure|location)\.[a-zA-Z0-9_.]+\b/;
+const RAW_KEY = /\b(crowd|auth|home|route|detail|nav|trip|pass|about|toto|pref|a11y|air|common|profile|onboarding|history|rating|format|assistive|feedback|error|mode|badge|quick|side|tab|departure|location)\.[a-zA-Z0-9_.]+\b/;
 
 if (MODE === "capture") {
   const out = process.argv[3];

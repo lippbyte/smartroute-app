@@ -18,6 +18,7 @@ import {
   formatReportedAt,
 } from "./crowdLevel";
 import type { CrowdMapViewProps } from "./types";
+import { t } from "@/i18n";
 
 function escapeHtml(value: string): string {
   return value
@@ -41,9 +42,9 @@ function buildMapHtml(stops: CrowdOverviewStop[]): string {
     color: LEVEL_COLOR[s.level],
     popupHtml:
       `<strong>${escapeHtml(s.name)}</strong><br/>` +
-      `Kepadatan: <b>${LEVEL_LABEL[s.level]}</b><br/>` +
-      `Laporan terakhir: ${escapeHtml(formatReportedAt(s.reported_at))}<br/>` +
-      `<button class="report-btn" data-stop-id="${escapeHtml(s.stop_id)}">Lapor di sini</button>`,
+      `${escapeHtml(t("nav.crowding"))}: <b>${escapeHtml(LEVEL_LABEL[s.level])}</b><br/>` +
+      `${escapeHtml(t("crowd.lastReport", { time: formatReportedAt(s.reported_at) }))}<br/>` +
+      `<button class="report-btn" data-stop-id="${escapeHtml(s.stop_id)}">${escapeHtml(t("crowd.reportHere"))}</button>`,
   }));
 
   // Jakarta-wide default view — used only when there happen to be no points
@@ -178,7 +179,7 @@ export default function CrowdMapView({ stops, onReportStop }: CrowdMapViewProps)
       <iframe
         srcDoc={buildMapHtml(stops)}
         style={{ width: "100%", height: "100%", border: "none", display: "block" }}
-        title="Peta Kepadatan"
+        title={t("menu.crowdMap")}
       />
     </View>
   );

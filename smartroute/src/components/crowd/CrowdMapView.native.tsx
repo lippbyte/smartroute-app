@@ -23,6 +23,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import Text from "@/components/Text";
 import { LEVEL_COLOR, LEVEL_LABEL, formatReportedAt } from "./crowdLevel";
 import type { CrowdMapViewProps } from "./types";
+import { t } from "@/i18n";
 
 const OPENFREEMAP_DARK_STYLE = "https://tiles.openfreemap.org/styles/dark";
 
@@ -129,7 +130,7 @@ export default function CrowdMapView({ stops, onReportStop }: CrowdMapViewProps)
             <Pressable
               onPress={() => setSelected(null)}
               hitSlop={12}
-              accessibilityLabel="Tutup info halte"
+              accessibilityLabel={t("crowd.closeInfo")}
             >
               <Ionicons name="close" size={18} color="#737373" />
             </Pressable>
@@ -143,12 +144,12 @@ export default function CrowdMapView({ stops, onReportStop }: CrowdMapViewProps)
               ]}
             />
             <Text style={styles.infoLevelText}>
-              Kepadatan: {LEVEL_LABEL[selected.level]}
+              {t("nav.crowding")}: {LEVEL_LABEL[selected.level]}
             </Text>
           </View>
 
           <Text style={styles.infoMeta}>
-            Laporan terakhir: {formatReportedAt(selected.reported_at)}
+            {t("crowd.lastReport", { time: formatReportedAt(selected.reported_at) })}
           </Text>
 
           {onReportStop && (
@@ -161,7 +162,7 @@ export default function CrowdMapView({ stops, onReportStop }: CrowdMapViewProps)
               style={styles.reportButton}
             >
               <Ionicons name="megaphone-outline" size={14} color="#FFFFFF" />
-              <Text style={styles.reportButtonText}>Lapor di sini</Text>
+              <Text style={styles.reportButtonText}>{t("crowd.reportHere")}</Text>
             </Pressable>
           )}
         </View>
