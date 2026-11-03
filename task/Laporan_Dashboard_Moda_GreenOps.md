@@ -429,7 +429,7 @@ Angka hari Senin sama dengan tabel yang disetujui, dan dikunci uji otomatis:
 
 **Tentang baris terakhir.** String itu memang harus ada selama kodenya dijaga flag, jadi saya tidak menghapusnya:
 
-- 9 berkas di `src/`, termasuk `GreenOpsPanel.tsx` dan `greenopsFactors.ts` yang memuat semua angka faktor
+- 8 berkas di `src/`, termasuk `GreenOpsPanel.tsx` dan `greenopsFactors.ts` yang memuat semua angka faktor
 - 3 berkas tes dan 1 skrip uji
 - 2 dokumen di `task/`
 
