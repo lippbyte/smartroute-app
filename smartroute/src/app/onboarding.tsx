@@ -18,12 +18,13 @@ import PrimaryButton from "@/components/form/PrimaryButton";
 import Text from "@/components/Text";
 import {
   AVOID_MODE_OPTIONS,
-  PRIORITY_NOTE,
+  priorityNote,
   PRIORITY_OPTIONS,
-  STORED_ONLY_NOTE,
+  storedOnlyNote,
   WALK_LIMIT_OPTIONS,
 } from "@/constants/preferenceLabels";
 import { useAuth } from "@/context/AuthContext";
+import { t, type TKey } from "@/i18n";
 import { ApiError } from "@/services/apiClient";
 import * as authService from "@/services/authService";
 import type { AccessibilityNeed, AvoidableMode, Priority, WalkLimit } from "@/services/authService";
@@ -31,11 +32,15 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 
-const STEPS = [
-  { title: "Apa yang paling penting?", subtitle: "Pilih satu. Boleh dilewati." },
-  { title: "Jalan kaki & moda", subtitle: "Semua pertanyaan di langkah ini opsional." },
-  { title: "Kebutuhan aksesibilitas", subtitle: "Opsional. Hanya diisi bila Anda mau." },
-];
+const step = (title: TKey, subtitle: TKey) => ({
+  get title() {
+    return t(title);
+  },
+  get subtitle() {
+    return t(subtitle);
+  },
+});
+const STEPS = [step("onboarding.step1", "onboarding.step1.body"), step("onboarding.step2", "onboarding.step2.body"), step("a11yCard.needs", "onboarding.step3.body")];
 
 export default function OnboardingScreen() {
   const router = useRouter();
@@ -61,7 +66,7 @@ export default function OnboardingScreen() {
     try {
       await action();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal menyimpan. Coba lagi, atau lewati langkah ini.");
+      setError(err instanceof ApiError ? err.message : t("onboarding.saveError"));
     } finally {
       setSaving(false);
     }
@@ -120,11 +125,11 @@ export default function OnboardingScreen() {
     <AuthScreenLayout title={STEPS[step].title} subtitle={STEPS[step].subtitle}>
       <View className="flex-row items-center justify-between">
         <Text className="text-ink-2 text-sm" weight="semibold" accessibilityLiveRegion="polite">
-          Langkah {step + 1} dari {STEPS.length}
+          {t("common.stepOf", { n: step + 1, total: STEPS.length })}
         </Text>
-        <Pressable onPress={skipAll} disabled={saving} hitSlop={10} accessibilityRole="button" accessibilityHint="Lewati semua pertanyaan. Bisa diisi nanti di Profil.">
+        <Pressable onPress={skipAll} disabled={saving} hitSlop={10} accessibilityRole="button" accessibilityHint={t("onboarding.skipAllHint")}>
           <Text className="text-[15px] underline" weight="bold" style={{ color: "#0F3FC1" }}>
-            Lewati semua
+            {t("onboarding.skipAll")}
           </Text>
         </Pressable>
       </View>
@@ -145,7 +150,7 @@ export default function OnboardingScreen() {
               onPress={() => setPriority(priority === o.value ? null : o.value)}
             />
           ))}
-          <Text className="text-ink-2 text-sm">{PRIORITY_NOTE}</Text>
+          <Text className="text-ink-2 text-sm">{priorityNote()}</Text>
         </View>
       )}
 
@@ -153,7 +158,7 @@ export default function OnboardingScreen() {
         <View className="gap-5">
           <View className="gap-3" accessibilityRole="radiogroup">
             <Text className="text-ink text-base" weight="bold">
-              Batas jalan kaki
+              {t("pref.walkLimit")}
             </Text>
             {WALK_LIMIT_OPTIONS.map((o) => (
               <OptionCard
@@ -167,7 +172,7 @@ export default function OnboardingScreen() {
           </View>
           <View className="gap-3">
             <Text className="text-ink text-base" weight="bold">
-              Moda yang ingin dihindari
+              {t("pref.avoid")}
             </Text>
             <View className="flex-row flex-wrap gap-2">
               {AVOID_MODE_OPTIONS.map((o) => (
@@ -175,7 +180,7 @@ export default function OnboardingScreen() {
               ))}
             </View>
           </View>
-          <Text className="text-ink-2 text-sm">{STORED_ONLY_NOTE}</Text>
+          <Text className="text-ink-2 text-sm">{storedOnlyNote()}</Text>
         </View>
       )}
 
@@ -185,13 +190,13 @@ export default function OnboardingScreen() {
 
       <View className="gap-3">
         <PrimaryButton
-          label={saving ? "Menyimpan…" : isLast ? "Simpan" : "Lanjut"}
+          label={saving ? t("common.saving") : isLast ? t("common.save") : t("common.next")}
           onPress={next}
           loading={saving}
           disabled={nextDisabled}
-          accessibilityHint={nextDisabled ? "Pilih minimal satu kebutuhan dan centang persetujuan untuk menyimpan." : undefined}
+          accessibilityHint={nextDisabled ? t("onboarding.saveHint") : undefined}
         />
-        <PrimaryButton label={isLast ? "Lewati, jangan simpan" : "Lewati langkah ini"} variant="outline" onPress={skipStep} disabled={saving} />
+        <PrimaryButton label={isLast ? t("onboarding.skipNoSave") : t("onboarding.skipStep")} variant="outline" onPress={skipStep} disabled={saving} />
       </View>
     </AuthScreenLayout>
   );

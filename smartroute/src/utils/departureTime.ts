@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 // src/utils/departureTime.ts
 //
 // Task App-08: bangun string departure_time yang backend terima —
@@ -56,15 +57,15 @@ export function validateHourMinute(
   minuteText: string,
 ): string | null {
   if (hourText.trim() === "" || minuteText.trim() === "") {
-    return 'Isi jam dan menit, atau matikan "Atur waktu" untuk pakai waktu sekarang.';
+    return t("departure.errorEmpty");
   }
   const hour = Number(hourText);
   const minute = Number(minuteText);
   if (!Number.isInteger(hour) || hour < 0 || hour > 23) {
-    return "Jam harus angka 0-23.";
+    return t("departure.errorHour");
   }
   if (!Number.isInteger(minute) || minute < 0 || minute > 59) {
-    return "Menit harus angka 0-59.";
+    return t("departure.errorMinute");
   }
   return null;
 }

@@ -6,7 +6,7 @@
 // apa pun — hanya data asli dari endpoint Backend-07").
 // See backend/Task_App_01_Crowd_Overview_Map.md for the task this implements.
 
-import { apiRequest, UNAVAILABLE_MESSAGE } from "./apiClient";
+import { apiRequest, unavailableMessage } from "./apiClient";
 
 const CROWD_TIMEOUT_MS = 10_000;
 // Dipanggil dari input yang diketik user — batas lebih pendek supaya saran
@@ -50,7 +50,7 @@ export async function fetchCrowdOverview(): Promise<CrowdOverviewStop[]> {
       timeoutMessage: "Memuat peta kepadatan terlalu lama. Coba lagi.",
     });
   } catch (err) {
-    throw new CrowdOverviewFetchError(err instanceof Error ? err.message : UNAVAILABLE_MESSAGE, err);
+    throw new CrowdOverviewFetchError(err instanceof Error ? err.message : unavailableMessage(), err);
   }
 }
 
@@ -99,7 +99,7 @@ export async function searchStops(
     });
   } catch (err) {
     if (signal?.aborted) throw err;
-    throw new StopSearchError(err instanceof Error ? err.message : UNAVAILABLE_MESSAGE, err);
+    throw new StopSearchError(err instanceof Error ? err.message : unavailableMessage(), err);
   }
 }
 
@@ -131,6 +131,6 @@ export async function submitCrowdReport(
       timeoutMessage: "Mengirim laporan kepadatan terlalu lama. Coba lagi.",
     });
   } catch (err) {
-    throw new CrowdReportSubmitError(err instanceof Error ? err.message : UNAVAILABLE_MESSAGE, err);
+    throw new CrowdReportSubmitError(err instanceof Error ? err.message : unavailableMessage(), err);
   }
 }

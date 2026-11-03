@@ -4,7 +4,7 @@
 // /nearby-stops endpoint from Task Backend-11. Pola fetch-wrapper sama
 // persis dengan crowdService.ts (custom Error subclass, cek network-error
 // vs status non-ok, dst) supaya konsisten satu gaya di seluruh services/.
-import { apiRequest, UNAVAILABLE_MESSAGE } from "./apiClient";
+import { apiRequest, unavailableMessage } from "./apiClient";
 import { TransitMode } from "@/components/transit/transitMode";
 
 // Kueri radius kecil, dijawab cepat oleh backend.
@@ -58,7 +58,7 @@ export async function fetchNearbyStops(
       timeoutMessage: "Pencarian halte terdekat terlalu lama. Coba lagi.",
     });
   } catch (err) {
-    throw new NearbyStopsFetchError(err instanceof Error ? err.message : UNAVAILABLE_MESSAGE, err);
+    throw new NearbyStopsFetchError(err instanceof Error ? err.message : unavailableMessage(), err);
   }
 }
 
@@ -90,6 +90,6 @@ export async function fetchAllStops(modes?: TransitMode[]): Promise<TransitStop[
       timeoutMessage: "Memuat daftar halte terlalu lama. Coba lagi.",
     });
   } catch (err) {
-    throw new NearbyStopsFetchError(err instanceof Error ? err.message : UNAVAILABLE_MESSAGE, err);
+    throw new NearbyStopsFetchError(err instanceof Error ? err.message : unavailableMessage(), err);
   }
 }

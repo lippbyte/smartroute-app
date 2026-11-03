@@ -17,6 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Modal, Pressable, ScrollView, View } from "react-native";
 import Text from "./Text";
+import { localeTag, t } from "@/i18n";
 
 export default function AccessibilityCard() {
   const { status, user, token, replaceUser } = useAuth();
@@ -44,7 +45,7 @@ export default function AccessibilityCard() {
     try {
       await action();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal menghubungi server. Coba lagi.");
+      setError(err instanceof ApiError ? err.message : t("common.serverError"));
     } finally {
       setBusy(false);
     }
@@ -65,16 +66,16 @@ export default function AccessibilityCard() {
   return (
     <View className="bg-surface w-full px-5 py-4 rounded-2xl border border-line gap-3">
       <View className="flex-row items-center justify-between">
-        <Text className="text-ink font-bold text-lg">Aksesibilitas</Text>
+        <Text className="text-ink font-bold text-lg">{t("a11yCard.title")}</Text>
         <Pressable
           onPress={openEditor}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel={saved ? "Ubah data aksesibilitas" : "Isi data aksesibilitas"}
+          accessibilityLabel={saved ? t("a11yCard.editLabel") : t("a11yCard.addLabel")}
           className="px-2 py-1.5"
         >
           <Text className="text-[15px] underline" weight="bold" style={{ color: "#0F3FC1" }}>
-            {saved ? "Ubah" : "Isi"}
+            {saved ? t("a11yCard.edit") : t("a11yCard.add")}
           </Text>
         </Pressable>
       </View>
@@ -88,12 +89,11 @@ export default function AccessibilityCard() {
             </View>
           ))}
           <Text className="text-ink-2 text-xs mt-1">
-            Disetujui {new Date(saved.consent_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}.
-            Penyesuaian rute untuk profil ini sedang dikembangkan.
+            {t("a11yCard.consented", { date: new Date(saved.consent_at).toLocaleDateString(localeTag(), { day: "numeric", month: "long", year: "numeric" }) })}
           </Text>
         </View>
       ) : (
-        <Text className="text-ink-2 text-sm">Belum diisi. Opsional — hanya diisi bila Anda mau.</Text>
+        <Text className="text-ink-2 text-sm">{t("a11yCard.empty")}</Text>
       )}
 
       {saved && !confirmDelete && (
@@ -105,7 +105,7 @@ export default function AccessibilityCard() {
         >
           <Ionicons name="trash-outline" size={18} color="#B91C1C" />
           <Text className="text-[15px]" weight="semibold" style={{ color: "#B91C1C" }}>
-            Hapus data aksesibilitas
+            {t("a11yCard.delete")}
           </Text>
         </Pressable>
       )}
@@ -113,11 +113,11 @@ export default function AccessibilityCard() {
       {confirmDelete && (
         <View className="gap-2.5 rounded-xl p-3" style={{ backgroundColor: "#FEF2F2", borderWidth: 1, borderColor: "#FCA5A5" }}>
           <Text className="text-[15px]" style={{ color: "#7F1D1D" }}>
-            Hapus semua data aksesibilitas dari akun Anda? Data akan dihapus dari server SmartRoute.
+            {t("a11yCard.deleteConfirm")}
           </Text>
           <View className="flex-row gap-2">
             <View className="flex-1">
-              <PrimaryButton label="Batal" variant="outline" onPress={() => setConfirmDelete(false)} disabled={busy} />
+              <PrimaryButton label={t("common.cancel")} variant="outline" onPress={() => setConfirmDelete(false)} disabled={busy} />
             </View>
             <View className="flex-1">
               <Pressable
@@ -128,7 +128,7 @@ export default function AccessibilityCard() {
                 style={{ minHeight: 52, backgroundColor: "#B91C1C" }}
               >
                 <Text className="text-base" weight="bold" style={{ color: "#FFFFFF" }}>
-                  {busy ? "Menghapus…" : "Ya, hapus"}
+                  {busy ? t("a11yCard.deleting") : t("a11yCard.deleteYes")}
                 </Text>
               </Pressable>
             </View>
@@ -146,17 +146,17 @@ export default function AccessibilityCard() {
               keyboardShouldPersistTaps="handled"
             >
               <Text className="text-ink text-xl" weight="bold" accessibilityRole="header">
-                Kebutuhan aksesibilitas
+                {t("a11yCard.needs")}
               </Text>
               <AccessibilityForm needs={needs} onChangeNeeds={setNeeds} consent={consent} onChangeConsent={setConsent} />
               {error && <FormMessage tone="error" message={error} />}
               <PrimaryButton
-                label={busy ? "Menyimpan…" : "Simpan"}
+                label={busy ? t("common.saving") : t("common.save")}
                 onPress={save}
                 loading={busy}
                 disabled={!canSaveAccessibility(needs, consent)}
               />
-              <PrimaryButton label="Batal" variant="outline" onPress={() => setEditing(false)} disabled={busy} />
+              <PrimaryButton label={t("common.cancel")} variant="outline" onPress={() => setEditing(false)} disabled={busy} />
             </ScrollView>
           </View>
         </View>

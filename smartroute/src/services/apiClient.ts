@@ -15,12 +15,12 @@
 // hanya ke console. Pesan 4xx dari backend (validasi) tetap diteruskan.
 import { fetchWithTimeout, RequestTimeoutError } from "@/utils/withTimeout";
 import { API_BASE_URL } from "./apiConfig";
+import { t } from "@/i18n";
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 
-export const NETWORK_ERROR_MESSAGE =
-  "Tidak bisa menghubungi server. Periksa koneksi internet Anda, lalu coba lagi.";
-export const UNAVAILABLE_MESSAGE = "Layanan sedang tidak tersedia. Coba lagi sebentar lagi.";
+export const networkErrorMessage = () => t("error.network");
+export const unavailableMessage = () => t("error.unavailable");
 
 export class ApiError extends Error {
   constructor(
@@ -85,7 +85,7 @@ export async function apiRequest<T>(method: string, path: string, options: Reque
       throw new ApiError(err.message, 0, "timeout");
     }
     console.warn(`[api] ${method} ${API_BASE_URL}${path}: tidak terjangkau`, err);
-    throw new ApiError(NETWORK_ERROR_MESSAGE, 0, "network");
+    throw new ApiError(networkErrorMessage(), 0, "network");
   }
 
   if (res.status === 204) return undefined as T;
@@ -99,7 +99,7 @@ export async function apiRequest<T>(method: string, path: string, options: Reque
     // bagi pengguna itu sama dengan server tidak terjangkau, apa pun
     // statusnya. Detail hanya ke console.
     console.warn(`[api] ${method} ${API_BASE_URL}${path}: balasan bukan JSON (HTTP ${res.status})`);
-    throw new ApiError(NETWORK_ERROR_MESSAGE, 0, "bad_response");
+    throw new ApiError(networkErrorMessage(), 0, "bad_response");
   }
 
   if (!res.ok) {
@@ -112,9 +112,9 @@ export async function apiRequest<T>(method: string, path: string, options: Reque
       // 5xx: pesan backend sudah generik (Hari 4), tapi pesan cadangan pun
       // tidak boleh memuat status/URL.
       console.warn(`[api] ${method} ${path}: HTTP ${res.status} ${code}`);
-      throw new ApiError(b.message || UNAVAILABLE_MESSAGE, res.status, code);
+      throw new ApiError(b.message || unavailableMessage(), res.status, code);
     }
-    throw new ApiError(b.message ?? "Permintaan tidak bisa diproses. Coba lagi.", res.status, code, b.fields ?? {});
+    throw new ApiError(b.message ?? t("error.request"), res.status, code, b.fields ?? {});
   }
 
   return parsed as T;

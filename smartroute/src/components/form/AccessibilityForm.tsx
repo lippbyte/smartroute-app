@@ -9,12 +9,13 @@ import { CheckboxRow } from "@/components/form/ChoiceControls";
 import { FormMessage } from "@/components/form/FormField";
 import Text from "@/components/Text";
 import {
-  ACCESSIBILITY_CONSENT_TEXT,
-  ACCESSIBILITY_DEV_NOTE,
+  accessibilityConsentText,
+  accessibilityDevNote,
   ACCESSIBILITY_OPTIONS,
 } from "@/constants/preferenceLabels";
 import type { AccessibilityNeed } from "@/services/authService";
 import { View } from "react-native";
+import { t } from "@/i18n";
 
 interface Props {
   needs: AccessibilityNeed[];
@@ -33,20 +34,20 @@ export default function AccessibilityForm({ needs, onChangeNeeds, consent, onCha
 
   return (
     <View className="gap-4">
-      <FormMessage tone="info" message={ACCESSIBILITY_DEV_NOTE} />
-      <View className="gap-1" accessibilityLabel="Kebutuhan aksesibilitas">
+      <FormMessage tone="info" message={accessibilityDevNote()} />
+      <View className="gap-1" accessibilityLabel={t("a11yCard.needs")}>
         {ACCESSIBILITY_OPTIONS.map((o) => (
           <CheckboxRow key={o.value} label={o.label} checked={needs.includes(o.value)} onPress={() => toggle(o.value)} />
         ))}
       </View>
       <View className="gap-1.5">
         <Text className="text-ink-2 text-[15px]" weight="semibold">
-          Persetujuan
+          {t("a11yCard.consent")}
         </Text>
-        <CheckboxRow label={ACCESSIBILITY_CONSENT_TEXT} checked={consent} onPress={() => onChangeConsent(!consent)} emphasis />
+        <CheckboxRow label={accessibilityConsentText()} checked={consent} onPress={() => onChangeConsent(!consent)} emphasis />
         {needs.length > 0 && !consent && (
           <Text className="text-sm" style={{ color: "#B91C1C" }}>
-            Centang persetujuan di atas untuk menyimpan data ini.
+            {t("a11yCard.consentHint")}
           </Text>
         )}
       </View>

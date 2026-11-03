@@ -11,6 +11,7 @@ import { ApiError } from "@/services/apiClient";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
+import { t } from "@/i18n";
 
 type Field = "name" | "email" | "password";
 
@@ -34,10 +35,10 @@ export default function RegisterScreen() {
 
   const submit = async () => {
     const errors: Partial<Record<Field, string>> = {};
-    if (!values.name.trim()) errors.name = "Nama wajib diisi.";
-    if (!values.email.trim()) errors.email = "Email wajib diisi.";
-    else if (!/^\S+@\S+\.\S+$/.test(values.email.trim())) errors.email = "Format email tidak valid, contoh: nama@email.com";
-    if (values.password.length < 8) errors.password = "Kata sandi minimal 8 karakter.";
+    if (!values.name.trim()) errors.name = t("auth.nameRequired");
+    if (!values.email.trim()) errors.email = t("auth.emailRequired");
+    else if (!/^\S+@\S+\.\S+$/.test(values.email.trim())) errors.email = t("auth.emailInvalid");
+    if (values.password.length < 8) errors.password = t("auth.passwordMin");
     setFieldErrors(errors);
     setFormError(null);
     if (Object.keys(errors).length) return;
@@ -56,7 +57,7 @@ export default function RegisterScreen() {
         // Pesan umum hanya kalau tidak ada galat per field yang menjelaskan.
         if (!Object.keys(serverFields).length) setFormError(err.message);
       } else {
-        setFormError("Terjadi kesalahan. Coba lagi.");
+        setFormError(t("common.genericError"));
       }
     } finally {
       setSubmitting(false);
@@ -70,16 +71,16 @@ export default function RegisterScreen() {
 
   return (
     <AuthScreenLayout
-      title="Daftar"
-      subtitle="Buat akun untuk menyimpan riwayat perjalanan dan memakai TOTO."
-      footer={<PrimaryButton label="Lanjut sebagai tamu" variant="ghost-light" onPress={guest} accessibilityHint="Langsung ke Beranda tanpa akun. Pencarian rute tetap bisa dipakai." />}
+      title={t("common.signUp")}
+      subtitle={t("auth.signUpSubtitle")}
+      footer={<PrimaryButton label={t("common.continueGuest")} variant="ghost-light" onPress={guest} accessibilityHint={t("common.guestHint")} />}
     >
       <FormField
-        label="Nama panggilan"
+        label={t("auth.nickname")}
         value={values.name}
         onChangeText={set("name")}
         error={fieldErrors.name}
-        placeholder="mis. Rina"
+        placeholder={t("auth.nicknamePlaceholder")}
         autoComplete="name"
         textContentType="nickname"
         maxLength={60}
@@ -93,7 +94,7 @@ export default function RegisterScreen() {
         value={values.email}
         onChangeText={set("email")}
         error={fieldErrors.email}
-        placeholder="nama@email.com"
+        placeholder={t("auth.emailPlaceholder")}
         keyboardType="email-address"
         autoCapitalize="none"
         autoCorrect={false}
@@ -105,11 +106,11 @@ export default function RegisterScreen() {
       />
       <FormField
         ref={passwordRef}
-        label="Kata sandi"
+        label={t("auth.password")}
         value={values.password}
         onChangeText={set("password")}
         error={fieldErrors.password}
-        hint="Minimal 8 karakter."
+        hint={t("auth.passwordHint")}
         secureToggle
         autoCapitalize="none"
         autoCorrect={false}
@@ -121,13 +122,13 @@ export default function RegisterScreen() {
 
       {formError && <FormMessage tone="error" message={formError} />}
 
-      <PrimaryButton label={submitting ? "Memproses…" : "Daftar"} onPress={submit} loading={submitting} />
+      <PrimaryButton label={submitting ? t("common.processing") : t("common.signUp")} onPress={submit} loading={submitting} />
 
       <View className="flex-row justify-center items-center flex-wrap gap-1">
-        <Text className="text-ink-2 text-[15px]">Sudah punya akun?</Text>
+        <Text className="text-ink-2 text-[15px]">{t("auth.haveAccount")}</Text>
         <Pressable onPress={() => router.replace("/login")} hitSlop={8} accessibilityRole="link">
           <Text className="text-[15px] underline" weight="bold" style={{ color: "#0F3FC1" }}>
-            Masuk
+            {t("common.signIn")}
           </Text>
         </Pressable>
       </View>

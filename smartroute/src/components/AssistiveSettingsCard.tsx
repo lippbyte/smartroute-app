@@ -6,10 +6,10 @@ import Text from "@/components/Text";
 import { UNAVAILABLE_ASSISTIVE, useAssistive } from "@/context/AssistiveSettingsContext";
 import { assistiveWorkingSummary, visibleAssistiveItems } from "@/utils/assistiveSettings";
 import { Pressable, Switch, View } from "react-native";
+import { t } from "@/i18n";
 
 // Hari 4 Task 1: tanpa bantuan yang tidak ditawarkan di platform ini.
 const ITEMS = visibleAssistiveItems(UNAVAILABLE_ASSISTIVE);
-const WORKING_SUMMARY = assistiveWorkingSummary(UNAVAILABLE_ASSISTIVE);
 
 export default function AssistiveSettingsCard() {
   const { settings, setChoice } = useAssistive();
@@ -17,9 +17,9 @@ export default function AssistiveSettingsCard() {
   return (
     <View className="bg-surface w-full px-5 py-4 rounded-2xl border border-line gap-1">
       <Text className="text-ink font-bold text-lg" accessibilityRole="header">
-        Tampilan & bantuan
+        {t("assistive.title")}
       </Text>
-      <Text className="text-ink-2 text-xs">Tersimpan di perangkat ini. Profil akun Anda tidak diubah.</Text>
+      <Text className="text-ink-2 text-xs">{t("assistive.savedHere")}</Text>
 
       {ITEMS.map(({ key, label, description }, i) => {
         const s = settings[key];
@@ -43,7 +43,7 @@ export default function AssistiveSettingsCard() {
               </Text>
               {s.suggested && (
                 <Text className="text-xs" weight="semibold" style={{ color: "#065F46" }}>
-                  Aktif karena diusulkan dari profil aksesibilitas Anda
+                  {t("assistive.suggested")}
                 </Text>
               )}
             </View>
@@ -61,17 +61,16 @@ export default function AssistiveSettingsCard() {
 
       <View className="rounded-xl p-3 mt-2 gap-1" style={{ backgroundColor: "#F4F4F0" }}>
         <Text className="text-ink text-xs" weight="bold">
-          Yang sudah bekerja
+          {t("assistive.working")}
         </Text>
         <Text className="text-ink-2 text-xs" style={{ lineHeight: 17 }}>
-          {WORKING_SUMMARY}
+          {assistiveWorkingSummary(UNAVAILABLE_ASSISTIVE)}
         </Text>
         <Text className="text-ink text-xs mt-1" weight="bold">
-          Masih dikembangkan
+          {t("assistive.developing")}
         </Text>
         <Text className="text-ink-2 text-xs" style={{ lineHeight: 17 }}>
-          Rute yang otomatis menghindari halte tak aksesibel; data aksesibilitas stasiun KRL, MRT, dan LRT serta armada
-          (belum tersedia di data yang kami pakai).
+          {t("assistive.developingBody")}
         </Text>
       </View>
     </View>

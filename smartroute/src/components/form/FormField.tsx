@@ -9,6 +9,7 @@ import Text from "@/components/Text";
 import { Ionicons } from "@expo/vector-icons";
 import { forwardRef, useState } from "react";
 import { Pressable, TextInput, TextInputProps, View } from "react-native";
+import { t } from "@/i18n";
 
 export const FORM_ERROR_COLOR = "#B91C1C";
 
@@ -59,7 +60,7 @@ const FormField = forwardRef<TextInput, FormFieldProps>(function FormField(
             onPress={() => setHidden((h) => !h)}
             hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel={hidden ? "Tampilkan kata sandi" : "Sembunyikan kata sandi"}
+            accessibilityLabel={hidden ? t("auth.showPassword") : t("auth.hidePassword")}
             className="px-4 py-3"
           >
             <Ionicons name={hidden ? "eye-outline" : "eye-off-outline"} size={22} color="#404040" />

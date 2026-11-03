@@ -1,3 +1,4 @@
+import { groupDigits } from "@/i18n";
 // src/utils/currency.ts
 //
 // Task App-20: `.toLocaleString()` tanpa locale eksplisit dipakai di 3
@@ -17,6 +18,5 @@
 export function formatRupiah(amount: number): string {
   const sign = amount < 0 ? "-" : "";
   const digits = Math.round(Math.abs(amount)).toString();
-  const grouped = digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  return `Rp ${sign}${grouped}`;
+  return `Rp ${sign}${groupDigits(digits)}`;
 }

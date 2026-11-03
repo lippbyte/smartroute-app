@@ -7,9 +7,9 @@ import { ToggleChip } from "@/components/form/ChoiceControls";
 import {
   AVOID_MODE_OPTIONS,
   labelOf,
-  PRIORITY_NOTE,
+  priorityNote,
   PRIORITY_OPTIONS,
-  STORED_ONLY_NOTE,
+  storedOnlyNote,
   WALK_LIMIT_OPTIONS,
 } from "@/constants/preferenceLabels";
 import { useAuth } from "@/context/AuthContext";
@@ -30,6 +30,7 @@ import {
   View,
 } from "react-native";
 import Text from "./Text";
+import { t } from "@/i18n";
 
 // ─── Tipe Data ────────────────────────────────────────────────
 interface PreferenceItemProps {
@@ -39,7 +40,7 @@ interface PreferenceItemProps {
   showBorder?: boolean;
 }
 
-const NONE_LABEL = "Belum dipilih";
+const noneLabel = () => t("pref.none");
 
 // ─── Baris Preferensi ─────────────────────────────────────────
 function PreferenceItem({
@@ -52,7 +53,7 @@ function PreferenceItem({
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${label}: ${value}. Ketuk untuk mengubah.`}
+      accessibilityLabel={t("pref.itemLabel", { label, value })}
       className={`flex-row justify-between items-center py-3.5 active:opacity-60 ${
         showBorder ? "border-b border-line" : ""
       }`}
@@ -146,7 +147,7 @@ function OptionModal({
       <Pressable
         className="flex-1 justify-center items-center px-6"
         onPress={onClose}
-        accessibilityLabel="Tutup pilihan"
+        accessibilityLabel={t("pref.closeOptions")}
       >
         <Animated.View
           style={[
@@ -201,7 +202,7 @@ function OptionModal({
               onPress={onClose}
               className="items-center py-4 mt-1 border-t border-slate-100"
             >
-              <Text className="text-base font-semibold text-red-500">Batal</Text>
+              <Text className="text-base font-semibold text-red-500">{t("common.cancel")}</Text>
             </TouchableOpacity>
           </Pressable>
         </Animated.View>
@@ -214,8 +215,18 @@ function OptionModal({
 type ModalKind = "priority" | "walk";
 
 const MODAL_CONFIG: Record<ModalKind, { title: string; options: { value: string; label: string }[] }> = {
-  priority: { title: "Prioritas utama", options: PRIORITY_OPTIONS },
-  walk: { title: "Batas jalan kaki", options: WALK_LIMIT_OPTIONS },
+  priority: {
+    get title() {
+      return t("pref.priority");
+    },
+    options: PRIORITY_OPTIONS,
+  },
+  walk: {
+    get title() {
+      return t("pref.walkLimit");
+    },
+    options: WALK_LIMIT_OPTIONS,
+  },
 };
 
 export default function PreferenceCard() {
@@ -229,9 +240,9 @@ export default function PreferenceCard() {
   if (status !== "signedIn" || !user || !token) {
     return (
       <View className="bg-surface w-full px-5 py-4 rounded-2xl border border-line gap-1">
-        <Text className="text-ink font-bold text-lg">Preferensi</Text>
+        <Text className="text-ink font-bold text-lg">{t("pref.title")}</Text>
         <Text className="text-ink-2 text-sm">
-          Masuk untuk menyimpan prioritas perjalanan, batas jalan kaki, dan moda yang ingin dihindari.
+          {t("pref.signInPrompt")}
         </Text>
       </View>
     );
@@ -250,7 +261,7 @@ export default function PreferenceCard() {
     try {
       replaceUser(await authService.updatePreferences(token, { ...current, ...patch }));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal menyimpan preferensi. Coba lagi.");
+      setError(err instanceof ApiError ? err.message : t("pref.saveError"));
     } finally {
       setSaving(false);
     }
@@ -264,7 +275,7 @@ export default function PreferenceCard() {
   const config = MODAL_CONFIG[lastModal];
   const selectedLabel =
     (lastModal === "priority" ? labelOf(PRIORITY_OPTIONS, current.priority) : labelOf(WALK_LIMIT_OPTIONS, current.walk_limit)) ??
-    NONE_LABEL;
+    noneLabel();
 
   const handleSelect = (label: string) => {
     const value = config.options.find((o) => o.label === label)?.value ?? null;
@@ -280,24 +291,24 @@ export default function PreferenceCard() {
   return (
     <View className="bg-surface w-full px-5 py-4 rounded-2xl border border-line">
       <View className="flex-row items-center justify-between mb-1">
-        <Text className="text-ink font-bold text-lg">Preferensi</Text>
-        {saving && <ActivityIndicator size="small" color="#0F3FC1" accessibilityLabel="Menyimpan preferensi" />}
+        <Text className="text-ink font-bold text-lg">{t("pref.title")}</Text>
+        {saving && <ActivityIndicator size="small" color="#0F3FC1" accessibilityLabel={t("pref.saving")} />}
       </View>
 
       <View className="w-full">
         <PreferenceItem
-          label="Prioritas utama"
-          value={labelOf(PRIORITY_OPTIONS, current.priority) ?? NONE_LABEL}
+          label={t("pref.priority")}
+          value={labelOf(PRIORITY_OPTIONS, current.priority) ?? noneLabel()}
           onPress={() => openModal("priority")}
         />
-        <Text className="text-ink-2 text-xs pt-2 pb-1">{PRIORITY_NOTE}</Text>
+        <Text className="text-ink-2 text-xs pt-2 pb-1">{priorityNote()}</Text>
         <PreferenceItem
-          label="Batas jalan kaki"
-          value={labelOf(WALK_LIMIT_OPTIONS, current.walk_limit) ?? NONE_LABEL}
+          label={t("pref.walkLimit")}
+          value={labelOf(WALK_LIMIT_OPTIONS, current.walk_limit) ?? noneLabel()}
           onPress={() => openModal("walk")}
         />
         <View className="py-3.5 gap-2.5">
-          <Text className="text-ink-2 text-sm font-medium">Moda yang ingin dihindari</Text>
+          <Text className="text-ink-2 text-sm font-medium">{t("pref.avoid")}</Text>
           <View className="flex-row flex-wrap gap-2">
             {AVOID_MODE_OPTIONS.map((o) => (
               <ToggleChip
@@ -309,7 +320,7 @@ export default function PreferenceCard() {
             ))}
           </View>
         </View>
-        <Text className="text-ink-2 text-xs">{STORED_ONLY_NOTE}</Text>
+        <Text className="text-ink-2 text-xs">{storedOnlyNote()}</Text>
       </View>
 
       {error && (
@@ -321,7 +332,7 @@ export default function PreferenceCard() {
       <OptionModal
         visible={modal !== null}
         title={config.title}
-        options={[...config.options.map((o) => o.label), NONE_LABEL]}
+        options={[...config.options.map((o) => o.label), noneLabel()]}
         selectedValue={selectedLabel}
         onSelect={handleSelect}
         onClose={() => setModal(null)}

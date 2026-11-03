@@ -6,6 +6,7 @@
 // inti (aturan main no. 1).
 import AuthScreenLayout from "@/components/form/AuthScreenLayout";
 import FormField, { FormMessage } from "@/components/form/FormField";
+import LanguagePicker from "@/components/LanguagePicker";
 import PrimaryButton from "@/components/form/PrimaryButton";
 import Text from "@/components/Text";
 import { useAuth } from "@/context/AuthContext";
@@ -13,6 +14,7 @@ import { ApiError } from "@/services/apiClient";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
+import { t } from "@/i18n";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -31,9 +33,9 @@ export default function LoginScreen() {
 
   const submit = async () => {
     const errors: typeof fieldErrors = {};
-    if (!email.trim()) errors.email = "Email wajib diisi.";
-    else if (!/^\S+@\S+\.\S+$/.test(email.trim())) errors.email = "Format email tidak valid, contoh: nama@email.com";
-    if (!password) errors.password = "Kata sandi wajib diisi.";
+    if (!email.trim()) errors.email = t("auth.emailRequired");
+    else if (!/^\S+@\S+\.\S+$/.test(email.trim())) errors.email = t("auth.emailInvalid");
+    if (!password) errors.password = t("auth.passwordRequired");
     setFieldErrors(errors);
     setFormError(null);
     if (Object.keys(errors).length) return;
@@ -44,7 +46,7 @@ export default function LoginScreen() {
       await signIn(email, password);
       leave();
     } catch (err) {
-      setFormError(err instanceof ApiError ? err.message : "Terjadi kesalahan. Coba lagi.");
+      setFormError(err instanceof ApiError ? err.message : t("common.genericError"));
     } finally {
       setSubmitting(false);
     }
@@ -57,9 +59,14 @@ export default function LoginScreen() {
 
   return (
     <AuthScreenLayout
-      title="Masuk"
-      subtitle="Masuk untuk menyimpan riwayat perjalanan dan memakai TOTO, asisten AI."
-      footer={<PrimaryButton label="Lanjut sebagai tamu" variant="ghost-light" onPress={guest} accessibilityHint="Langsung ke Beranda tanpa akun. Pencarian rute tetap bisa dipakai." />}
+      title={t("common.signIn")}
+      subtitle={t("auth.signInSubtitle")}
+      footer={
+        <View className="gap-5">
+          <PrimaryButton label={t("common.continueGuest")} variant="ghost-light" onPress={guest} accessibilityHint={t("common.guestHint")} />
+          <LanguagePicker onDark />
+        </View>
+      }
     >
       {notice && <FormMessage tone="info" message={notice} />}
 
@@ -71,7 +78,7 @@ export default function LoginScreen() {
           if (fieldErrors.email) setFieldErrors((e) => ({ ...e, email: undefined }));
         }}
         error={fieldErrors.email}
-        placeholder="nama@email.com"
+        placeholder={t("auth.emailPlaceholder")}
         keyboardType="email-address"
         autoCapitalize="none"
         autoCorrect={false}
@@ -83,7 +90,7 @@ export default function LoginScreen() {
       />
       <FormField
         ref={passwordRef}
-        label="Kata sandi"
+        label={t("auth.password")}
         value={password}
         onChangeText={(t) => {
           setPassword(t);
@@ -101,13 +108,13 @@ export default function LoginScreen() {
 
       {formError && <FormMessage tone="error" message={formError} />}
 
-      <PrimaryButton label={submitting ? "Memproses…" : "Masuk"} onPress={submit} loading={submitting} />
+      <PrimaryButton label={submitting ? t("common.processing") : t("common.signIn")} onPress={submit} loading={submitting} />
 
       <View className="flex-row justify-center items-center flex-wrap gap-1">
-        <Text className="text-ink-2 text-[15px]">Belum punya akun?</Text>
+        <Text className="text-ink-2 text-[15px]">{t("auth.noAccount")}</Text>
         <Pressable onPress={() => router.replace("/register")} hitSlop={8} accessibilityRole="link">
           <Text className="text-[15px] underline" weight="bold" style={{ color: "#0F3FC1" }}>
-            Daftar
+            {t("common.signUp")}
           </Text>
         </Pressable>
       </View>

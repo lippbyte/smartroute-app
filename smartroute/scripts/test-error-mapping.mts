@@ -76,7 +76,9 @@ if (SCENARIO === "mock") {
 }
 
 // Diimpor SETELAH env diisi: API_BASE_URL dibaca sekali saat modul dimuat.
-const { apiRequest, ApiError, NETWORK_ERROR_MESSAGE, UNAVAILABLE_MESSAGE } = await import("../src/services/apiClient");
+const { apiRequest, ApiError, networkErrorMessage, unavailableMessage } = await import("../src/services/apiClient");
+const NETWORK_ERROR_MESSAGE = networkErrorMessage();
+const UNAVAILABLE_MESSAGE = unavailableMessage();
 const { fetchRealRoutes, RouteFetchError } = await import("../src/services/routeService");
 const crowd = await import("../src/services/crowdService");
 const nearby = await import("../src/services/nearbyStopsService");

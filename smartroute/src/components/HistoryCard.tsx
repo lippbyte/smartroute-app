@@ -8,13 +8,14 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, View } from "react-native";
 import Text from "./Text";
+import { t } from "@/i18n";
 
 function HistoryItem({ trip, showBorder, onPress }: { trip: Trip; showBorder: boolean; onPress: () => void }) {
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${trip.origin_label} ke ${trip.destination_label}. Ketuk untuk detail.`}
+      accessibilityLabel={t("history.itemLabel", { from: trip.origin_label, to: trip.destination_label })}
       className={`flex-row justify-between items-center py-3.5 active:opacity-60 ${showBorder ? "border-b border-line" : ""}`}
       style={{ minHeight: 48 }}
     >
@@ -61,24 +62,24 @@ export default function HistoryCard() {
   return (
     <View className="bg-surface w-full px-5 py-4 rounded-2xl border border-line">
       <View className="w-full flex-row justify-between items-center">
-        <Text className="text-ink font-bold text-lg mb-1">Riwayat Perjalanan</Text>
+        <Text className="text-ink font-bold text-lg mb-1">{t("history.title")}</Text>
         <Pressable className="active:opacity-60 py-1.5" hitSlop={8} accessibilityRole="link" onPress={() => router.push("/history")}>
           <Text className="text-sm mb-1 underline" weight="semibold" style={{ color: "#0F3FC1" }}>
-            Lihat Semua
+            {t("history.seeAll")}
           </Text>
         </Pressable>
       </View>
 
       {!signedIn ? (
-        <Text className="text-ink-2 text-sm py-2">Masuk untuk menyimpan dan melihat riwayat perjalanan.</Text>
+        <Text className="text-ink-2 text-sm py-2">{t("history.cardSignIn")}</Text>
       ) : failed && !trips ? (
-        <Text className="text-ink-2 text-sm py-2">Riwayat belum bisa dimuat. Buka "Lihat Semua" untuk mencoba lagi.</Text>
+        <Text className="text-ink-2 text-sm py-2">{t("history.cardError")}</Text>
       ) : !trips ? (
         <View className="py-3 items-start">
           <ActivityIndicator size="small" color="#0F3FC1" />
         </View>
       ) : trips.length === 0 ? (
-        <Text className="text-ink-2 text-sm py-2">Belum ada perjalanan. Perjalanan yang Anda selesaikan lewat navigasi akan muncul di sini.</Text>
+        <Text className="text-ink-2 text-sm py-2">{t("history.cardEmpty")}</Text>
       ) : (
         <View className="w-full">
           {trips.map((trip, index) => (

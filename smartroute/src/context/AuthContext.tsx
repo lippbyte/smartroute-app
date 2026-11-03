@@ -16,10 +16,9 @@ import { ApiError, setSessionInvalidHandler } from "@/services/apiClient";
 import * as tokenStorage from "@/services/tokenStorage";
 import type { AuthUser, RegisterInput } from "@/services/authService";
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { t } from "@/i18n";
 
 export type AuthStatus = "loading" | "signedOut" | "guest" | "signedIn";
-
-const SESSION_EXPIRED_NOTICE = "Sesi Anda sudah berakhir. Silakan masuk lagi.";
 
 interface AuthContextValue {
   status: AuthStatus;
@@ -73,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
       if (stored) {
-        await expireSession(SESSION_EXPIRED_NOTICE);
+        await expireSession(t("auth.sessionExpired"));
         return;
       }
       setStatus((await tokenStorage.loadGuestChoice()) ? "guest" : "signedOut");
@@ -86,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Token ditolak server di tengah pemakaian (kedaluwarsa / dicabut).
   useEffect(() => {
     setSessionInvalidHandler(() => {
-      void expireSession(SESSION_EXPIRED_NOTICE);
+      void expireSession(t("auth.sessionExpired"));
     });
     return () => setSessionInvalidHandler(null);
   }, [expireSession]);

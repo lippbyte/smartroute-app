@@ -21,7 +21,7 @@ import {
   fetchRealRoutes,
   RouteFetchError,
 } from "@/services/routeService";
-import { UNAVAILABLE_MESSAGE } from "@/services/apiClient";
+import { unavailableMessage } from "@/services/apiClient";
 import { putRoute } from "@/services/routeStore";
 import { ApiResponse, RouteItem } from "@/type";
 import { formatRupiah } from "@/utils/currency";
@@ -547,7 +547,7 @@ export default function RouteScreen() {
         setErrorMessage(
           err instanceof RouteFetchError || err instanceof Error
             ? err.message
-            : UNAVAILABLE_MESSAGE,
+            : unavailableMessage(),
         );
       } finally {
         if (!cancelled) setIsLoading(false);

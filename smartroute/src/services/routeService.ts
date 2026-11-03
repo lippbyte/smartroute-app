@@ -6,7 +6,7 @@
 // implements.
 
 import { AccessibilityConfidence, AccessibilityPoint, ApiResponse, CrowdInfo, FareItem, Leg, RouteItem } from "@/type";
-import { apiRequest, UNAVAILABLE_MESSAGE } from "./apiClient";
+import { apiRequest, unavailableMessage } from "./apiClient";
 import { LEG_MODES, legModeFromBackend } from "@/components/transit/legModes";
 
 // Latensi POST /routes terukur 2–19 detik (OTP2 menghitung beberapa kandidat
@@ -134,7 +134,7 @@ export async function fetchRealRoutes(
       timeoutMessage: "Pencarian rute terlalu lama dan dihentikan. Coba lagi.",
     });
   } catch (err) {
-    throw new RouteFetchError(err instanceof Error ? err.message : UNAVAILABLE_MESSAGE, err);
+    throw new RouteFetchError(err instanceof Error ? err.message : unavailableMessage(), err);
   }
 }
 

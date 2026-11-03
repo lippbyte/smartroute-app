@@ -8,6 +8,7 @@
 // dialog error) supaya app tetap sepenuhnya bisa dipakai manual.
 import * as Location from "expo-location";
 import { Coordinate, reverseGeocode } from "./geocode";
+import { t } from "@/i18n";
 
 export interface CurrentLocationResult {
   label: string;
@@ -21,7 +22,7 @@ export interface CurrentLocationResult {
 const REVERSE_GEOCODE_TIMEOUT_MS = 6000;
 
 function formatCoordinateFallback(coordinate: Coordinate): string {
-  return `Lokasi Anda saat ini (${coordinate.latitude.toFixed(4)}, ${coordinate.longitude.toFixed(4)})`;
+  return t("location.current", { lat: coordinate.latitude.toFixed(4), lng: coordinate.longitude.toFixed(4) });
 }
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {

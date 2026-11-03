@@ -25,7 +25,7 @@ import {
   WHATS_NEW,
 } from "@/constants/developerInfo";
 import { useAuth } from "@/context/AuthContext";
-import { ApiError, NETWORK_ERROR_MESSAGE } from "@/services/apiClient";
+import { ApiError, networkErrorMessage } from "@/services/apiClient";
 import {
   clearFeedbackDraft,
   FEEDBACK_CATEGORIES,
@@ -108,7 +108,7 @@ export default function AboutScreen() {
       setSent(true);
     } catch (err) {
       if (err instanceof ApiError && (err.isNetwork || err.status >= 500)) {
-        setError(`${err.code === "timeout" ? err.message : NETWORK_ERROR_MESSAGE} Masukan Anda tersimpan sebagai draf di perangkat ini — ketuk "Kirim masukan" lagi kapan saja.`);
+        setError(`${err.code === "timeout" ? err.message : networkErrorMessage()} Masukan Anda tersimpan sebagai draf di perangkat ini — ketuk "Kirim masukan" lagi kapan saja.`);
       } else {
         setError(err instanceof ApiError ? err.message : "Masukan belum terkirim. Draf Anda tetap tersimpan.");
       }

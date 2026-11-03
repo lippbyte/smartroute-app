@@ -6,6 +6,7 @@ import { View } from "react-native";
 import SplashIntro from "@/components/SplashIntro";
 import { AssistiveSettingsProvider } from "@/context/AssistiveSettingsContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { hydrateLanguage, useLanguage } from "@/i18n";
 import "../../global.css";
 
 // Latar navigator OPAK (biru malam splash). Gambar latar dipasang per
@@ -33,6 +34,11 @@ export default function RootLayout() {
   // plain state toggle, not a route, so it has no navigation history entry
   // and can never be revisited or re-shown later in the same app session.
   const [showIntro, setShowIntro] = useState(true);
+  // Bawaan Indonesia sampai pilihan tersimpan terbaca. Intro menutupi layar selama itu.
+  const language = useLanguage();
+  useEffect(() => {
+    void hydrateLanguage();
+  }, []);
 
   useEffect(() => {
     if (fontsLoaded) {
@@ -55,6 +61,7 @@ export default function RootLayout() {
       <ThemeProvider value={APP_THEME}>
         <View style={{ flex: 1, backgroundColor: "#001C43" }}>
           <Stack
+            key={language}
             screenOptions={{
               headerShown: false,
               contentStyle: { backgroundColor: "#001C43" },

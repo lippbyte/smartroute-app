@@ -10,6 +10,7 @@
 //   sampai pengguna memilih sendiri; pilihan pengguna selalu menang.
 // - Pilihan disimpan di perangkat saja (AsyncStorage). Profil di server
 //   TIDAK pernah diubah dari sini.
+import { t, type TKey } from "@/i18n";
 import type { AccessibilityNeed } from "@/services/authService";
 import type { TextStyle } from "react-native";
 
@@ -44,34 +45,23 @@ export function unavailableAssistiveKeys(os: string): readonly AssistiveKey[] {
   return os === "web" ? ["easyRead"] : [];
 }
 
+const assistiveItem = (key: AssistiveKey, label: TKey, description: TKey) => ({
+  key,
+  get label() {
+    return t(label);
+  },
+  get description() {
+    return t(description);
+  },
+});
+
 /** Isi kartu "Tampilan & bantuan" di Profil (urutan tampil). */
 export const ASSISTIVE_ITEMS: ReadonlyArray<{ key: AssistiveKey; label: string; description: string }> = [
-  {
-    key: "showA11yInfo",
-    label: "Info aksesibilitas kursi roda",
-    description:
-      "Menampilkan pilihan \"Tampilkan info aksesibilitas\" di hasil rute: status halte menurut data GTFS. Belum mengubah rute yang disarankan.",
-  },
-  {
-    key: "easyRead",
-    label: "Tampilan mudah dibaca",
-    description: "Huruf lebih besar dan teks sekunder lebih kontras.",
-  },
-  {
-    key: "bigAlerts",
-    label: "Peringatan teks besar + getar",
-    description: "Saat navigasi, pindah langkah dan tiba di tujuan ditandai teks besar dan getaran, tanpa suara.",
-  },
-  {
-    key: "simpleNav",
-    label: "Mode sederhana saat navigasi",
-    description: "Satu langkah per layar, bahasa lugas, tanpa peta dan animasi.",
-  },
-  {
-    key: "emphasizeWalk",
-    label: "Tonjolkan jalan kaki & transfer",
-    description: "Jarak jalan kaki dan jumlah transfer tampil lebih menonjol di kartu rute. Urutan rute tidak berubah.",
-  },
+  assistiveItem("showA11yInfo", "assistive.showA11yInfo.label", "assistive.showA11yInfo.body"),
+  assistiveItem("easyRead", "assistive.easyRead.label", "assistive.easyRead.body"),
+  assistiveItem("bigAlerts", "assistive.bigAlerts.label", "assistive.bigAlerts.body"),
+  assistiveItem("simpleNav", "assistive.simpleNav.label", "assistive.simpleNav.body"),
+  assistiveItem("emphasizeWalk", "assistive.emphasizeWalk.label", "assistive.emphasizeWalk.body"),
 ];
 
 export function visibleAssistiveItems(unavailable: readonly AssistiveKey[]) {
@@ -81,12 +71,12 @@ export function visibleAssistiveItems(unavailable: readonly AssistiveKey[]) {
 /** Ringkasan "Yang sudah bekerja" — tidak menyebut bantuan yang disembunyikan. */
 export function assistiveWorkingSummary(unavailable: readonly AssistiveKey[]): string {
   const parts = [
-    "Info status halte untuk kursi roda (dari data GTFS)",
-    unavailable.includes("easyRead") ? null : "tampilan mudah dibaca",
-    "peringatan teks + getar",
-    "mode sederhana",
+    t("assistive.summary.stops"),
+    unavailable.includes("easyRead") ? null : t("assistive.summary.easyRead"),
+    t("assistive.summary.alerts"),
+    t("assistive.summary.simple"),
   ].filter((p): p is string => p !== null);
-  return `${parts.join(", ")}, dan penonjolan jalan kaki/transfer.`;
+  return t("assistive.summary.end", { parts: parts.join(", ") });
 }
 
 export function effectiveSettings(

@@ -2,6 +2,7 @@
 // backend. Satu tempat supaya kalimat di detail dan di navigasi sama persis.
 import { legModeStyle } from "@/components/transit/legModes";
 import { Leg } from "@/type";
+import { decimal } from "@/i18n";
 
 export type LatLng = { latitude: number; longitude: number };
 
@@ -23,7 +24,7 @@ export function legDurationMin(leg: Leg): number | null {
 
 export function formatDistance(m: number): string {
   if (m < 1000) return `${Math.max(10, Math.round(m / 10) * 10)} m`;
-  return `${(m / 1000).toFixed(1).replace(".", ",")} km`;
+  return `${decimal((m / 1000).toFixed(1))} km`;
 }
 
 // OTP2 memberi nama generik untuk ruas tanpa nama di OSM.

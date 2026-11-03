@@ -4,6 +4,7 @@
 // backend (backend-skeleton/src/services/users.ts & lib/validation.ts) —
 // sama seperti service lain, kedua proyek tidak berbagi workspace.
 import { apiRequest } from "./apiClient";
+import { t } from "@/i18n";
 
 // Label sama dengan chip kriteria di layar hasil ("Tenang", bukan "Nyaman").
 // "sehat" ditambahkan Hari 2 (harus sama dengan backend lib/validation.ts) —
@@ -50,14 +51,14 @@ export interface RegisterInput {
 export function register(input: RegisterInput): Promise<SessionResponse> {
   return apiRequest("POST", "/auth/register", {
     body: input,
-    timeoutMessage: "Pendaftaran terlalu lama menunggu server. Coba lagi.",
+    timeoutMessage: t("auth.timeoutRegister"),
   });
 }
 
 export function login(email: string, password: string): Promise<SessionResponse> {
   return apiRequest("POST", "/auth/login", {
     body: { email, password },
-    timeoutMessage: "Masuk terlalu lama menunggu server. Coba lagi.",
+    timeoutMessage: t("auth.timeoutLogin"),
   });
 }
 
@@ -65,19 +66,19 @@ export function logout(token: string): Promise<void> {
   return apiRequest("POST", "/auth/logout", {
     token,
     timeoutMs: 5_000,
-    timeoutMessage: "Keluar terlalu lama menunggu server.",
+    timeoutMessage: t("auth.timeoutLogout"),
   });
 }
 
 export function fetchMe(token: string): Promise<AuthUser> {
-  return apiRequest("GET", "/me", { token, timeoutMessage: "Memuat profil terlalu lama. Coba lagi." });
+  return apiRequest("GET", "/me", { token, timeoutMessage: t("auth.timeoutProfile") });
 }
 
 export function updatePreferences(token: string, preferences: UserPreferences): Promise<AuthUser> {
   return apiRequest("PUT", "/me/preferences", {
     token,
     body: preferences,
-    timeoutMessage: "Menyimpan preferensi terlalu lama. Coba lagi.",
+    timeoutMessage: t("auth.timeoutPrefs"),
   });
 }
 
@@ -85,13 +86,13 @@ export function saveAccessibility(token: string, needs: AccessibilityNeed[]): Pr
   return apiRequest("PUT", "/me/accessibility", {
     token,
     body: { needs, consent: true },
-    timeoutMessage: "Menyimpan data aksesibilitas terlalu lama. Coba lagi.",
+    timeoutMessage: t("auth.timeoutA11ySave"),
   });
 }
 
 export function deleteAccessibility(token: string): Promise<AuthUser> {
   return apiRequest("DELETE", "/me/accessibility", {
     token,
-    timeoutMessage: "Menghapus data aksesibilitas terlalu lama. Coba lagi.",
+    timeoutMessage: t("auth.timeoutA11yDelete"),
   });
 }

@@ -10,7 +10,7 @@
 import { FormMessage } from "@/components/form/FormField";
 import PrimaryButton from "@/components/form/PrimaryButton";
 import Text from "@/components/Text";
-import { ApiError, NETWORK_ERROR_MESSAGE } from "@/services/apiClient";
+import { ApiError, networkErrorMessage } from "@/services/apiClient";
 import * as tripService from "@/services/tripService";
 import type { Trip } from "@/services/tripService";
 import { Answer, clearDraft, EMPTY_DRAFT, loadDraft, RatingDraft, saveDraft } from "@/utils/ratingDrafts";
@@ -97,7 +97,7 @@ export default function RatingSheet({ visible, token, trip, onClose, onRated }: 
         tripService.getTrip(token, trip.id).then(onRated).catch(() => {});
       } else if (err instanceof ApiError && (err.isNetwork || err.status >= 500)) {
         setError(
-          `${err.code === "timeout" ? err.message : NETWORK_ERROR_MESSAGE} Penilaian Anda tersimpan sebagai draf di perangkat ini — ketuk "Kirim penilaian" lagi kapan saja.`,
+          `${err.code === "timeout" ? err.message : networkErrorMessage()} Penilaian Anda tersimpan sebagai draf di perangkat ini — ketuk "Kirim penilaian" lagi kapan saja.`,
         );
       } else {
         setError(err instanceof ApiError ? err.message : "Penilaian belum terkirim. Draf Anda tetap tersimpan.");

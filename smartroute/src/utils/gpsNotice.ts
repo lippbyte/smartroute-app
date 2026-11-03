@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 // src/utils/gpsNotice.ts
 //
 // Hari 4 Task 1: pesan di layar navigasi saat posisi GPS tidak bisa dipakai.
@@ -14,7 +15,7 @@ export function gpsIssueFromPermission(status: string): GpsIssue | null {
 }
 
 export function gpsNotice(issue: GpsIssue | null): string | null {
-  if (issue === "denied") return "Izin lokasi ditolak, jadi geser langkah dengan tombol di bawah.";
-  if (issue === "unavailable") return "Lokasi tidak terbaca, jadi geser langkah dengan tombol di bawah.";
+  if (issue === "denied") return t("gps.denied");
+  if (issue === "unavailable") return t("gps.unavailable");
   return null;
 }

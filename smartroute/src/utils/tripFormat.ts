@@ -1,3 +1,4 @@
+import { dayShort, monthShort, t } from "@/i18n";
 // src/utils/tripFormat.ts
 //
 // Hari 1 Task 5: format durasi & tanggal perjalanan — satu tempat supaya
@@ -8,7 +9,7 @@
 
 export function formatRange(range: { min: number; max: number } | null | undefined): string | null {
   if (!range) return null;
-  return range.min === range.max ? `${range.min} mnt` : `${range.min}–${range.max} mnt`;
+  return range.min === range.max ? t("format.minutes", { n: range.min }) : t("format.minutesRange", { min: range.min, max: range.max });
 }
 
 export interface DurationDisplay {
@@ -28,17 +29,14 @@ export function durationDisplay(args: {
 }): DurationDisplay {
   const predicted = formatRange(args.predicted);
   if (args.basis === "aktual" && args.actualMin !== null) {
-    return { label: "Aktual", value: `${args.actualMin} mnt`, predicted };
+    return { label: "Aktual", value: t("format.minutes", { n: args.actualMin }), predicted };
   }
   return {
     label: "Estimasi",
-    value: predicted ?? (args.fallbackMin !== undefined ? `± ${args.fallbackMin} mnt` : "—"),
+    value: predicted ?? (args.fallbackMin !== undefined ? t("format.minutesApprox", { n: args.fallbackMin }) : "—"),
     predicted: null,
   };
 }
-
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
-const DAYS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 
 /** "Kam, 30 Okt 2026, 17:05" — manual, tanpa Intl (lihat utils/currency.ts
  *  untuk alasan tidak mengandalkan Intl di Hermes). Jam lokal perangkat. */
@@ -47,5 +45,5 @@ export function formatTripDate(iso: string): string {
   if (Number.isNaN(d.getTime())) return "";
   const hh = String(d.getHours()).padStart(2, "0");
   const mm = String(d.getMinutes()).padStart(2, "0");
-  return `${DAYS[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${hh}:${mm}`;
+  return `${dayShort(d.getDay())}, ${d.getDate()} ${monthShort(d.getMonth())} ${d.getFullYear()}, ${hh}:${mm}`;
 }

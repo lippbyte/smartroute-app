@@ -1,3 +1,4 @@
+import { decimal } from "@/i18n";
 // src/utils/co2Format.ts
 //
 // Hari 2 Task 3: format angka CO₂ — selalu estimasi, dibulatkan puluhan
@@ -7,7 +8,7 @@
 export function formatCo2(grams: number): string {
   if (grams < 1000) return `${Math.round(grams)} g`;
   const kg = Math.round(grams / 100) / 10;
-  return `${String(kg).replace(".", ",")} kg`;
+  return `${decimal(kg)} kg`;
 }
 
 /** Selisih persen terhadap pembanding untuk jarak (proksi) yang sama:

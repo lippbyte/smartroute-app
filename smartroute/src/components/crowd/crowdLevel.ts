@@ -5,6 +5,7 @@
 // (CrowdMapView.web.tsx / CrowdMapView.native.tsx) — supaya warna & label
 // tidak pernah divergen antar platform.
 import { CrowdOverviewStop } from "@/services/crowdService";
+import { getLanguage, monthShort } from "@/i18n";
 
 export type CrowdLevel = CrowdOverviewStop["level"];
 
@@ -20,21 +21,6 @@ export const LEVEL_COLOR: Record<CrowdLevel, string> = {
   high: "#EF4444",
 };
 
-const MONTHS_ID = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "Mei",
-  "Jun",
-  "Jul",
-  "Agu",
-  "Sep",
-  "Okt",
-  "Nov",
-  "Des",
-];
-
 // Sengaja tidak pakai Date#toLocaleString("id-ID", ...): di Android, Intl
 // bergantung pada bagaimana Hermes dibuild, jadi hasilnya tidak dijamin sama
 // dengan web. Formatter manual ini menghasilkan string yang identik dengan
@@ -45,10 +31,10 @@ export function formatReportedAt(iso: string): string {
   if (Number.isNaN(date.getTime())) return "-";
 
   const day = date.getDate();
-  const month = MONTHS_ID[date.getMonth()];
+  const month = monthShort(date.getMonth());
   const year = date.getFullYear();
   const hours = String(date.getHours()).padStart(2, "0");
   const minutes = String(date.getMinutes()).padStart(2, "0");
 
-  return `${day} ${month} ${year}, ${hours}.${minutes}`;
+  return `${day} ${month} ${year}, ${hours}${getLanguage() === "en" ? ":" : "."}${minutes}`;
 }
