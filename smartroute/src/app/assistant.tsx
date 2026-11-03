@@ -2,9 +2,10 @@ import ScreenBackground from "@/components/ScreenBackground";
 // src/app/assistant.tsx
 //
 // Task App-22 + perluasan diminta user langsung (2026-09-10): UI Asisten AI
-// (wayfinding chat). Riwayat percakapan disimpan HANYA dalam satu sesi layar
-// ini — array di useState biasa, BUKAN AsyncStorage/persisten. Begitu layar
-// di-unmount, riwayat hilang dan mulai bersih lagi kalau dibuka ulang.
+// (wayfinding chat). Riwayat percakapan disimpan di MEMORI proses app saja
+// (variabel modul, BUKAN AsyncStorage/disk). Riwayat bertahan saat pindah
+// layar dalam satu sesi app, dan hilang otomatis begitu app ditutup. Riwayat
+// juga dikosongkan kalau akun yang masuk berganti.
 //
 // Perluasan 2026-09-23 (diminta user langsung): asisten tersambung dengan
 // Halte Terdekat & cari-rute. Posisi GPS dibaca sekali saat layar dibuka dan
@@ -38,7 +39,7 @@ import {
 } from "@/components/transit/transitMode";
 import { AssistantTurn, askAssistant } from "@/services/assistantService";
 import { NearbyStop } from "@/services/nearbyStopsService";
-import { getCurrentCoordinate } from "@/utils/currentLocation";
+import { getCurrentCoordinate, getLastKnownCoordinate } from "@/utils/currentLocation";
 import { Coordinate } from "@/utils/geocode";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -79,6 +80,10 @@ function generateId(): string {
   nextId += 1;
   return `entry-${nextId}`;
 }
+
+// Riwayat satu sesi app (memori saja). Disimpan bersama token pemiliknya,
+// supaya riwayat akun lama tidak muncul untuk akun yang masuk berikutnya.
+let sessionChat: { token: string | null; entries: ChatEntry[] } = { token: null, entries: [] };
 
 // Pasangan tanya-jawab yang berhasil saja; pertanyaan yang gagal dijawab
 // tidak ikut, supaya model tidak melihat pertanyaan menggantung.
@@ -172,18 +177,39 @@ function TotoSignInPrompt() {
 function AssistantScreen({ token }: { token: string }) {
   const router = useRouter();
   const [input, setInput] = useState("");
-  const [entries, setEntries] = useState<ChatEntry[]>([]);
+  // Riwayat dibaca dari memori sesi; setiap perubahan juga ditulis ke sana,
+  // jadi jawaban yang datang setelah layar ditinggal tetap tersimpan.
+  const [entries, setEntriesState] = useState<ChatEntry[]>(() =>
+    sessionChat.token === token ? sessionChat.entries : [],
+  );
+  const setEntries = (updater: (prev: ChatEntry[]) => ChatEntry[]) => {
+    const base = sessionChat.token === token ? sessionChat.entries : [];
+    const next = updater(base);
+    sessionChat = { token, entries: next };
+    setEntriesState(next);
+  };
   const scrollRef = useRef<ScrollView>(null);
 
   const [userLocation, setUserLocation] = useState<Coordinate | null>(null);
   const [locationStatus, setLocationStatus] = useState<LocationStatus>("locating");
 
+  // Dua tahap (sama seperti Halte Terdekat): posisi terakhir yang segar
+  // langsung dipakai, lalu GPS baru menyusul untuk memastikan posisi akurat.
   useEffect(() => {
     let cancelled = false;
+    getLastKnownCoordinate().then((quick) => {
+      if (cancelled || !quick) return;
+      setUserLocation(quick);
+      setLocationStatus("ready");
+    });
     getCurrentCoordinate().then((coordinate) => {
       if (cancelled) return;
-      setUserLocation(coordinate);
-      setLocationStatus(coordinate ? "ready" : "unavailable");
+      if (coordinate) {
+        setUserLocation(coordinate);
+        setLocationStatus("ready");
+      } else {
+        setLocationStatus((current) => (current === "ready" ? current : "unavailable"));
+      }
     });
     return () => {
       cancelled = true;
@@ -279,10 +305,9 @@ function AssistantScreen({ token }: { token: string }) {
 
   return (
     <ScreenBackground>
-    <KeyboardAvoidingView
-      className="flex-1"
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
+    {/* Android 15+ tampil edge-to-edge: tanpa behavior, keyboard menutupi kotak
+        ketik. "padding" menaikkan area chat di kedua platform. */}
+    <KeyboardAvoidingView className="flex-1" behavior="padding">
       <View className="flex-row items-center gap-3 px-5 pt-14 pb-3">
         <Pressable
           onPress={() => router.back()}
@@ -328,9 +353,11 @@ function AssistantScreen({ token }: { token: string }) {
             return (
               <View
                 key={entry.id}
-                className="bg-primary-emerald/25 rounded-2xl rounded-br-md px-4 py-2.5 self-end max-w-[85%]"
+                className="bg-white rounded-2xl rounded-br-md px-4 py-2.5 self-end max-w-[85%]"
               >
-                <Text className="text-ink text-sm font-semibold">{entry.text}</Text>
+                <Text className="text-ink text-sm font-semibold" style={{ color: "#000000" }}>
+                  {entry.text}
+                </Text>
               </View>
             );
           }
