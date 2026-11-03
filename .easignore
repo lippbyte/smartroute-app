@@ -1,0 +1,40 @@
+# Build EAS hanya butuh app di smartroute/. Tanpa berkas ini arsip memuat seluruh monorepo,
+# termasuk database backend, cadangannya, dan kredensial akun demo.
+# .easignore menggantikan .gitignore saat build, jadi aturan penting ditulis ulang di sini.
+/*
+!/smartroute
+
+node_modules/
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+.kotlin/
+example
+*.orig.*
+.metro-health-check*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.DS_Store
+*.tsbuildinfo
+*.log
+.claude/
+/smartroute/ios
+/smartroute/android
+
+# Rahasia.
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision
+*.local.json
+*.db
+*.db-wal
+*.db-shm
