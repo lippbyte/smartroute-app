@@ -13,7 +13,7 @@ const [, , BASE = "http://localhost:3000", OUT = "toto.json", ...flags] = proces
 
 export const QUESTIONS = [
   { id: "Q1", question: "dari Blok M ke Kota naik apa?", expect: "menyebut Rute 1 (BRT), Rp3.500" },
-  { id: "Q2", question: "Berapa tarif TransJakarta?", expect: "tingkatan tarif Rp3.500 / Rp20.000 Royaltrans / Rp35.000" },
+  { id: "Q2", question: "Berapa tarif TransJakarta?", expect: "tarif dasar reguler Rp3.500; layanan khusus diarahkan ke aplikasi resmi" },
   { id: "Q3", question: "Jam berapa TransJakarta mulai dan berhenti beroperasi?", expect: "05:00-22:00 WIB, disebut rentang umum" },
   { id: "Q4", question: "Dari Kalideres ke PGC naik koridor berapa?", expect: "jujur tidak ada rute langsung, tidak mengarang" },
   {

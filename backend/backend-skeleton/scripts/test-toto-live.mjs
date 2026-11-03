@@ -1,7 +1,7 @@
 // Hotfix TOTO: uji jawaban LLM SUNGGUHAN, tiap pertanyaan diulang N kali.
 //
-//   node scripts/test-toto-live.mjs [N=5] [out.json]
-//   node scripts/test-toto-live.mjs reassess <out.json>   (nilai ulang, tanpa biaya)
+//   node scripts/test-toto-live.mjs [N=5] [out.json] [id1,id2]   (id: hanya kasus itu)
+//   node scripts/test-toto-live.mjs reassess <out.json>          (nilai ulang, tanpa biaya)
 //
 // BERBAYAR: setiap jawaban = satu panggilan OpenRouter memakai kunci di .env.
 // Instance backend kedua (port 3112, DB sementara, akun uji sekali-pakai), jadi
@@ -28,8 +28,11 @@ const Q5_CTX = { origin: { lat: -6.243312, lng: 106.80175 }, destination: { lat:
 // kind: safe = tarif/jam; route = pertanyaan rute tanpa data kandidat (harus
 // diarahkan ke pencarian rute); grounded = ada kandidat rute; nearby = halte terdekat.
 const CASES = [
-  { id: "Q2", kind: "safe", q: "Berapa tarif TransJakarta?", must: [/3\.500/, /Royaltrans/i, /20\.000/, /35\.000/] },
-  { id: "Q2+GPS", kind: "safe", q: "Berapa tarif TransJakarta?", context: GPS, must: [/3\.500/, /Royaltrans/i, /20\.000/, /35\.000/] },
+  { id: "Q2", kind: "safe", fare: true, q: "Berapa tarif TransJakarta?", must: [/3\.500/, /aplikasi resmi/i] },
+  { id: "Q2+GPS", kind: "safe", fare: true, q: "Berapa tarif TransJakarta?", context: GPS, must: [/3\.500/, /aplikasi resmi/i] },
+  { id: "Tj", kind: "special", q: "Berapa tarif Transjabodetabek?", must: [/aplikasi resmi/i] },
+  { id: "Royal", kind: "special", q: "Berapa tarif Royaltrans?", must: [/aplikasi resmi/i] },
+  { id: "P11", kind: "special", q: "Berapa tarif rute P11 Bogor - Blok M?", must: [/aplikasi resmi/i] },
   { id: "Q3", kind: "safe", q: "Jam berapa TransJakarta mulai dan berhenti beroperasi?", must: [/05[:.]00/, /22[:.]00/] },
   { id: "Q3+GPS", kind: "safe", q: "Jam berapa TransJakarta mulai dan berhenti beroperasi?", context: GPS, must: [/05[:.]00/, /22[:.]00/] },
   { id: "Q1", kind: "route", q: "Dari Blok M ke Kota naik apa?" },
@@ -46,7 +49,7 @@ const CASES = [
 const DURATION = /\b\d+\s*(?:(?:-|–|—|sampai|hingga)\s*\d+\s*)?(?:menit|mnt)\b|\b\d+\s*(?:-|–)\s*\d+\s*jam\b/i;
 const TRANSFER_CLAIM = /(transfer|pindah|ganti|lanjut(?:kan)?|sambung)[^.\n]{0,40}\b(ke|dengan|naik)\s+(?:\*\*)?(rute|koridor|bus|krl|mrt|lrt|tj|transjakarta|commuter|\d)/i;
 const SUPERLATIVE = /tercepat|paling cepat|termurah|paling murah|paling efisien/i;
-const NAMES_ROUTE = /\b(?:naik|gunakan|pakai|ambil)\s+(?:\*\*)?(?:(?:TransJakarta|Rute|Koridor|KRL|MRT|LRT|Bus|JakLingko)\b)|\*\*(?:Rute|Koridor)\s+[0-9A-Z]/i;
+const NAMES_ROUTE = /\b(?:naik|gunakan|pakai|ambil)\s+(?:\*\*)?(?:(?:TransJakarta|Rute|Koridor|KRL|MRT|LRT|Bus|JakLingko)\b)|\*\*(?:(?:BRT|Rute)\s+)*(?:Rute|Koridor)\s+[0-9A-Z]|\brute\s+\*\*[A-Z]?\d/i;
 const REALTIME = /real[- ]?time/i;
 const REALTIME_NEGATED = /(bukan|tidak|tanpa|belum|tak)[^.\n]{0,40}real[- ]?time/i;
 const REDIRECT = /pencarian rute|cari rute/i;
@@ -56,18 +59,32 @@ const FALSE_PROMISE = /nanti saya|saya akan kasih|saya bisa lihat|saya bantu car
 // Kartu halte hanya tampil untuk pertanyaan halte terdekat (NEARBY_INTENT).
 const CARD_BUTTON = /Berangkat dari sini|Jalan ke sini/;
 const NO_SUCH_FEATURE = /tanya pengguna lain|komunitas/i;
-// GTFS: 18 dari 18 rute Transjabodetabek Rp3.500. Tidak premium.
-const TRANSJAB_PREMIUM = /(premium|lebih (?:tinggi|mahal))[^.\n]{0,60}Transjabodetabek|Transjabodetabek[^.\n]{0,60}(premium|lebih (?:tinggi|mahal)|20\.000|35\.000)/i;
+// Layanan khusus: TOTO tidak boleh menyebut angkanya, menyebutnya premium/lebih
+// mahal, atau menyamakannya dengan tarif reguler (keputusan Khalifa); arahkan ke
+// aplikasi resmi. Tarif resminya masih TODO:verifikasi.
+const TRANSJAB_PREMIUM = /(premium|lebih (?:tinggi|mahal))[^.\n]{0,60}Transjabodetabek|Transjabodetabek[^.\n]{0,60}(premium|lebih (?:tinggi|mahal|murah))/i;
+const SPECIAL_AMOUNT = /Rp\s?(20|25|35)\.000/i;
+const TRANSJAB_SAME_AS_REGULAR = /Rp\s?3\.500[^.\n]{0,70}(Transjabodetabek|Royaltrans|P11)|(Transjabodetabek|Royaltrans|P11)[^\n]{0,50}Rp\s?\d|semua (?:rute|layanan)[^.\n]{0,30}Rp\s?3\.500|sama dengan (?:tarif )?reguler/i;
+// Klaim yang tidak ada di data: membandingkan layanan khusus dengan tarif reguler.
+const SPECIAL_COMPARED = /berbeda|\bbeda\b|bervariasi|tersendiri|di luar tarif|tergantung (?:rute|jarak)/i;
+// GTFS: Mikrotrans Rp0.
+const MIKROTRANS_PAID = /Mikrotrans[^.\n]{0,60}Rp\s?3\.500|Rp\s?3\.500[^.\n]{0,60}Mikrotrans/i;
 
 function assess(c, answer, ctx) {
   const flags = [];
   const minutes = DURATION.exec(answer)?.[0];
   if (REALTIME.test(answer)) flags.push(REALTIME_NEGATED.test(answer) ? "real-time-disangkal" : "REAL-TIME");
   if (FALSE_PROMISE.test(answer)) flags.push(`JANJI-PALSU(${FALSE_PROMISE.exec(answer)[0]})`);
-  if (c.kind === "safe") {
+  if (c.kind === "safe" || c.kind === "special") {
     if (minutes) flags.push(`DURASI(${minutes})`);
     for (const re of c.must ?? []) if (!re.test(answer)) flags.push(`KURANG(${re.source})`);
-    if (TRANSJAB_PREMIUM.test(answer)) flags.push("TRANSJABODETABEK-PREMIUM");
+  }
+  if (c.fare || c.kind === "special") {
+    if (TRANSJAB_PREMIUM.test(answer)) flags.push("KHUSUS-DISEBUT-PREMIUM");
+    if (SPECIAL_AMOUNT.test(answer)) flags.push(`ANGKA-KHUSUS(${SPECIAL_AMOUNT.exec(answer)[0]})`);
+    if (TRANSJAB_SAME_AS_REGULAR.test(answer)) flags.push(`KHUSUS-DIBERI-TARIF(${TRANSJAB_SAME_AS_REGULAR.exec(answer)[0].slice(0, 50)})`);
+    if (SPECIAL_COMPARED.test(answer)) flags.push(`KHUSUS-DIBANDINGKAN(${SPECIAL_COMPARED.exec(answer)[0]})`);
+    if (MIKROTRANS_PAID.test(answer)) flags.push("MIKROTRANS-BAYAR");
   }
   if (c.kind === "route") {
     if (minutes) flags.push(`DURASI(${minutes})`);
@@ -160,7 +177,9 @@ try {
     nearbyNames: nearby.slice(0, 8).map((s) => s.name),
   };
 
+  const only = process.argv[4]?.split(",");
   for (const c of CASES) {
+    if (only && !only.includes(c.id)) continue;
     for (let i = 1; i <= N; i++) {
       const r = await post("/assistant/ask", { question: c.q, ...(c.context ? { context: c.context } : {}) }, token);
       const answer = r.json?.answer ?? "";

@@ -96,6 +96,22 @@ try {
   ]) {
     check(`A2 instruksi sistem memuat ${name}`, re.test(noCtx) && re.test(sys));
   }
+  // --- Tarif: hanya tarif dasar reguler; angka layanan khusus tidak dikirim ke LLM.
+  const lineOf = (code) => noCtx.split("\n").find((l) => l.startsWith(`${code}: `)) ?? "";
+  check("F1 prompt menyatakan tarif dasar reguler Rp3.500 & arahan ke aplikasi resmi", /tarif dasar TransJakarta reguler Rp3\.500/.test(noCtx) && /aplikasi resmi TransJakarta/.test(noCtx));
+  check("F2 angka Rp20.000 / Rp35.000 tidak ada di prompt", !/Rp\s?(20|35)\.000/.test(noCtx));
+  check("F3 Transjabodetabek tidak disebut premium/lebih mahal sebagai fakta", !/premium/i.test(noCtx));
+  for (const [code, category] of [["P11", "Transjabodetabek"], ["S61", "Transjabodetabek"], ["1T", "Royaltrans"], ["S14", "Royaltrans"]]) {
+    check(`F4 rute ${code} (${category}) tanpa angka tarif di daftar`, lineOf(code).includes(`(${category}) — tarif: cek aplikasi resmi`), lineOf(code));
+  }
+  check("F5 rute reguler & gratis tetap memuat tarifnya (daftar tidak kosong)", / \(BRT\) — Rp3\.500/.test(noCtx) && / \(Mikrotrans\) — Rp0/.test(noCtx));
+  // /routes tetap membaca data tarif yang sama: teks prompt tidak mengubah data.
+  const specialRoutes = await Promise.all([
+    post("/routes", { origin: { lat: -6.5936, lng: 106.7893 }, destination: { lat: -6.2441, lng: 106.7987 }, modes: ["BUS"], departure_time: "2026-09-21T07:30:00+07:00" }),
+  ]);
+  const p11 = specialRoutes[0].json?.routes?.find((r) => r.route_id === "P11");
+  check("F6 /routes tetap menampilkan tarif P11 dari GTFS (data tidak berubah)", !p11 || p11.cost_idr === 3500, p11 ? `Rp${p11.cost_idr}` : "P11 tidak muncul untuk titik ini; lihat check-tj-special-fares");
+
   check("A3 tombol 'Cari Rute Terbaik' yang disebut memang ada di Beranda", /Cari Rute Terbaik/.test(readFileSync(path.join(ROOT, "..", "..", "smartroute", "src", "app", "(tabs)", "index.tsx"), "utf8")));
 } catch (err) {
   failures++;
@@ -113,7 +129,7 @@ try {
   } catch {}
 }
 
-const MIN = 18;
+const MIN = 27;
 check(`jumlah cek >= ${MIN}`, checks >= MIN, `${checks}`);
 console.log(failures === 0 ? `\nSemua ${checks} uji prompt TOTO lulus.` : `\n${failures} uji GAGAL.`);
 process.exitCode = failures ? 1 : 0;
