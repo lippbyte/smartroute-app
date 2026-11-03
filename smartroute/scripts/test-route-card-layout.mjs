@@ -213,7 +213,7 @@ try {
 const src = readFileSync(new URL("../src/app/(tabs)/route/index.tsx", import.meta.url), "utf8");
 check("S label 'Cepat' tetap travel_time_minutes <= 30", /if \(item\.travel_time_minutes <= 30\) return "Cepat";/.test(src));
 check("S urutan tetap berdasarkan rank backend", /\.sort\(\(a, b\) => a\.rank - b\.rank\)/.test(src));
-check("S kartu memakai formatRange dengan cadangan nilai tunggal", /formatRange\(item\.travel_time_range\) \?\? `\$\{item\.travel_time_minutes\} mnt`/.test(src));
+check("S kartu memakai formatRange dengan cadangan nilai tunggal", /formatRange\(item\.travel_time_range\) \?\? t\("format\.minutes", \{ n: item\.travel_time_minutes \}\)/.test(src));
 
 const MIN = 33;
 check(`jumlah cek >= ${MIN}`, checks >= MIN, `${checks}`);

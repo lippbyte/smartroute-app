@@ -242,7 +242,7 @@ export default function AboutScreen() {
               onChangeText={(t) => update({ message: t.slice(0, FEEDBACK_MAX) })}
               maxLength={FEEDBACK_MAX}
               multiline
-              placeholder={t("about.placeholder")}
+              placeholder={t("about.messageHint")}
               placeholderTextColor="#737373"
               accessibilityLabel={t("about.messageLabel")}
               className="font-jakarta text-ink text-base bg-white rounded-xl px-4 py-3"

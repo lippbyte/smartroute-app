@@ -429,7 +429,7 @@ function AssistantScreen({ token }: { token: string }) {
           <TextInput
             value={input}
             onChangeText={setInput}
-            placeholder={t("toto.placeholder")}
+            placeholder={t("toto.inputHint")}
             placeholderTextColor="#737373"
             multiline
             className="flex-1 font-jakarta text-ink text-sm py-2 max-h-24"

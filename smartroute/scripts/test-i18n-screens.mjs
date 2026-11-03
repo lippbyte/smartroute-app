@@ -3,6 +3,7 @@
 //   node scripts/test-i18n-screens.mjs capture <keluaran.json> [--lang id|en] [--width 360] [--shots dir]
 //   node scripts/test-i18n-screens.mjs parity                  (ID sekarang vs baseline)
 //   node scripts/test-i18n-screens.mjs english                 (EN + layar sempit 320 px)
+//   node scripts/test-i18n-screens.mjs switch                  (berganti bahasa saat app berjalan)
 //
 // Berjalan melalui seluruh jalur demo lewat ketukan sungguhan: Masuk, Daftar,
 // Onboarding, Beranda, Hasil Rute, Detail, Trip Pass, Navigasi, Ringkasan, Riwayat,
@@ -119,18 +120,23 @@ const COLLECT = `(() => {
   }
   for (const i of document.querySelectorAll("input,textarea")) if (i.value) attrs.add("nilai: " + clean(i.value));
   const leaves = [...document.querySelectorAll("div,span")].filter((d) => d.children.length === 0 && d.textContent.trim());
-  const vw = innerWidth;
+  // Lebar yang diminta, bukan innerWidth: gambar latar selebar 402 px melebarkan
+  // innerWidth di layar sempit, sehingga batasnya jadi longgar.
+  const vw = __WIDTH__;
   const overflow = leaves.filter((d) => { const r = d.getBoundingClientRect(); return r.width > 0 && r.right > vw + 0.5; }).map((d) => clean(d.textContent).slice(0, 60));
-  const clipped = leaves.filter((d) => d.scrollWidth > d.clientWidth + 1 && getComputedStyle(d).overflow !== "visible" && getComputedStyle(d).whiteSpace === "nowrap").map((d) => clean(d.textContent).slice(0, 60));
-  return { lines, attrs: [...attrs].sort(), overflow, clipped };
+  const clipped = leaves.filter((d) => d.scrollWidth > d.clientWidth + 1 && getComputedStyle(d).overflow !== "visible").map((d) => clean(d.textContent).slice(0, 60));
+  const buttons = [...document.querySelectorAll('[role="button"],[role="link"],[role="tab"],[role="radio"]')].filter((d) => { const r = d.getBoundingClientRect(); return r.width > 0 && r.right > vw + 0.5; }).map((d) => clean(d.textContent || d.getAttribute("aria-label") || "").slice(0, 60));
+  const fares = leaves.filter((d) => /^Rp \\d/.test(clean(d.textContent))).map((d) => { const r = d.getBoundingClientRect(); return { text: clean(d.textContent), right: Math.round(r.right), lines: Math.round(r.height / parseFloat(getComputedStyle(d).lineHeight || r.height)) }; });
+  return { lines, attrs: [...attrs].sort(), overflow, clipped, buttons, fares };
 })()`;
 
 // Yang berubah menurut jam saat uji, bukan menurut bahasa.
 const normalize = (s) => s.replace(/(Data diperbarui pada|Data updated at) \S+( [AP]M)?/g, "$1 <jam>");
 
-async function runFlow({ lang, width, shots }) {
+async function runFlow({ lang, width, shots, scenario = "flow" }) {
   return withBrowser(async ({ send, listeners }) => {
     const screens = {};
+    const collectJs = COLLECT.replace("__WIDTH__", String(width));
     const ev = async (expression) => (await send("Runtime.evaluate", { expression, returnByValue: true, awaitPromise: true })).result.value;
     const waitFor = async (expression, ms = 30_000) => {
       const deadline = Date.now() + ms;
@@ -233,14 +239,14 @@ async function runFlow({ lang, width, shots }) {
       await sleep(350);
       let prev = null;
       for (let i = 0; i < 25; i++) {
-        const cur = await ev(COLLECT);
+        const cur = await ev(collectJs);
         const sig = JSON.stringify([cur.lines, cur.attrs]);
         if (sig === prev) break;
         prev = sig;
         await sleep(200);
       }
-      const data = await ev(COLLECT);
-      screens[name] = { lines: data.lines.map(normalize), attrs: data.attrs.map(normalize), overflow: data.overflow, clipped: data.clipped };
+      const data = await ev(collectJs);
+      screens[name] = { lines: data.lines.map(normalize), attrs: data.attrs.map(normalize), overflow: data.overflow, clipped: data.clipped, buttons: data.buttons, fares: data.fares };
       await shoot(name);
     };
     const waitText = async (re, ms = 20_000) => {
@@ -255,6 +261,65 @@ async function runFlow({ lang, width, shots }) {
       await tapText("/^88–102 (mnt|min) · 07:30/", "kartu rute pertama");
       await waitText("/Detail Perjalanan|Trip Details/");
     };
+
+    if (scenario === "switch") {
+      const text = () => ev("document.body.innerText");
+      const pick = (label) => tapAria(`/^${label}$/`, label);
+      const baseline = JSON.parse(readFileSync(BASELINE, "utf8")).screens;
+
+      // Dari Profil: pindah bahasa tanpa keluar dari layar yang sedang dibuka.
+      await setStorage({ "smartroute.guestChosen.v1": "1" });
+      await go("/account", "/Akun Anda/");
+      check("G1 bawaan Indonesia", /Akun Anda/.test(await text()));
+      await pick("English");
+      const toEn = await waitFor(`/Your Account/.test(document.body.innerText)`, 15_000);
+      check("G2 pilih English di Profil: layar langsung berbahasa Inggris", toEn);
+      check("G3 tetap di layar Profil", (await ev("location.pathname")) === "/account", await ev("location.pathname"));
+      const tabs = await text();
+      check("G4 tab ikut berganti", /Home/.test(tabs) && /Routes/.test(tabs) && /Account/.test(tabs) && !/Beranda/.test(tabs));
+      check("G5 pilihan tersimpan", (await ev(`localStorage.getItem("smartroute.language.v1")`)) === "en");
+      await tapAria("/^Home$/");
+      check("G6 Beranda lewat tab: Inggris", await waitFor(`/Find Best Route/.test(document.body.innerText)`, 15_000));
+
+      // Dibuka ulang.
+      await go("/account", "/Your Account/");
+      check("G7 pilihan bertahan setelah halaman dimuat ulang", /Your Account/.test(await text()));
+
+      // Kembali ke Indonesia: identik dengan baseline.
+      await pick("Bahasa Indonesia");
+      check("G8 pilih Bahasa Indonesia: kembali Indonesia", await waitFor(`/Akun Anda/.test(document.body.innerText)`, 15_000));
+      await capture("profil-tamu");
+      const d = diffScreen("profil-tamu", baseline["profil-tamu"], screens["profil-tamu"]);
+      check("G9 kembali ke ID: Profil identik dengan baseline", d === null, d ?? "");
+      await go("/account", "/Akun Anda/");
+      check("G10 pilihan ID bertahan setelah dimuat ulang", /Akun Anda/.test(await text()));
+
+      // Hasil rute yang sudah terbuka ikut berganti, termasuk angka hasil pemanggilan fungsi.
+      await go(ROUTE_URL, RESULT_MARK);
+      await sleep(600);
+      check("G11 hasil rute Indonesia: tarif bertitik", /Rp 3\.500/.test(await text()) && /88–102 mnt/.test(await text()));
+      await tapAria("/^Akun$/");
+      await waitText("/Akun Anda/");
+      await pick("English");
+      await waitText("/Your Account/");
+      await tapAria("/^Routes$/");
+      const routeEn = await waitFor(`/Route Results/.test(document.body.innerText) && /88–102 min/.test(document.body.innerText)`, 25_000);
+      const routeText = await text();
+      check("G12 tab Rute setelah berganti: Inggris, rute tetap ada", routeEn, routeText.split("\n").slice(0, 4).join(" | "));
+      check("G13 tarif & satuan mengikuti bahasa, tanpa sisa format lama", /Rp 3,500/.test(routeText) && !/Rp 3\.500/.test(routeText) && !/\bmnt\b/.test(routeText));
+
+      // Layar Masuk.
+      await setStorage({});
+      await go("/login", "/Lanjut sebagai tamu/");
+      const picker = await text();
+      check("G14 pilihan bahasa ada di layar Masuk", /Bahasa Indonesia/.test(picker) && /English/.test(picker));
+      await pick("English");
+      check("G15 pilih English di Masuk: Inggris, tetap di layar Masuk", (await waitFor(`/Continue as guest/.test(document.body.innerText)`, 15_000)) && (await ev("location.pathname")) === "/login", await ev("location.pathname"));
+      await tapText("/^Continue as guest$/");
+      check("G16 lanjut sebagai tamu: Beranda Inggris", await waitFor(`/Find Best Route/.test(document.body.innerText)`, 20_000));
+
+      return { screens };
+    }
 
     // --- 1. Belum masuk & belum memilih tamu.
     await setStorage({});
@@ -530,6 +595,7 @@ if (MODE === "capture") {
   const shots = flag("shots", null);
   if (shots) mkdirSync(shots, { recursive: true });
   const base = JSON.parse(readFileSync(BASELINE, "utf8")).screens;
+  const id320 = JSON.parse(readFileSync(path.join(SUPPORT, "i18n-id-320.json"), "utf8")).screens;
   const { screens } = await runFlow({ lang: "en", width: 320, shots });
   check("seluruh layar terekam dalam bahasa Inggris", Object.keys(screens).length === Object.keys(base).length, `${Object.keys(screens).length}/${Object.keys(base).length}`);
   for (const [name, s] of Object.entries(screens)) {
@@ -538,9 +604,23 @@ if (MODE === "capture") {
     check(`E ${name}: tanpa teks Indonesia buatan app`, leftovers.length === 0, leftovers.slice(0, 5).join(" | ") || `${all.length} string`);
     const raw = all.filter((l) => RAW_KEY.test(l));
     check(`E ${name}: tanpa kunci kamus mentah`, raw.length === 0, raw.slice(0, 3).join(" | "));
-    check(`E ${name}: 320 px, tidak keluar tepi`, s.overflow.length === 0, s.overflow.slice(0, 4).join(" | "));
+    // Pembanding: layar yang sama dalam bahasa Indonesia pada 320 px. Yang sudah ada
+    // di ID (mis. modal top-up & penilaian di web) bukan akibat teks Inggris.
+    const ref = id320[name];
+    check(`E ${name}: 320 px, teks keluar tepi tidak lebih banyak dari ID`, s.overflow.length <= ref.overflow.length, `${s.overflow.length} vs ID ${ref.overflow.length}`);
+    check(`E ${name}: 320 px, tombol keluar tepi tidak lebih banyak dari ID`, s.buttons.length <= ref.buttons.length, `${s.buttons.length} vs ID ${ref.buttons.length}`);
+    const wrapped = (x) => x.fares.filter((f) => f.lines > 1).length;
+    const outside = (x) => x.fares.filter((f) => f.right > 320).length;
+    check(`E ${name}: tarif tidak turun baris dan tidak lebih jauh keluar dari ID`, wrapped(s) <= wrapped(ref) && outside(s) <= outside(ref), `${s.fares.length} tarif`);
+    check(`E ${name}: teks terpotong tidak lebih banyak dari ID`, s.clipped.length <= ref.clipped.length, `${s.clipped.length} vs ID ${ref.clipped.length}`);
   }
+  const fareCount = Object.values(screens).reduce((n, s) => n + s.fares.length, 0);
+  check("E+ uji tarif tidak kosong", fareCount >= 20, `${fareCount} tarif`);
   console.log(failures === 0 ? `\nSemua ${checks} uji bahasa Inggris lulus.` : `\n${failures} uji GAGAL.`);
+  process.exitCode = failures ? 1 : 0;
+} else if (MODE === "switch") {
+  await runFlow({ lang: "id", width: 360, shots: flag("shots", null), scenario: "switch" });
+  console.log(failures === 0 ? `\nSemua ${checks} uji pergantian bahasa lulus.` : `\n${failures} uji GAGAL.`);
   process.exitCode = failures ? 1 : 0;
 } else {
   console.log(`Mode tidak dikenal: ${MODE}`);

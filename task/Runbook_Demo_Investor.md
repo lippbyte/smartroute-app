@@ -8,6 +8,10 @@
 
 > **Kode DIBEKUKAN sejak 31 Okt 2026 (keputusan Khalifa).** Yang boleh masuk hanya perbaikan yang menghalangi demo, masing-masing dengan uji dan regresi `/routes`. Tidak ada tag atau merge ke `main` sebelum hasil uji HP dari Khalifa.
 
+> **Bahasa (cabang `feat/bahasa-id-en`, belum diuji di HP):** demo memakai bawaan Indonesia. Pilihan English ada di Akun dan layar Masuk. Kalau memakai Inggris, Peta Kepadatan dan Lapor Kepadatan (Segmen 3) masih Indonesia, kategori udara dan teks server lain tetap Indonesia, dan jawaban TOTO belum diuji dalam bahasa Inggris. Rincian di `Laporan_Bahasa_ID_EN.md`.
+
+> **Bila layar merah muncul saat app dibuka** (`Cannot read property 'EventEmitter'`): tutup paksa app dari Pengaturan Android, lalu buka lagi. Penyebabnya belum terbukti; siapkan video cadangan.
+
 > **Dua aturan wajib untuk presenter:**
 > 1. **Baca angka menit dari layar, jangan menghafal.** Angka menit bergeser menurut jam keberangkatan, dan rute tercepatnya bisa berganti (tabel di bagian 1). Semua angka di runbook ini adalah contoh pengukuran, bukan naskah.
 > 2. **"Kota" wajib dipilih dari saran:** baris **Halte TransJakarta Kota**, bukan "Kota Bambu", "Kota Kasablanka", atau "Kota Harapan Indah 1". Kalau hanya diketik tanpa memilih saran, tujuan meleset ke Jakarta Timur dan hasilnya salah. Tekan Cari setelah centang hijau muncul.
@@ -52,7 +56,7 @@ Rute #1 sama di semua jam yang diukur. Yang paling bergeser adalah rute tercepat
 
 ### Segmen 1 — Beranda (0:30)
 - **Tekan:** buka app. Kalau muncul layar Masuk, pilih **akun demo** (dibutuhkan untuk TOTO dan Riwayat). Lihat bagian 5 soal tamu vs akun demo.
-- **Harus muncul:** logo, kolom **Dari/Ke**, kartu **Peta Kepadatan**, dan kartu **Udara Jakarta** (data tingkat kota, berubah sesuai jam). Contoh terukur 3 Nov 05.32: **AQI 161, "Tidak sehat"**, saran "Pertimbangkan rute dengan jalan kaki lebih sedikit." Baca angkanya dari layar, jangan menghafal. Bila IQAir gagal, kartu tidak tampil tanpa galat.
+- **Harus muncul:** logo, kolom **Dari/Ke**, kartu **Peta Kepadatan**, dan kartu **Udara Jakarta** (data tingkat kota, berubah sesuai jam). Contoh terukur 3 Nov 05.32: **AQI 161, "Tidak sehat"**, saran "Pertimbangkan rute dengan jalan kaki lebih sedikit." Baca angkanya dari layar, jangan menghafal. Bila IQAir gagal, kartu tidak tampil tanpa galat. Kartu bisa diketuk untuk detail: AQI, polutan utama, cuaca, dan skala AQI (data tingkat kota).
 - **Kalimat kunci** *(perlu ditinjau presenter)*: "SmartRoute merencanakan perjalanan transportasi umum Jabodetabek dengan perkiraan yang jujur: rentang waktu, risiko sambungan, dan jejak karbon."
 - **Cadangan:** app tidak terbuka → pakai video cadangan (bagian 6).
 
@@ -220,6 +224,8 @@ Akun, riwayat, dan rating tersimpan di SQLite, tidak ikut terhapus. Tunnel dan M
 |---|---|
 | Sisa jawaban TOTO yang keliru: tarif layanan khusus "berbeda", tombol yang tidak ada, janji palsu (lihat `Laporan_Hotfix_Scroll_TOTO.md`) | Keputusan Khalifa |
 | Tarif Royaltrans dan Transjabodetabek dicocokkan ke sumber resmi operator (`TODO:verifikasi`) | Tim/Khalifa |
+| Bahasa Inggris: uji HP, terjemahan Peta Kepadatan & Lapor Kepadatan, jawaban TOTO (`Laporan_Bahasa_ID_EN.md`) | Tim HP → keputusan Khalifa |
+| Build APK untuk ikon logo baru dan versi 1.1.1 | Keputusan Khalifa |
 | Uji gulir pilihan lokasi & layar TOTO di HP | Tim HP |
 | Kontak kemitraan resmi, tagline final | Khalifa |
 | Durasi nyata tiap segmen | Tim (gladi) |
