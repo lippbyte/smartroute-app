@@ -63,6 +63,15 @@ export default function AboutDialog({ network, onClose }: { network: Network; on
           </ul>
           <p className="mt-2 text-xs">Data jaringan dibangun {builtAt}.</p>
         </section>
+
+        <section>
+          <h3 className="font-bold text-light-1 mb-1">Angka GreenOps</h3>
+          <p>
+            Semua angka energi dan emisi adalah estimasi dari jarak simulasi dikali faktor. Sumber, tahun, dan asumsi tiap
+            faktor bisa dibuka dari ikon info di panel GreenOps. Moda tanpa sumber layak ditandai “tidak tersedia” dan
+            tidak dihitung.
+          </p>
+        </section>
       </div>
     </Modal>
   );

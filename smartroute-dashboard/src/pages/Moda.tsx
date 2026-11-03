@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Pause, Play } from "lucide-react";
 import AboutDialog from "@/components/moda/AboutDialog";
 import { StopCard, VehicleCard } from "@/components/moda/DetailCard";
+import GreenOpsPanel from "@/components/moda/GreenOpsPanel";
 import { clock, DAY_NAMES, fmt0, MODE_META, SIM_LABEL } from "@/components/moda/modaMeta";
 import TransitMapLayers from "@/components/moda/TransitMapLayers";
 import { Map, MapControls } from "@/components/ui/map";
@@ -113,7 +114,7 @@ function ModaView({ network }: { network: Network }) {
         </nav>
       </header>
 
-      <main className="flex-1 min-h-0 flex flex-col md:grid md:grid-cols-[270px_minmax(0,1fr)]">
+      <main className="flex-1 min-h-0 flex flex-col md:grid md:grid-cols-[270px_minmax(0,1fr)_340px]">
         <div className="relative order-1 md:order-2 h-[55dvh] md:h-auto min-h-0">
           <Map
             theme="dark"
@@ -250,6 +251,10 @@ function ModaView({ network }: { network: Network }) {
             </ul>
             <p className="text-xs text-light-2 mt-1">LRT Jakarta dan Whoosh belum ada di data jaringan.</p>
           </section>
+        </aside>
+
+        <aside className="order-3 md:overflow-y-auto border-t md:border-t-0 md:border-l border-light-1/10 p-3">
+          <GreenOpsPanel sim={sim} time={time} vehicles={vehicles} />
         </aside>
       </main>
 

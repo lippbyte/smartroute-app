@@ -56,7 +56,9 @@ export default function TransitMapLayers({
   const { map, isLoaded } = useMap();
   const [ready, setReady] = useState(false);
   const handlers = useRef({ onSelectVehicle, onSelectStop });
-  handlers.current = { onSelectVehicle, onSelectStop };
+  useEffect(() => {
+    handlers.current = { onSelectVehicle, onSelectStop };
+  }, [onSelectVehicle, onSelectStop]);
 
   const staticData = useMemo(() => {
     const routes: GeoJSON.FeatureCollection = {
@@ -189,6 +191,8 @@ export default function TransitMapLayers({
       map.on("mouseenter", id, pointer);
       map.on("mouseleave", id, unpointer);
     }
+    // Sinkronisasi dengan peta MapLibre, sistem di luar React.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setReady(true);
 
     return () => {
