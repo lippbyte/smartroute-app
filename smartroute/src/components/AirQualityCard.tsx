@@ -5,7 +5,7 @@
 // stale -> "data tidak terbaru". Saran satu kalimat, bukan saran medis.
 // Dengan onPress, kartu bisa diketuk untuk membuka layar detail.
 import Text from "@/components/Text";
-import { AQI_ADVICE, AQI_COLORS, type AirQuality } from "@/services/airQualityService";
+import { AQI_ADVICE, AQI_COLORS, aqiCategoryLabel, type AirQuality } from "@/services/airQualityService";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, View } from "react-native";
 import { t } from "@/i18n";
@@ -19,7 +19,8 @@ export default function AirQualityCard({ air, compact, onPress }: { air: AirQual
   if (!air) return null;
   const colors = AQI_COLORS[air.category_key];
   const updated = t("air.updated", { time: hhmm(air.fetched_at) });
-  const label = t("air.cardLabel", { city: air.city, category: air.category, aqi: air.aqi_us, stale: air.stale ? `${t("air.staleSentence")} ` : "", updated });
+  const category = aqiCategoryLabel(air);
+  const label = t("air.cardLabel", { city: air.city, category, aqi: air.aqi_us, stale: air.stale ? `${t("air.staleSentence")} ` : "", updated });
 
   const content = (
     <>
@@ -34,7 +35,7 @@ export default function AirQualityCard({ air, compact, onPress }: { air: AirQual
       <View className="flex-1 gap-0.5">
         <View className="flex-row items-center gap-1.5 flex-wrap">
           <Text className="text-ink text-sm" weight="bold">
-            {t("air.title", { city: air.city, category: air.category })}
+            {t("air.title", { city: air.city, category })}
           </Text>
           {air.stale && (
             <View className="flex-row items-center gap-1 rounded-full px-2 py-0.5" style={{ backgroundColor: "#F4F4F0", borderWidth: 1, borderColor: "#737373" }}>

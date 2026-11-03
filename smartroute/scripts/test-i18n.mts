@@ -17,6 +17,7 @@ import { formatRupiah } from "../src/utils/currency";
 import { formatDistance } from "../src/utils/navInstructions";
 import { formatRange, formatTripDate } from "../src/utils/tripFormat";
 import { formatReportedAt } from "../src/components/crowd/crowdLevel";
+import { AQI_SCALE, aqiCategoryLabel } from "../src/services/airQualityService";
 
 // Proses anak: membaca pilihan seperti saat app dibuka.
 if (process.argv[2] === "child") {
@@ -108,6 +109,19 @@ check("F7 satuan halte Inggris mengikuti jumlah", stopWord(false, 1) === "stop" 
 check("F8 pengelompokan angka", groupDigits("3500") === "3,500");
 setLanguage("id");
 check("F9 kembali ke ID: format kembali", formatRupiah(3500) === "Rp 3.500" && stopWord(false, 2) === "halte");
+
+// --- Kategori udara: dari kode ke label bahasa aktif.
+const backendAir = readFileSync(path.join(ROOT, "..", "backend", "backend-skeleton", "src", "services", "airQuality.ts"), "utf8");
+const backendLabels = Object.fromEntries([...backendAir.matchAll(/key: "(\w+)", label: "([^"]+)"/g)].map((m) => [m[1], m[2]]));
+check("Q0 label backend terbaca (uji tidak kosong)", Object.keys(backendLabels).length === 6, Object.keys(backendLabels).join(","));
+const labelFor = (key: string) => aqiCategoryLabel({ category: "TEKS-SERVER", category_key: key as never });
+const wrongId = AQI_SCALE.filter((s) => labelFor(s.key) !== backendLabels[s.key]);
+check("Q1 ID: keenam kategori sama persis dengan label backend", wrongId.length === 0, wrongId.map((s) => s.key).join(","));
+setLanguage("en");
+const enLabels = AQI_SCALE.map((s) => labelFor(s.key));
+check("Q2 EN: keenam kategori berbahasa Inggris", enLabels.join("|") === "Good|Moderate|Unhealthy for sensitive groups|Unhealthy|Very unhealthy|Hazardous", enLabels.join("|"));
+check("Q3 kode tak dikenal: memakai teks server, tidak kosong", labelFor("kode_baru") === "TEKS-SERVER");
+setLanguage("id");
 
 // --- Pilihan bertahan setelah app dibuka ulang.
 const store = path.join(tmpdir(), `smartroute-i18n-${process.pid}.json`);

@@ -613,12 +613,12 @@ function diffScreen(name, base, now) {
 const ID_WORDS = /\b(lapor|laporan|padat|lengang|yang|dengan|untuk|dari|atau|dan|tidak|belum|sudah|masuk|daftar|keluar|lewati|simpan|batal|tutup|kembali|coba|lagi|halte|stasiun|jalan kaki|menit|mnt|tarif|saldo|riwayat|perjalanan|penilaian|kepadatan|akun|beranda|rute|tujuan|asal|berangkat|langkah|selesai|estimasi|aktual|sekarang|hari ini|sumber|diperbarui|ketuk|pilih|cari|memuat|menyimpan|gratis|kartu|bantuan|tampilan)\b/i;
 // Teks dari server dan data uji: dibiarkan Indonesia sesuai dokumen Task B.
 const SERVER_OK = [
-  /Tidak sehat/, /Jawaban tiruan/, /^Halte /, /^Stasiun /, /Halte TransJakarta/, /Stasiun MRT/, /Blok M/, /Lebak Bulus/, /Pasar Baru/, /Cukup membantu/,
+  /Jawaban tiruan/, /^Halte /, /^Stasiun /, /Halte TransJakarta/, /Stasiun MRT/, /Blok M/, /Lebak Bulus/, /Pasar Baru/, /Cukup membantu/,
   /Monumen Nasional/, /Sebagian teks dari server/, /^Bahasa( Indonesia)?$/, /Rina/, /Layanan rute sedang tidak tersedia/,
   // Rincian tarif & ringkasan aksesibilitas dari backend.
   /titik tanpa data aksesibilitas|tercatat bisa diakses|Data aksesibilitas armada|Jalur jalan kaki belum dinilai/, /layanan premium/, /transfer gratis|Gratis transfer|gratis dalam/i,
   // Nama moda, kategori AQI, nama rute, dan nama tempat dari data.
-  /^(Baik|Sedang|Sangat tidak sehat|Berbahaya)$/, /Tanjungpriuk|Cikarang|Bogor|Bundaran HI|Dukuh Atas|Kota/,
+  /Tanjungpriuk|Cikarang|Bogor|Bundaran HI|Dukuh Atas|Kota/,
 ];
 const RAW_KEY = /\b(crowd|auth|home|route|detail|nav|trip|pass|about|toto|pref|a11y|air|common|profile|onboarding|history|rating|format|assistive|feedback|error|mode|badge|quick|side|tab|departure|location)\.[a-zA-Z0-9_.]+\b/;
 
@@ -672,6 +672,8 @@ if (MODE === "capture") {
     check(`E ${name}: tarif tidak turun baris dan tidak lebih jauh keluar dari ID`, wrapped(s) <= wrapped(ref) && outside(s) <= outside(ref), `${s.fares.length} tarif`);
     check(`E ${name}: teks terpotong tidak lebih banyak dari ID`, s.clipped.length <= ref.clipped.length, `${s.clipped.length} vs ID ${ref.clipped.length}`);
   }
+  const airLines = ["beranda-tamu", "hasil-rute", "udara"].map((n) => screens[n].lines.join(" | "));
+  check("E+ kategori udara berbahasa Inggris di kartu Beranda, Hasil Rute, dan layar detail", airLines.every((l) => /Air in Jakarta: Unhealthy/.test(l) && !/Tidak sehat/.test(l)));
   const fareCount = Object.values(screens).reduce((n, s) => n + s.fares.length, 0);
   check("E+ uji tarif tidak kosong", fareCount >= 20, `${fareCount} tarif`);
   console.log(failures === 0 ? `\nSemua ${checks} uji bahasa Inggris lulus.` : `\n${failures} uji GAGAL.`);

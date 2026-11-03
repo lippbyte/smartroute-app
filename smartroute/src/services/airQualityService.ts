@@ -53,6 +53,14 @@ export const AQI_SCALE: ReadonlyArray<{ key: AqiCategoryKey; range: string; labe
   aqiStep("berbahaya", "301+", "air.scale.berbahaya"),
 ];
 
+/**
+ * Nama kategori dalam bahasa aktif, dari kode category_key. Teks dari server hanya
+ * cadangan bila kodenya tidak dikenal. Label Indonesia sama dengan label backend.
+ */
+export function aqiCategoryLabel(air: Pick<AirQuality, "category" | "category_key">): string {
+  return AQI_SCALE.find((s) => s.key === air.category_key)?.label ?? air.category;
+}
+
 type AirQualityResponse = AirQuality | { available: false; source: "IQAir"; reason: string };
 
 export async function fetchAirQuality(): Promise<AirQuality | null> {

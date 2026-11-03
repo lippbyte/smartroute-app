@@ -9,7 +9,7 @@ import { FormMessage } from "@/components/form/FormField";
 import PrimaryButton from "@/components/form/PrimaryButton";
 import ScreenBackground from "@/components/ScreenBackground";
 import Text from "@/components/Text";
-import { AQI_ADVICE, AQI_COLORS, AQI_SCALE, fetchAirQuality, IQAIR_CITY_URL, type AirQuality } from "@/services/airQualityService";
+import { AQI_ADVICE, AQI_COLORS, AQI_SCALE, aqiCategoryLabel, fetchAirQuality, IQAIR_CITY_URL, type AirQuality } from "@/services/airQualityService";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { ReactNode, useCallback, useEffect, useState } from "react";
@@ -101,7 +101,7 @@ export default function AirQualityScreen() {
                 </View>
                 <View className="flex-1 gap-0.5">
                   <Text className="text-ink text-base" weight="bold">
-                    {t("air.title", { city: air.city, category: air.category })}
+                    {t("air.title", { city: air.city, category: aqiCategoryLabel(air) })}
                   </Text>
                   {air.stale && (
                     <Text className="text-xs" weight="semibold" style={{ color: "#404040" }}>
