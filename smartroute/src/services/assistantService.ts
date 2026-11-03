@@ -16,7 +16,7 @@
 import { Coordinate } from "@/utils/geocode";
 import { apiRequest } from "./apiClient";
 import { NearbyStop } from "./nearbyStopsService";
-import { t } from "@/i18n";
+import { getLanguage, t } from "@/i18n";
 
 // Backend memotong OpenRouter di 15 detik; sebelum itu ia bisa memanggil
 // mesin rute dulu (rute asal-tujuan, atau rute jalan kaki ke halte terdekat
@@ -61,6 +61,7 @@ export async function askAssistant(
         question,
         ...(Object.keys(context).length > 0 ? { context } : {}),
         ...(history && history.length > 0 ? { history } : {}),
+        language: getLanguage(),
       },
       timeoutMs: ASSISTANT_TIMEOUT_MS,
       timeoutMessage: t("toto.timeout"),

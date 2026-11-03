@@ -7,6 +7,7 @@ import { authedUserId, requireAuth } from "../lib/auth";
 import { tooManyRequests } from "../lib/respond";
 import { AssistantAskRequestSchema, PRIORITIES } from "../lib/validation";
 import { askAssistant, sanitizeNickname, type AssistantProfile } from "../services/assistant";
+import { resolveReplyLanguage } from "../services/assistantLanguage";
 import { consumeTotoQuota, refundTotoQuota } from "../services/totoUsage";
 import { getUserById } from "../services/users";
 import { isUnbilledFailure, OpenRouterConfigError, OpenRouterRequestError } from "../lib/openRouterClient";
@@ -31,6 +32,9 @@ router.post("/assistant/ask", requireAuth, async (req, res) => {
   const user = getUserById(authedUserId(res));
   if (!user) return res.status(401).json({ error: "unauthorized", message: "Silakan masuk terlebih dahulu." });
 
+  // Pesan batas & galat di dalam chat mengikuti bahasa jawaban.
+  const en = resolveReplyLanguage(parsedBody.data.question, parsedBody.data.language) === "en";
+
   // Dicek & dicatat SEBELUM konteks dibangun dan LLM dipanggil.
   const quota = consumeTotoQuota(user.id, user.email);
   if (!quota.allowed) {
@@ -38,15 +42,21 @@ router.post("/assistant/ask", requireAuth, async (req, res) => {
       ? tooManyRequests(
           res,
           quota.retryAfterSec,
-          "TOTO sudah menjawab banyak sekali pertanyaan hari ini dan sedang beristirahat. " +
-            "Coba lagi besok ya. Pencarian rute tetap bisa dipakai seperti biasa.",
+          en
+            ? "TOTO has answered a lot of questions today and is taking a break. " +
+                "Please try again tomorrow. Route search still works as usual."
+            : "TOTO sudah menjawab banyak sekali pertanyaan hari ini dan sedang beristirahat. " +
+                "Coba lagi besok ya. Pencarian rute tetap bisa dipakai seperti biasa.",
           "daily_cap_reached",
         )
       : tooManyRequests(
           res,
           quota.retryAfterSec,
-          `Anda sudah bertanya ${quota.limit} kali dalam satu jam terakhir. ` +
-            `Coba lagi dalam ${minutesLabel(quota.retryAfterSec)}.`,
+          en
+            ? `You've asked ${quota.limit} questions in the last hour. ` +
+                `Please try again in ${Math.max(1, Math.ceil(quota.retryAfterSec / 60))} min.`
+            : `Anda sudah bertanya ${quota.limit} kali dalam satu jam terakhir. ` +
+                `Coba lagi dalam ${minutesLabel(quota.retryAfterSec)}.`,
           "hourly_limit_reached",
         );
   }
@@ -64,7 +74,8 @@ router.post("/assistant/ask", requireAuth, async (req, res) => {
       parsedBody.data.question,
       parsedBody.data.context,
       parsedBody.data.history,
-      profile
+      profile,
+      parsedBody.data.language
     );
     return res.status(200).json(result);
   } catch (err) {
@@ -81,7 +92,9 @@ router.post("/assistant/ask", requireAuth, async (req, res) => {
       console.error(`Asisten LLM gagal [${kind}${refunded ? ", kuota dikembalikan" : ""}]:`, err.message, err instanceof OpenRouterRequestError ? err.cause ?? "" : "");
       return res.status(502).json({
         error: "assistant_unavailable",
-        message: "Layanan asisten sedang tidak tersedia. Coba lagi sebentar lagi.",
+        message: en
+          ? "The assistant is unavailable right now. Please try again shortly."
+          : "Layanan asisten sedang tidak tersedia. Coba lagi sebentar lagi.",
       });
     }
     console.error("Unexpected error in POST /assistant/ask:", err);

@@ -4,6 +4,7 @@
 // giliran percakapan terakhir dari app supaya pertanyaan lanjutan nyambung.
 // Backend tetap tidak menyimpan riwayat apa pun — app yang mengirimnya.
 import type { RouteCandidate } from "../types/schema";
+import { languageDirective, NEARBY_INTENT, resolveReplyLanguage, type ReplyLanguage } from "./assistantLanguage";
 import { computeRouteRecommendation } from "./routing";
 import { getGtfsContextText } from "./gtfsContext";
 import { findNearbyStops, type NearbyStop, type TransitMode } from "./nearbyStops";
@@ -43,19 +44,16 @@ const SYSTEM_PROMPT_HEADER =
   "berdasarkan data yang diberikan di bawah ini — JANGAN mengarang nama rute, " +
   "halte, jarak, tarif, jadwal, atau fakta apa pun yang tidak tercantum. Kalau " +
   "informasi yang dibutuhkan tidak ada di data, katakan dengan jujur bahwa Anda " +
-  "tidak punya data itu. Jawab singkat dan jelas. BAHASA JAWABAN mengikuti " +
-  "pertanyaan TERAKHIR pengguna: kalau pertanyaannya dalam Bahasa Inggris, " +
-  "jawab seluruhnya dalam Bahasa Inggris; kalau dalam Bahasa Indonesia, jawab " +
-  "dalam Bahasa Indonesia. Jangan mencampur bahasa dalam satu jawaban, dan " +
-  "jangan terpengaruh bahasa jawaban sebelumnya dalam riwayat percakapan. " +
+  "tidak punya data itu. Jawab singkat dan jelas. Bahasa jawaban dan nama label " +
+  "aplikasi ditentukan oleh bagian BAHASA JAWABAN di paling akhir instruksi ini. " +
   "Nama halte, rute, dan angka tetap ditulis seperti di data.\n\n" +
   "Kalau pengguna bertanya halte/stasiun terdekat, sebutkan yang paling dekat " +
   "beserta jaraknya dari daftar HALTE TERDEKAT. Kalau ada data RUTE JALAN KAKI, " +
   "jelaskan langkahnya secara ringkas (arah & nama jalan). Di bawah jawaban " +
-  "Anda, aplikasi menampilkan kartu halte dengan dua tombol: \"Jalan ke sini\" " +
-  "(navigasi jalan kaki dari posisi pengguna) dan \"Berangkat dari sini\" " +
+  "Anda, aplikasi menampilkan kartu halte dengan dua tombol: tombol jalan " +
+  "(navigasi jalan kaki dari posisi pengguna) dan tombol berangkat " +
   "(menjadikan halte itu titik berangkat pencarian rute). Sebut tombol dengan " +
-  "nama persis itu kalau menyarankannya. Pencarian rute paling lengkap kalau " +
+  "nama dari bagian BAHASA JAWABAN kalau menyarankannya. Pencarian rute paling lengkap kalau " +
   "titik berangkatnya tepat di halte/stasiun.\n\n" +
   // Hotfix TOTO: terbukti mengarang waktu tempuh ("30-45 menit", layar 92-106),
   // transfer fiktif (Rute 3 -> Rute 10), dan menyebut "real-time" bila ditanya
@@ -68,8 +66,8 @@ const SYSTEM_PROMPT_HEADER =
   "bentuk apa pun; JANGAN menyarankan atau merangkai transfer/pindah antarrute; " +
   "JANGAN menyebut nama rute sebagai saran perjalanan; JANGAN menyebut apa pun " +
   "tercepat, termurah, atau terbaik. Katakan singkat bahwa TOTO tidak menghitung " +
-  "rute, lalu arahkan ke pencarian rute di Beranda: isi Dari dan Tujuan, lalu " +
-  "tekan \"Cari Rute Terbaik\".\n" +
+  "rute, lalu arahkan ke pencarian rute di Beranda: isi kolom asal dan tujuan, lalu " +
+  "tekan tombol pencarian rute (namanya ada di bagian BAHASA JAWABAN).\n" +
   "- Kalau bagian itu ada: sebut waktu tempuh, transit, dan tarif persis seperti " +
   "tertulis, tanpa menambah angka lain. \"risiko sambungan: rendah\" berarti " +
   "sambungan aman (baik), \"tinggi\" berarti berisiko. Sebut sebuah rute tercepat " +
@@ -132,11 +130,6 @@ const MODE_NAME: Record<TransitMode, string> = {
   mrt: "Stasiun MRT",
   lrt: "Stasiun LRT",
 };
-
-// "halte terdekat", "dekat sini", "gimana jalan ke sana", dst. — pertanyaan
-// yang butuh tombol aksi halte di app dan rute jalan kaki ke halte terdekat.
-const NEARBY_INTENT =
-  /terdekat|paling dekat|dekat (sini|saya|aku|lokasi)|di ?sekitar|sekitar (sini|saya|aku)|lokasi (saya|aku|ku)|posisi (saya|aku|ku)|jalan kaki|ke ?sana|halte mana|stasiun mana/i;
 
 // Moda yang disebut di pertanyaan ("MRT terdekat") — kartu aksi & rute jalan
 // kaki diarahkan ke moda itu, bukan ke titik JakLingko yang kebetulan paling
@@ -322,7 +315,8 @@ export async function askAssistant(
   question: string,
   context?: AssistantAskContext,
   history: AssistantHistoryTurn[] = [],
-  profile?: AssistantProfile
+  profile?: AssistantProfile,
+  appLanguage?: ReplyLanguage
 ): Promise<AssistantAnswer> {
   const userLocation = context?.user_location;
   const wantsNearby = userLocation != null && NEARBY_INTENT.test(question);
@@ -346,8 +340,11 @@ export async function askAssistant(
     : "\n\nPosisi GPS pengguna tidak tersedia (izin lokasi belum diberikan) — kalau " +
       "ditanya halte terdekat, minta pengguna mengaktifkan izin lokasi.";
 
+  // Perintah bahasa di paling akhir: konteks di atasnya berbahasa Indonesia.
+  const reply = resolveReplyLanguage(question, appLanguage);
   const systemPrompt =
-    `${SYSTEM_PROMPT_HEADER}\n\n${getGtfsContextText()}${locationText}${groundedRouteText}`;
+    `${SYSTEM_PROMPT_HEADER}\n\n${getGtfsContextText()}${locationText}${groundedRouteText}` +
+    languageDirective(reply, appLanguage);
 
   const profileMessage = buildProfileMessage(profile);
   const messages: ChatMessage[] = [

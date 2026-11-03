@@ -179,6 +179,9 @@ export const AssistantAskRequestSchema = z.object({
     )
     .max(10)
     .optional(),
+  // Bahasa aktif aplikasi: dasar jawaban kalau bahasa pertanyaan tidak jelas,
+  // dan nama label tombol yang disebut TOTO.
+  language: z.enum(["id", "en"]).optional(),
 });
 
 export type AssistantAskRequest = z.infer<typeof AssistantAskRequestSchema>;
