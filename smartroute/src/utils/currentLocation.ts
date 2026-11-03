@@ -108,3 +108,34 @@ export async function getCurrentCoordinate(): Promise<Coordinate | null> {
     return null;
   }
 }
+
+// Posisi terakhir yang disimpan sistem (tanpa menunggu fix GPS baru). Dipakai
+// sebagai tahap pertama supaya daftar halte bisa langsung tampil; tahap kedua
+// tetap membaca GPS baru untuk memastikan posisinya akurat. Hanya dipakai
+// kalau masih segar (<= 2 menit) dan akurasinya <= 100 m — selain itu lebih
+// baik menunggu fix baru daripada menampilkan titik yang meleset.
+const LAST_KNOWN_MAX_AGE_MS = 2 * 60 * 1000;
+const LAST_KNOWN_REQUIRED_ACCURACY_M = 100;
+
+/**
+ * Posisi terakhir yang masih segar, tanpa menyalakan pembacaan GPS baru.
+ * Tidak meminta izin (hanya cek status). @returns null kalau tidak ada.
+ */
+export async function getLastKnownCoordinate(): Promise<Coordinate | null> {
+  const { status } = await Location.getForegroundPermissionsAsync();
+  if (status !== "granted") return null;
+
+  try {
+    const position = await Location.getLastKnownPositionAsync({
+      maxAge: LAST_KNOWN_MAX_AGE_MS,
+      requiredAccuracy: LAST_KNOWN_REQUIRED_ACCURACY_M,
+    });
+    if (!position) return null;
+    return {
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+    };
+  } catch {
+    return null;
+  }
+}

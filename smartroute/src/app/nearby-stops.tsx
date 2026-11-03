@@ -21,7 +21,8 @@ import {
   fetchNearbyStops,
 } from "@/services/nearbyStopsService";
 import { Coordinate } from "@/utils/geocode";
-import { getCurrentCoordinate } from "@/utils/currentLocation";
+import { getCurrentCoordinate, getLastKnownCoordinate } from "@/utils/currentLocation";
+import { haversineM } from "@/utils/navInstructions";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -206,16 +207,33 @@ export default function NearbyStopsScreen() {
     }
   }, []);
 
+  // Nomor permintaan GPS terbaru: hasil GPS yang datang terlambat (setelah
+  // pengguna sudah memilih lokasi lain) tidak boleh menimpa pilihan itu.
+  const gpsRequestRef = useRef(0);
+
+  // Dua tahap supaya tidak menunggu ~10 detik fix GPS baru:
+  // 1) posisi terakhir yang masih segar langsung dipakai -> daftar tampil cepat;
+  // 2) GPS baru dibaca di belakang; kalau posisinya berpindah > 30 m dari tahap 1,
+  //    daftar dihitung ulang dari posisi yang benar.
   const loadFromGps = useCallback(
     async (radiusM: number) => {
+      const requestId = ++gpsRequestRef.current;
       setActiveTestLabel(null);
       setState({ status: "loading" });
-      const coordinate = await getCurrentCoordinate();
-      if (!coordinate) {
-        setState({ status: "permission_denied" });
+
+      const quick = await getLastKnownCoordinate();
+      if (quick && requestId === gpsRequestRef.current) {
+        await loadAt(quick, radiusM);
+      }
+
+      const fresh = await getCurrentCoordinate();
+      if (requestId !== gpsRequestRef.current) return;
+      if (!fresh) {
+        if (!quick) setState({ status: "permission_denied" });
         return;
       }
-      await loadAt(coordinate, radiusM);
+      const moved = !quick || haversineM(quick, fresh) > 30;
+      if (moved) await loadAt(fresh, radiusM);
     },
     [loadAt],
   );
@@ -278,6 +296,8 @@ export default function NearbyStopsScreen() {
               <Pressable
                 key={loc.label}
                 onPress={() => {
+                  // Batalkan GPS yang masih berjalan supaya tidak menimpa lokasi uji.
+                  gpsRequestRef.current++;
                   setActiveTestLabel(loc.label);
                   loadAt(loc.coordinate, currentRadiusM);
                 }}
