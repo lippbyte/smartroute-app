@@ -55,7 +55,8 @@ const WARMUP = [
 ];
 // "Jauh di atas baseline": lebih dari 2,5x latensi hangat Hari 3.
 const SLOW_FACTOR = 2.5;
-const TOTO_QUESTION = "Dari Blok M ke Kota naik apa?";
+// Pertanyaan terlatih di runbook; TOTO teruji akurat untuk tarif & jam operasional.
+const TOTO_QUESTION = "Berapa tarif TransJakarta?";
 
 const rows = [];
 const add = (check, status, detail) => rows.push({ check, status, detail });
@@ -164,8 +165,10 @@ if (token) {
 
   const ask = await call(`${BACKEND}/assistant/ask`, { method: "POST", token, body: { question: TOTO_QUESTION }, timeoutMs: 30_000 });
   const answer = typeof ask.json?.answer === "string" ? ask.json.answer.trim() : "";
-  if (ask.ok && answer.length >= 20) {
-    add("TOTO: satu pertanyaan uji", "PASS", `jawaban ${answer.length} karakter, ${ask.ms} ms`);
+  if (ask.ok && answer.length >= 20 && /3\.500/.test(answer)) {
+    add("TOTO: satu pertanyaan uji", "PASS", `jawaban ${answer.length} karakter memuat Rp3.500, ${ask.ms} ms`);
+  } else if (ask.ok && answer.length >= 20) {
+    add("TOTO: satu pertanyaan uji", "WARN", `jawaban ${answer.length} karakter tanpa Rp3.500 — periksa isi jawaban TOTO`);
   } else if (ask.status === 429) {
     add("TOTO: satu pertanyaan uji", "FAIL", `${ask.json?.error ?? "batas"} — ${ask.json?.message ?? ""}`.trim());
   } else {

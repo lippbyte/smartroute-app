@@ -19,6 +19,11 @@ import ScreenBackground from "@/components/ScreenBackground";
 // kedua pintu masuk — tombol di Beranda dan item SideMenu — serta tautan
 // langsung ke /assistant tertutup sekaligus. Tamu melihat ajakan masuk;
 // komponen chat (GPS, panggilan backend) tidak dirender sama sekali.
+//
+// Hotfix TOTO: layar ini tidak lagi mengurai "dari X ke Y" menjadi koordinat
+// dan tidak lagi punya tombol buka rute. Geocode nama pendek bisa meleset
+// ("Kota" -> Jakarta Timur), sehingga jawaban & tombol memakai tujuan yang
+// salah. Pertanyaan rute diarahkan ke pencarian rute di Beranda.
 import AssistantAnswerText from "@/components/assistant/AssistantAnswerText";
 import PrimaryButton from "@/components/form/PrimaryButton";
 import Text from "@/components/Text";
@@ -33,8 +38,7 @@ import {
 import { AssistantTurn, askAssistant } from "@/services/assistantService";
 import { NearbyStop } from "@/services/nearbyStopsService";
 import { getCurrentCoordinate } from "@/utils/currentLocation";
-import { Coordinate, geocodePlace } from "@/utils/geocode";
-import { formatCoordParam, MY_LOCATION_LABEL } from "@/utils/stopActions";
+import { Coordinate } from "@/utils/geocode";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -48,27 +52,15 @@ import {
   View,
 } from "react-native";
 
+// Hanya pertanyaan yang jawabannya teruji benar berulang kali (laporan Hari 4).
 const EXAMPLE_QUESTIONS = [
-  "Halte terdekat dari saya di mana?",
-  "Dari sini ke Monas naik apa?",
-  "Dari Blok M ke Kota naik apa?",
   "Berapa tarif TransJakarta?",
+  "Jam berapa TransJakarta mulai dan berhenti beroperasi?",
 ];
 
 // Giliran (tanya+jawab) yang ikut dikirim sebagai konteks — backend menolak
 // lebih dari 10 pesan.
 const MAX_HISTORY_MESSAGES = 8;
-// Nominatim layanan gratis tanpa SLA — geocoding untuk grounding tidak boleh
-// menahan pertanyaan terlalu lama; lewat dari ini asisten tetap ditanya
-// tanpa rute konkret.
-const GEOCODE_TIMEOUT_MS = 6000;
-
-interface ResolvedRoute {
-  originLabel: string;
-  destinationLabel: string;
-  originCoord: Coordinate | null;
-  destinationCoord: Coordinate | null;
-}
 
 type ChatEntry =
   | { id: string; role: "user"; text: string }
@@ -80,7 +72,6 @@ type ChatEntry =
       answer: string;
       forQuestion: string;
       nearbyStops: NearbyStop[];
-      route: ResolvedRoute | null;
     }
   | { id: string; role: "assistant"; status: "error"; message: string; forQuestion: string };
 
@@ -88,84 +79,6 @@ let nextId = 0;
 function generateId(): string {
   nextId += 1;
   return `entry-${nextId}`;
-}
-
-// originText null = berangkat dari posisi GPS ("dari sini", atau "ke X naik
-// apa" tanpa menyebut asal).
-interface RouteQuery {
-  originText: string | null;
-  destinationText: string;
-}
-
-const SELF_ORIGIN = /^(sini|lokasi (saya|aku|ku)|posisi (saya|aku|ku)|tempat (saya|aku) sekarang)$/i;
-const ROUTE_WORDS = /naik apa|pakai apa|\brute\b|caranya|cara ke|gimana ke|bagaimana ke/i;
-// "gimana jalan ke halte terdekat" bukan pencarian rute ke tempat bernama
-// "halte terdekat" — itu urusan kartu halte terdekat.
-const NOT_A_PLACE = /terdekat|^(sana|sini|situ)$|^halte (ini|itu)$/i;
-
-function cleanDestination(raw: string): string {
-  return raw
-    .trim()
-    .replace(
-      /\s*(naik apa|pakai apa|gimana(?:\s+caranya)?|bagaimana(?:\s+caranya)?)\b.*$/i,
-      "",
-    )
-    .replace(/[?.!]+\s*$/, "")
-    .trim();
-}
-
-function extractRouteQuery(question: string, hasGps: boolean): RouteQuery | null {
-  const q = question.trim();
-  const withOrigin = /dari\s+(.+?)\s+ke\s+(.+)/i.exec(q);
-  if (withOrigin) {
-    const originRaw = withOrigin[1].trim();
-    const destinationText = cleanDestination(withOrigin[2]);
-    if (!originRaw || !destinationText || NOT_A_PLACE.test(destinationText)) return null;
-    return {
-      originText: SELF_ORIGIN.test(originRaw) ? null : originRaw,
-      destinationText,
-    };
-  }
-  if (!hasGps || !ROUTE_WORDS.test(q)) return null;
-  const toOnly = /\bke\s+(.+)/i.exec(q);
-  if (!toOnly) return null;
-  const destinationText = cleanDestination(toOnly[1]);
-  if (!destinationText || NOT_A_PLACE.test(destinationText)) return null;
-  return { originText: null, destinationText };
-}
-
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
-  return new Promise((resolve) => {
-    const timer = setTimeout(() => resolve(null), ms);
-    promise.then(
-      (v) => {
-        clearTimeout(timer);
-        resolve(v);
-      },
-      () => {
-        clearTimeout(timer);
-        resolve(null);
-      },
-    );
-  });
-}
-
-async function resolveRouteQuery(
-  query: RouteQuery,
-  userLocation: Coordinate | null,
-): Promise<ResolvedRoute> {
-  const [originCoord, destinationCoord] = await Promise.all([
-    query.originText === null
-      ? Promise.resolve(userLocation)
-      : withTimeout(geocodePlace(query.originText), GEOCODE_TIMEOUT_MS),
-    withTimeout(geocodePlace(query.destinationText), GEOCODE_TIMEOUT_MS),
-  ]);
-  return {
-    originLabel: query.originText ?? MY_LOCATION_LABEL,
-    destinationLabel: query.destinationText,
-    originCoord,
-    destinationCoord,
-  };
 }
 
 // Pasangan tanya-jawab yang berhasil saja; pertanyaan yang gagal dijawab
@@ -289,16 +202,7 @@ function AssistantScreen({ token }: { token: string }) {
     history: AssistantTurn[],
   ) => {
     try {
-      const parsed = extractRouteQuery(question, userLocation !== null);
-      // "dari sini ke X" tanpa GPS tidak punya titik asal sama sekali.
-      const routeQuery = parsed && (parsed.originText !== null || userLocation) ? parsed : null;
-      const route = routeQuery ? await resolveRouteQuery(routeQuery, userLocation) : null;
-      const reply = await askAssistant(token, question, {
-        userLocation,
-        origin: route?.originCoord,
-        destination: route?.destinationCoord,
-        history,
-      });
+      const reply = await askAssistant(token, question, { userLocation, history });
       setEntries((prev) =>
         prev.map((e) =>
           e.id === assistantId
@@ -309,7 +213,6 @@ function AssistantScreen({ token }: { token: string }) {
                 answer: reply.answer,
                 forQuestion: question,
                 nearbyStops: reply.nearbyStops,
-                route,
               }
             : e,
         ),
@@ -369,37 +272,11 @@ function AssistantScreen({ token }: { token: string }) {
     setInput("");
   };
 
-  const openRoute = (route: ResolvedRoute) => {
-    router.push({
-      pathname: "/route",
-      params: {
-        origin: route.originLabel,
-        destination: route.destinationLabel,
-        ...(route.originCoord
-          ? {
-              originCoord: formatCoordParam(
-                route.originCoord.latitude,
-                route.originCoord.longitude,
-              ),
-            }
-          : {}),
-        ...(route.destinationCoord
-          ? {
-              destinationCoord: formatCoordParam(
-                route.destinationCoord.latitude,
-                route.destinationCoord.longitude,
-              ),
-            }
-          : {}),
-      },
-    });
-  };
-
   const locationHint =
     locationStatus === "locating"
       ? "Membaca lokasimu..."
       : locationStatus === "ready"
-        ? "Lokasi aktif · tanya halte terdekat & rute"
+        ? "Lokasi aktif · tanya halte terdekat"
         : "Lokasi tidak aktif · halte terdekat tidak tersedia";
 
   return (
@@ -517,17 +394,6 @@ function AssistantScreen({ token }: { token: string }) {
                     userLocation={userLocation}
                   />
                 ))}
-                {entry.route && (
-                  <Pressable
-                    onPress={() => openRoute(entry.route!)}
-                    className="flex-row items-center justify-center gap-2 bg-[#018959] py-2.5 rounded-xl active:opacity-80"
-                  >
-                    <Ionicons name="navigate" size={16} color="#FFFFFF" />
-                    <Text className="text-white font-bold text-sm">
-                      Lihat Hasil Rute & Navigasi
-                    </Text>
-                  </Pressable>
-                )}
               </View>
             </View>
           );

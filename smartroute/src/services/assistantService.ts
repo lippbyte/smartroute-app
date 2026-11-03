@@ -30,8 +30,6 @@ export interface AssistantTurn {
 
 export interface AssistantAskOptions {
   userLocation?: Coordinate | null;
-  origin?: Coordinate | null;
-  destination?: Coordinate | null;
   history?: AssistantTurn[];
 }
 
@@ -50,13 +48,8 @@ export async function askAssistant(
   question: string,
   options: AssistantAskOptions = {},
 ): Promise<AssistantReply> {
-  const { userLocation, origin, destination, history } = options;
-  const context = {
-    ...(userLocation ? { user_location: toLatLng(userLocation) } : {}),
-    ...(origin && destination
-      ? { origin: toLatLng(origin), destination: toLatLng(destination) }
-      : {}),
-  };
+  const { userLocation, history } = options;
+  const context = userLocation ? { user_location: toLatLng(userLocation) } : {};
 
   const { answer, nearby_stops } = await apiRequest<{ answer?: unknown; nearby_stops?: unknown }>(
     "POST",
