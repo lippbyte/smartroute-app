@@ -2,7 +2,7 @@
 
 Cabang: `feat/dashboard-moda-greenops`, dari `feat/hotfix-scroll-bahasa` (`1549e0a`). Tidak di-merge ke `main`.
 
-**Status terbaru (3 Nov 2026):** panel GreenOps tersembunyi di balik flag yang mati, `/moda` tidak ditautkan dari mana pun, dan tabel faktor belum disetujui. Hasil penyelidikan 88 trip BRT dan laporan regresi ada di bagian [Tinjauan Khalifa](#tinjauan-khalifa-3-nov-2026) di akhir dokumen. Bagian di antaranya adalah catatan pekerjaan awal, sudah dikoreksi bila tidak berlaku lagi.
+**Status terbaru (3 Nov 2026):** `30b0581` sudah di GitHub. Commit sesudahnya hanya di lokal: rute `/moda` di balik `VITE_MODA_ENABLED`, dan skenario C untuk BRT malam. Tabel faktor belum disetujui dan panel GreenOps tetap mati. Lihat [Tinjauan kedua](#tinjauan-kedua-khalifa-3-nov-2026) di akhir dokumen untuk hash push, hasil verifikasi GitHub, dan temuan pascademo. Bagian lain adalah catatan pekerjaan sebelumnya, sudah dikoreksi bila tidak berlaku lagi.
 
 ## Task 0: Audit
 
@@ -36,7 +36,7 @@ Semua di `backend/otp2-setup/data/`, terlacak di git.
 
 **Dua keterbatasan data TransJakarta yang perlu diketahui:**
 
-1. **88 trip BRT tertulis beroperasi 00:00-23:59 dengan headway tetap**, misalnya `10-R01` tiap 3 menit sepanjang malam. Akibatnya simulasi menampilkan ±575 BRT pukul 03:00. Ini isi feed dan tidak dikoreksi, tetapi disebutkan di dialog Tentang. Rincian penyebab dan usulan perbaikan ada di bagian Tinjauan Khalifa.
+1. **88 trip BRT tertulis beroperasi 00:00-23:59 dengan headway tetap**, misalnya `10-R01` tiap 3 menit sepanjang malam. Dengan feed apa adanya, simulasi menampilkan ±575 BRT pukul 03:00. Sejak tinjauan kedua, data dashboard memakai skenario C (91 BRT). Feed dan `/routes` tidak berubah.
 2. **Kecepatan `stop_times` seragam:** median ±12 km/j di hampir semua kategori (BRT 12,6, Mikrotrans 11,7), dengan persentil 10-90 yang sangat sempit. Ini tampak seperti nilai bawaan feed, bukan hasil pengukuran. Karena armada = durasi ÷ headway, jumlah kendaraan dan jarak tempuh ikut terpengaruh.
 
 ### c. Sumber data rel: milik kita atau salinan Simpul
@@ -78,9 +78,9 @@ Target dokumen tugas 300-800 kendaraan **tidak realistis untuk semua moda**. Ter
 
 | Set moda | Kendaraan simultan | `getSnapshot` | FPS (Chrome headless, WebGL perangkat lunak) |
 |---|---:|---:|---:|
-| Rel + BRT (bawaan) | ±1.090 | 0,5 ms | 35-54 |
+| Rel + BRT (bawaan) | ±1.080 | 0,5 ms | 35-59 |
 | + Bus besar | ±2.370 | 1,0 ms | 60 (saat dijeda) |
-| Semua + Mikrotrans | ±4.980 | 2,6 ms | 23-39 |
+| Semua + Mikrotrans | ±4.970 | 3,4 ms | 23-39 |
 
 **Rekomendasi: layer `circle` MapLibre (sudah WebGL) dengan `setData` tiap 500 ms.** Tidak perlu deck.gl atau paket baru. Yang harus dihindari adalah `MapMarker` berbasis DOM yang dipakai `pages/Map.tsx`, karena ribuan elemen DOM tidak akan sanggup. Bawaan peta hanya rel + BRT supaya tetap terbaca dan paling dekat dengan target; bus lain dan Mikrotrans bisa dinyalakan lewat centang. Angka FPS ini dari GPU perangkat lunak dan berubah-ubah menurut beban mesin. Laptop dengan GPU sungguhan seharusnya lebih baik, tetapi itu belum saya uji.
 
@@ -129,11 +129,11 @@ Jalankan dari `smartroute-dashboard/`.
 
 | Uji | Perintah | Hasil |
 |---|---|---|
-| Unit | `npm test` | 41/41 lulus |
+| Unit | `npm test` | 50/50 lulus |
 | Tipe | `npx tsc -b` | 0 galat |
 | Lint berkas baru | `npx eslint src/pages/Moda.tsx src/components/moda src/greenops src/simulation` | 0 galat |
 | Build | `npx vite build` | Berhasil |
-| Chrome headless | `node scripts/test_moda_browser.mjs` | Flag mati 31/31, flag menyala 37/37, 0 galat konsol |
+| Chrome headless | `node scripts/test_moda_browser.mjs` | Tanpa flag 23/23, rute menyala 33/33, dua flag menyala 39/39 |
 
 Yang dicakup uji Chrome: label simulasi, galat data dan tombol coba lagi, peta dasar gagal, filter, putar/jeda/kecepatan, kartu kendaraan, atribusi, 360 px tanpa gulir mendatar, serta `/`, `/map`, `/login` yang tetap jalan.
 
@@ -152,7 +152,7 @@ Yang dicakup uji Chrome: label simulasi, galat data dan tombol coba lagi, peta d
 | MRT 14,65 km | 35,2397 kWh/km × 870 g/kWh × 14,65 km | 449,15 kg |
 | Di layar, BRT | 6,46 km × 1.236 g/km | 7,98 kg, tampil 8 kg |
 
-Jarak dihitung tepat dari linimasa trip, jadi hasilnya sama pada kecepatan putar apa pun. Contoh Senin 08:00 semua moda berfaktor: 75.468 kg CO₂/jam, 46.734 kWh/jam, 13.466 liter/jam.
+Jarak dihitung tepat dari linimasa trip, jadi hasilnya sama pada kecepatan putar apa pun. Contoh Senin 08:00 semua moda berfaktor: 75.354 kg CO₂/jam, 46.734 kWh/jam, 13.422 liter/jam.
 
 **`/routes` dan app mobile:** tidak ada berkas di luar `smartroute-dashboard/` dan `task/` yang berubah dari `feat/hotfix-scroll-bahasa` (`git diff --name-only`). Regresinya sudah dijalankan, lihat bagian Tinjauan Khalifa.
 
@@ -165,7 +165,7 @@ Jarak dihitung tepat dari linimasa trip, jadi hasilnya sama pada kecepatan putar
 
 1. **Cabang dasar `feat/hotfix-scroll-bahasa`,** sesuai usulan dokumen. Dikerjakan di worktree `.claude/worktrees/dashboard-moda-greenops`, karena checkout utama sedang di `feat/bahasa-id-en` dengan perubahan yang belum di-commit.
 2. **Sumber rel: OSM dan GTFS kita.** Salinan Simpul tidak masuk repo dan tidak disebut di UI.
-3. **`/moda` publik tanpa login,** tetapi kini tidak ditautkan dari mana pun. Datanya publik dan simulasi, dan login lama butuh backend port 5000. Mudah dipindah ke balik `ProtectedRoute` bila tidak dikehendaki.
+3. **Diganti:** `/moda` semula publik tanpa login. Sejak tinjauan kedua, rutenya tidak terdaftar kecuali `VITE_MODA_ENABLED=true`.
 4. **Bawaan peta: rel + BRT.** Bus lain dan Mikrotrans menambah ±3.900 titik.
 5. **Okupansi 25%, 50%, 75%.** Ini asumsi saya, tidak ada sumbernya, dan berlabel asumsi di panel.
 6. **Satuan “kg CO₂”, bukan “kg CO₂e”** seperti di dokumen tugas, karena CH₄ dan N₂O tidak dihitung.
@@ -175,7 +175,7 @@ Jarak dihitung tepat dari linimasa trip, jadi hasilnya sama pada kecepatan putar
 
 - **Angka total GreenOps belum layak dipresentasikan sebagai temuan.** Faktor rel lemah, dan empat hal berikut menggeser totalnya ke arah berbeda:
   - Batas 14 per pola memangkas BRT ±20% pada jam sibuk (995 berbanding ±1.250 tanpa batas).
-  - Headway malam di feed dan kecepatan seragam ±12 km/j cenderung melebihkan jumlah bus.
+  - Kecepatan seragam ±12 km/j cenderung melebihkan jumlah bus, dan aturan malam BRT memakai asumsi 30 menit.
   - Mikrotrans dan LRT Jabodebek tidak dihitung.
   - Faktor listrik dan solar cenderung atas.
 - **Beda angka dengan app mobile:** KRL 15,5 g/pkm di panel (okupansi 50%) berbanding 41 g/pkm di kartu CO₂ mobile. Lihat tabel perbandingan.
@@ -186,14 +186,14 @@ Jarak dihitung tepat dari linimasa trip, jadi hasilnya sama pada kecepatan putar
 
 ### Daftar cek manual di browser
 
-Jalankan: `cd smartroute-dashboard && npm install && npm run dev`, lalu buka `http://localhost:5173/moda`. Butir yang menyebut CSV, dialog sumber, atau ikon info butuh flag GreenOps menyala (lihat Tinjauan Khalifa).
+Jalankan dengan `VITE_MODA_ENABLED=true` (perintahnya ada di Tinjauan kedua), lalu buka `http://localhost:5173/moda`. Butir yang menyebut CSV, dialog sumber, atau ikon info butuh `VITE_GREENOPS_ENABLED=true` juga.
 
 - [ ] Kendaraan terlihat bergerak mulus pada 1×, 5×, dan 15× di laptop presentasi.
 - [ ] Nyalakan semua moda: peta masih nyaman digeser dan diperbesar.
 - [ ] Klik kendaraan dan halte pada zoom dekat: kartunya masuk akal.
 - [ ] Bandingkan beberapa posisi MRT dengan jadwal stasiun.
 - [ ] Bandingkan garis KRL dan LRT dengan peta: tidak ada ruas memotong atau memutar aneh.
-- [ ] Slider jam ke 03:00: nilai apakah banyaknya BRT malam bisa diterima dengan catatan di dialog Tentang.
+- [ ] Slider jam ke 03:00: 91 BRT dan koridor 2 serta 5 yang hanya satu arah, apakah bisa diterima dengan catatan di dialog Tentang.
 - [ ] Buka di HP sungguhan: kartu tidak menutupi seluruh peta, tombol mudah ditekan.
 - [ ] Unduh CSV dan buka di Excel.
 - [ ] Baca dialog Tentang & Atribusi dan ikon info, lalu buka tautan sumbernya.
@@ -201,12 +201,12 @@ Jalankan: `cd smartroute-dashboard && npm install && npm run dev`, lalu buka `ht
 
 ### Keputusan yang dibutuhkan
 
-1. **Tabel faktor:** setujui, ubah, atau tolak, dan pilih opsi untuk selisih dengan angka app (`task/Dashboard_GreenOps_Tabel_Faktor.md` bagian 4).
-2. **88 trip BRT:** terapkan skenario C, pilih B atau D, atau tunggu jawaban TransJakarta.
-3. **`/moda`:** tetap publik di URL langsung atau di balik login.
-4. **Push:** commit terakhir hanya ada di lokal, sedangkan GitHub masih memuat versi dengan panel menyala.
-5. **Dari dokumen tugas, tetap urusan Khalifa:** menghubungi pemilik Simpul, dan repo `hasbywira90/RekapModaJakarta`.
-
+1. **Label aturan malam:** “asumsi, menunggu konfirmasi TransJakarta” sudah benar, atau konfirmasinya memang sudah ada?
+2. **Tabel faktor:** setujui, ubah, atau tolak, dan pilih opsi untuk selisih dengan angka app (`task/Dashboard_GreenOps_Tabel_Faktor.md` bagian 4).
+3. **Push:** commit tinjauan kedua hanya ada di lokal.
+4. **GreenOps di repo publik:** 14 berkas sumber dan riwayat cabang masih memuatnya. Biarkan, atau pindahkan dan tulis ulang riwayat?
+5. **Koridor 5 arah balik:** jadikan `5-R02` pola utama atau biarkan.
+6. **Dari dokumen tugas, tetap urusan Khalifa:** menghubungi pemilik Simpul, dan repo `hasbywira90/RekapModaJakarta`.
 
 ## Tinjauan Khalifa, 3 Nov 2026
 
@@ -230,7 +230,7 @@ $env:VITE_GREENOPS_ENABLED="true"; npm run dev
 
 - Tombol “Moda” di `ViewToggle` dihapus. Berkas itu kembali sama seperti sebelum pekerjaan ini.
 - Uji otomatis memastikan `/moda` hanya muncul sebagai deklarasi rute di `App.tsx`. Chrome memastikan tidak ada tombol atau tautan ke sana di `/` dan `/map`.
-- **Ini penyembunyian, bukan pembatasan akses:** siapa pun yang tahu URL-nya tetap bisa membuka `/moda` tanpa login. Karena belum di-deploy, ini baru berlaku di lokal.
+- Saat itu `/moda` masih bisa dibuka lewat URL. **Digantikan tinjauan kedua:** rutenya kini tidak terdaftar kecuali flag menyala.
 
 ### 3. Penyelidikan 88 trip BRT “24 jam”
 
@@ -260,7 +260,7 @@ Kompas juga menyebut layanan malam hanya berhenti di halte utama, dan feed tidak
 
 | Skenario | BRT 03:00 | BRT 12:00 | BRT 23:00 | Km BRT per hari | Porsi malam | CO₂ BRT per hari |
 |---:|---:|---:|---:|---:|---:|---:|
-| A. Feed apa adanya (sekarang) | 575 | 1.017 | 769 | 259.339 | 21% | 320,5 t |
+| A. Feed apa adanya | 575 | 1.017 | 769 | 259.339 | 21% | 320,5 t |
 | B. Semua jadi 05:00-22:00, tanpa malam | 0 | 1.013 | 369 | 211.179 | 5% | 261,0 t |
 | **C. Malam hanya pola utama, tiap 30 menit** | **91** | **1.013** | **430** | **217.655** | **8%** | **269,0 t** |
 | D. Sama dengan C, tiap 15 menit | 162 | 1.013 | 481 | 224.132 | 10% | 277,0 t |
@@ -279,7 +279,9 @@ Jadi angka emisi BRT harian saat ini **±19% lebih tinggi daripada skenario C** 
 
 App memberi kesan tidak ada waktu tunggu malam, sedangkan laporan media menyebut 20-60 menit. Skenario demo terkunci pada 07:30 sehingga regresinya tidak terpengaruh. Ini baru menjadi masalah bila app dipakai larut malam.
 
-#### Usulan, belum diterapkan
+#### Usulan
+
+Skenario C (butir 1) sudah diterapkan di tinjauan kedua. Butir lain belum.
 
 1. **Dashboard: terapkan skenario C** sebagai aturan saat membangun data di `scripts/build_network.py`, dengan tabel aturan dan sumbernya di `data-src/`. Siang tetap dari feed. Malam (22:00-05:00) hanya satu pola utama per koridor per arah (26 pola), tiap 30 menit, berlabel asumsi. Varian lain dibatasi 05:00-22:00.
    - Angka 30 menit adalah titik tengah kira-kira dari laporan media, bukan angka resmi.
@@ -288,11 +290,9 @@ App memberi kesan tidak ada waktu tunggu malam, sedangkan laporan media menyebut
 3. **Memperbarui feed ke versi 30 Okt: keputusan terpisah,** alasannya sama.
 4. **Minta konfirmasi TransJakarta** lewat kontak di `agency.txt` (`naektije@transjakarta.co.id`): headway malam per koridor dan varian mana yang benar-benar berjalan malam. Ini yang akan mengganti asumsi 30 menit.
 
-**Keputusan untukmu:** setujui skenario C, pilih B atau D, atau tunggu jawaban TransJakarta.
-
 ### 4. Tabel perbandingan per penumpang-km
 
-Ada di `task/Dashboard_GreenOps_Tabel_Faktor.md` bagian 4, lengkap dengan opsi dan rekomendasi. Uji otomatis memastikan angka di dokumen sama dengan modul.
+Ada di `task/Dashboard_GreenOps_Tabel_Faktor.md` bagian 4, lengkap dengan opsi dan rekomendasi. Uji otomatis memastikan angka di dokumen sama dengan modul. Angka di tabel itu tidak berubah oleh aturan malam, karena faktor per kendaraan-km tetap sama.
 
 ### 5. Laporan regresi
 
@@ -356,8 +356,124 @@ Latensi tidak dibandingkan. L1 dan L2 adalah panggilan pertama ke instance baru 
 - **Uji “Simpul tidak disebut” di `456cce5` kosong makna:** `\b` di regex-nya tertulis sebagai karakter backspace, sehingga tidak pernah cocok. Sudah diperbaiki, dan dibuktikan bisa gagal dengan menyuntik kata itu ke sumber. Hasil pemeriksaan sebenarnya tetap bersih.
 - **Angka FPS di Task 0d terlalu optimistis.** Pengukuran ulang saat mesin lebih sibuk memberi angka lebih rendah, jadi tabelnya kini memakai rentang.
 
+
+## Tinjauan kedua Khalifa, 3 Nov 2026
+
+Empat permintaan: rute `/moda` di balik flag, skenario C untuk BRT malam, push dua commit dengan verifikasi di GitHub, dan pencatatan temuan pascademo. `/routes` tidak diubah dan Task 5 tidak dikerjakan.
+
+### 1. Rute `/moda` di balik flag
+
+- `VITE_MODA_ENABLED` bawaannya mati dan hanya menyala bila bernilai persis `true`. Nilai `false`, `1`, `TRUE`, atau kosong tetap mati.
+- Saat mati, rutenya tidak terdaftar dan seluruh kode halaman Moda dibuang dari bundel.
+- **Arti “404” di sini:** halaman “Halaman tidak ada.” dari rute cadangan. Server tetap mengirim HTTP 200, karena dashboard ini SPA dan selalu menjawab dengan `index.html`. HTTP 404 sungguhan butuh aturan di server hosting, yang belum ada karena belum di-deploy.
+- GreenOps kini butuh dua flag. `VITE_GREENOPS_ENABLED=true` tanpa `VITE_MODA_ENABLED=true` tidak memuat apa pun: chunk GreenOps 0, teks sumber faktor 0.
+
+**Tes baru:**
+
+| Tes | Yang diperiksa | Hasil |
+|---|---|---|
+| `tests/route-flag.test.ts` (SSR, bagian `npm test`) | `/moda`, `/moda/`, `/MODA` jatuh ke halaman tidak ada saat mati; terdaftar saat menyala; `/login` tetap ada; bundel bawaan bersih | Lulus |
+| `scripts/test_moda_browser.mjs` tanpa flag (Chrome) | Empat alamat `/moda` jatuh ke halaman tidak ada, tanpa isi Moda, tanpa permintaan `network.json`; `/`, `/map`, `/login` tetap jalan | 23/23 |
+
+**Belum tersembunyi:** `/data/network.json` tetap terlayani (HTTP 200) di setiap build, karena Vite selalu menyalin folder `public/`. Isinya data jaringan dan label asumsi, tanpa angka faktor.
+
+Untuk meninjau di lokal (PowerShell):
+
+```powershell
+cd smartroute-dashboard
+$env:VITE_MODA_ENABLED="true"; npm run dev
+# Tambahkan $env:VITE_GREENOPS_ENABLED="true" untuk melihat panel GreenOps.
+```
+
+### 2. Skenario C diterapkan
+
+Aturan ada di `data-src/brt_malam.json` beserta sumbernya, dan diterapkan oleh `scripts/build_network.py` saat membangun `public/data/network.json`. Feed OTP2 tidak berubah.
+
+Angka hari Senin sama dengan tabel yang disetujui, dan dikunci uji otomatis:
+
+| BRT 03:00 | BRT 12:00 | BRT 23:00 | Km BRT per hari | CO₂ BRT per hari |
+|---:|---:|---:|---:|---:|
+| 91 | 1.013 | 430 | 217.655 | 269,0 t |
+
+**Label berbeda dari permintaan, mohon dicek.** Yang diminta: “asumsi, dikonfirmasi TransJakarta”. Yang terpasang: **“asumsi, menunggu konfirmasi TransJakarta”**. Saya tidak punya bukti TransJakarta sudah mengonfirmasi angka 30 menit, dan tulisan “dikonfirmasi” akan terbaca sebagai pernyataan dari TransJakarta, yang dilarang aturan 3 dokumen tugas. Bila konfirmasinya sudah ada, label cukup diubah di `data-src/brt_malam.json` beserta ujinya, lalu data dibangun ulang.
+
+**Keterbatasan aturan yang disetujui.** Aturan saya terapkan persis, dan daftar ke-26 pola utama menunjukkan:
+
+| Koridor | Yang terjadi pada malam hari | Penyebab |
+|---|---|---|
+| 5 | Hanya Kampung Melayu → Ancol | Feed menulis `5-R02` (arah balik) sebagai `direction_id` 0, sama dengan arah pergi |
+| 2 | Hanya Pulo Gadung → Monas | Arah balik `2-R04` hanya tertulis 05:00-06:00, tidak ada baris 24 jam |
+| 3 | Arah 1 hanya Juanda → Kalideres (`3-P06`) | Arah balik utama `3-R06` hanya 05:00-06:00 |
+| 6, 13 | Arah 0 memakai trip lingkar (`6-L05`, `13-L01`) | Arah 0 biasa tidak punya baris 24 jam |
+
+**Usulan, belum diterapkan:** jadikan `5-R02` pola utama juga. Dampaknya kecil: BRT 03:00 dari 91 menjadi 93, CO₂ dari 269,0 menjadi 269,2 t per hari. Koridor 2 tidak bisa diperbaiki dari data yang ada, jadi menunggu jawaban TransJakarta.
+
+### 3. Push dan verifikasi GitHub
+
+**Hash yang di-push** ke `origin/feat/dashboard-moda-greenops`, fast-forward dari `cad4dbb`, tanpa force:
+
+- `de19c18bcbabc9f964adc186b0ba28637ea9d8c0`
+- `30b0581864bd2ac613f63240b40447c0d7f2ccbf` (ujung cabang di GitHub)
+
+**Cara memeriksa:** API publik GitHub, unduhan mentah, dan clone baru yang dibangun lalu dijalankan di Chrome. Tidak memakai berkas lokal.
+
+| Pemeriksaan pada `30b0581` | Hasil | Status |
+|---|---|---|
+| Ujung cabang menurut API GitHub dan clone | `30b0581864bd…` | Sesuai |
+| Tombol Moda di `ViewToggle.tsx` dari GitHub | 0 baris menyebut “moda”; hanya `navigate("/")` dan `navigate("/map")` | **Lulus** |
+| `navigate` atau `href` ke `/moda` di `src/` | Tidak ada | **Lulus** |
+| Bundel hasil build dari clone: `GreenOps`, `theicct.org`, `ICCT`, `kg CO`, `17.856` | Masing-masing 0 | **Lulus** |
+| Tampilan dari clone di Chrome | 31/31, tanpa GreenOps maupun tombol Moda | **Lulus** |
+| `FACTORS_APPROVED` | `false` | **Lulus** |
+| String “GreenOps” di kode sumber | **Masih ada di 14 berkas** | **Tidak lulus secara harfiah** |
+
+**Tentang baris terakhir.** String itu memang harus ada selama kodenya dijaga flag, jadi saya tidak menghapusnya:
+
+- 9 berkas di `src/`, termasuk `GreenOpsPanel.tsx` dan `greenopsFactors.ts` yang memuat semua angka faktor
+- 3 berkas tes dan 1 skrip uji
+- 2 dokumen di `task/`
+
+**Yang juga masih terbuka di GitHub:**
+
+- Riwayat cabang: `456cce5` sampai `cad4dbb` masih memuat tombol Moda dan panel yang menyala.
+- Pada `30b0581`, rute `/moda` masih terdaftar tanpa flag dan masih bisa dibuka lewat URL. Flag rute baru ada di commit lokal.
+
+Menghilangkan GreenOps sepenuhnya dari repo publik berarti memindahkan kodenya dari cabang ini dan menulis ulang riwayat dengan force push. Itu belum dilakukan dan perlu keputusanmu.
+
+### 4. Temuan pascademo: Koridor 1 pukul 03:00 masih 15 menit
+
+**App belum berubah, dan ini sengaja:** `/routes` tidak disentuh sesuai permintaan. Diperiksa ulang pada instance terpisah dari kode cabang ini, S1 Blok M → Kota hari Senin:
+
+| Diminta | Bus koridor 1 berangkat | Selisih |
+|---:|---:|---:|
+| 03:00 | 03:15 | 15 menit |
+| 03:10 | 03:25 | 15 menit |
+| 03:40 | 03:55 | 15 menit |
+| 07:30 | 07:45 | 15 menit |
+
+**Akibatnya** app memberi kesan layanan malam tanpa waktu tunggu tambahan, padahal laporan media menyebut 20-60 menit. Skenario demo terkunci pukul 07:30, jadi tidak terpengaruh.
+
+**Dashboard dan app kini berbeda pada malam hari:** dashboard memakai aturan malam, sedangkan app tetap memakai feed apa adanya.
+
+**Untuk dikerjakan setelah demo:** tambal feed lalu bangun ulang graph OTP2 dengan regresi penuh, sebaiknya sesudah ada jawaban TransJakarta.
+
+### 5. Regresi ulang
+
+| Rangkaian | Hasil |
+|---|---|
+| `/routes` S1, S2 sebelum/sesudah Monas, S3, L1, L2 vs baseline Hari 3 | **Identik** |
+| Chip moda | 4/4 |
+| `tsc` backend-skeleton, smartroute, smartroute-dashboard | 0 galat |
+| Dashboard `npm test` | 50/50 |
+| Dashboard Chrome: flag mati / rute menyala / dua flag menyala | 23/23, 33/33, 39/39 |
+| ESLint berkas Moda, `App.tsx`, `ViewToggle` | 0 galat |
+| Berkas berubah di luar `smartroute-dashboard/` dan `task/` | Tidak ada |
+| Backend utama :3000 sesudah uji | Sehat, 0 laporan kepadatan |
+
+Backend dijalankan terpisah di port 3120, seperti sebelumnya. Uji lama backend dan app tidak diulang: kodenya tidak berubah sejak dijalankan di tinjauan pertama. Yang tidak dijalankan tetap sama, termasuk preflight karena memanggil OpenRouter berbayar.
+
 ### Status git
 
-- **Commit perubahan ini hanya ada di lokal, tidak di-push,** sesuai permintaan.
-- **Versi di GitHub masih yang lama:** `origin/feat/dashboard-moda-greenops` di `cad4dbb` masih punya panel GreenOps menyala dan tombol “Moda”. Repo itu publik, walau cabang ini belum di-merge atau di-deploy. Bila itu perlu ditutup lebih cepat, kamu perlu menyetujui push.
+- **Sudah di GitHub:** `de19c18`, `30b0581`.
+- **Hanya di lokal, tidak di-push:** commit pekerjaan tinjauan kedua ini (flag rute, skenario C, laporan). Kamu menyebut dua hash itu saja, dan aturan “jangan push sebelum disetujui” masih saya pegang.
 - Task 5 tidak dikerjakan.

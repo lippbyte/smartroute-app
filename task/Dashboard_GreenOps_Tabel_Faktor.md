@@ -1,12 +1,12 @@
 # Tabel Faktor GreenOps per Kendaraan-km
 
-**Status: DRAF, menunggu persetujuan Khalifa.** `FACTORS_APPROVED` di `smartroute-dashboard/src/greenops/greenopsFactors.ts` bernilai `false`, dan panel GreenOps tersembunyi di balik `VITE_GREENOPS_ENABLED` yang bawaannya mati. Saat mati, tidak ada angka faktor di bundel yang terkirim ke peramban.
+**Status: DRAF, menunggu persetujuan Khalifa.** `FACTORS_APPROVED` di `smartroute-dashboard/src/greenops/greenopsFactors.ts` bernilai `false`, panel GreenOps tersembunyi di balik `VITE_GREENOPS_ENABLED`, dan rute `/moda` di balik `VITE_MODA_ENABLED`, keduanya mati secara bawaan. Saat mati, tidak ada angka faktor di bundel yang terkirim ke peramban. Angka faktor tetap ada di kode sumber dan dokumen ini.
 
 **Ringkasnya:** dari 8 moda, 4 punya faktor dan 4 “tidak tersedia”. **Tidak ada faktor yang berkekuatan “kuat”.** Bus paling kokoh; angka KRL dan MRT lemah dan paling butuh verifikasi.
 
 ## Keputusan yang diminta
 
-1. **Setujui, ubah, atau tolak tabel ini.** Bila disetujui: ubah `FACTORS_APPROVED` menjadi `true` beserta ujinya, dan nyalakan `VITE_GREENOPS_ENABLED` saat build.
+1. **Setujui, ubah, atau tolak tabel ini.** Bila disetujui: ubah `FACTORS_APPROVED` menjadi `true` beserta ujinya, dan nyalakan `VITE_MODA_ENABLED` serta `VITE_GREENOPS_ENABLED` saat build.
 2. **Pilih salah satu opsi di bagian 4 untuk selisih dengan angka app.** Angka lama tidak saya ubah.
 3. **Faktor listrik 870 g/kWh atau rata-rata jaringan?** Bagian 2 menjelaskan pengaruhnya.
 
