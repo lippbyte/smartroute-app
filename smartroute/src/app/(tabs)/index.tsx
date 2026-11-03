@@ -7,6 +7,7 @@ import DepartureTimeField, {
 } from "@/components/DepartureTimeField";
 import QuickLocationCard from "@/components/QuickLocationCard";
 import QuickLocationPickerModal from "@/components/QuickLocationPickerModal";
+import { TOTO_SCOPE_NOTE } from "@/constants/developerInfo";
 import RealTimeInfoCard from "@/components/RealTimeInfoCard";
 import { LocationAutocompleteFieldHandle } from "@/components/LocationAutocompleteField";
 import RouteCard from "@/components/RouteCard";
@@ -411,7 +412,7 @@ export default function Index() {
         <Pressable
           onPress={() => router.push("/assistant")}
           accessibilityRole="button"
-          accessibilityLabel="TOTO, asisten AI. Tanya halte terdekat, rute, dan tarif."
+          accessibilityLabel={`TOTO, asisten AI. ${TOTO_SCOPE_NOTE}`}
           className="w-full bg-surface rounded-2xl p-4 flex-row items-center gap-3 active:opacity-80 border border-line relative"
         >
           <View className="bg-primary-emerald/15 p-2.5 rounded-xl">
@@ -419,9 +420,7 @@ export default function Index() {
           </View>
           <View className="flex-1 gap-0.5">
             <Text className="text-ink font-bold text-md">TOTO · Asisten AI</Text>
-            <Text className="text-muted text-sm">
-              Tanya halte terdekat, rute, & tarif — dijawab dari data transit asli.
-            </Text>
+            <Text className="text-muted text-sm">{TOTO_SCOPE_NOTE}</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color="#737373" />
           <AskTotoBubble />

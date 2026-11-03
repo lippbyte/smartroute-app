@@ -27,6 +27,7 @@ import ScreenBackground from "@/components/ScreenBackground";
 import AssistantAnswerText from "@/components/assistant/AssistantAnswerText";
 import PrimaryButton from "@/components/form/PrimaryButton";
 import Text from "@/components/Text";
+import { TOTO_SCOPE_NOTE } from "@/constants/developerInfo";
 import { useAuth } from "@/context/AuthContext";
 import StopActionButtons from "@/components/transit/StopActionButtons";
 import {
@@ -320,14 +321,8 @@ function AssistantScreen({ token }: { token: string }) {
         {entries.length === 0 && (
           <View className="items-center gap-3 py-10 px-4">
             <Ionicons name="chatbubble-ellipses-outline" size={40} color="#737373" />
-            <Text className="text-white text-center font-bold">
-              Halo, aku TOTO! Mau ke mana hari ini?
-            </Text>
-            <Text className="text-line text-sm text-center">
-              Tanya halte terdekat, rute, atau tarif. Jawabanku berdasarkan
-              data transit asli dan posisimu — kalau datanya tidak ada, aku
-              bilang jujur, bukan mengarang.
-            </Text>
+            <Text className="text-white text-center font-bold">Halo, aku TOTO!</Text>
+            <Text className="text-line text-sm text-center">{TOTO_SCOPE_NOTE}</Text>
           </View>
         )}
 
