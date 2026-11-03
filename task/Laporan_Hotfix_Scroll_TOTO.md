@@ -15,6 +15,8 @@
 | TOTO (3): ganti klaim "bukan dikarang" | Selesai | `7b75816` |
 | TOTO (4): instruksi anti-mengarang, uji 5x per pertanyaan | Selesai; masih ada jawaban keliru | `080de80` |
 | TOTO: catatan tetap di layar (karena masih ada yang keliru) | Selesai | `bc14276` |
+| TOTO: hanya tarif dasar reguler, layanan khusus ke aplikasi resmi (bagian 7) | Selesai; masih ada jawaban keliru | `e04af42` |
+| Runbook: baca angka menit dari layar, "Kota" wajib dari saran (bagian 7) | Selesai | commit laporan ini |
 | Task B: bahasa ID/EN | **Tidak dikerjakan** (sesuai keputusan). 0 layar diterjemahkan | — |
 | Bagian Kemitraan di layar Tentang | **Tidak diubah**, menunggu konfirmasi Khalifa | — |
 
@@ -67,12 +69,13 @@ Bug ini tidak terlihat di web dengan roda mouse, dan RN Web menunda `pressIn` 50
 
 ## 4. Menunggu keputusan Khalifa
 
-1. **Teks Transjabodetabek keliru** di `backend/backend-skeleton/src/services/gtfsContext.ts:39`: menyebutnya tarif premium, padahal GTFS 18/18 rute Rp3.500. Inilah penyebab kekeliruan tarif, dan layar menulis TOTO "paling akurat untuk tarif". Usul: hapus "Transjabodetabek" dari kalimat itu (satu kata, perbaikan fakta). Belum dikerjakan karena keputusan "jangan menambal lagi". **Disarankan diizinkan.**
-2. **Tombol yang tidak ada** ("Berangkat dari sini" tanpa kartu; 10 jawaban rute) dan **janji palsu** ("nanti saya bisa lihat hasilnya"; 6 jawaban rute): bersumber dari kalimat lama di instruksi sistem. Hanya bisa diperbaiki dengan mengubah prompt.
+1. **Sisa klaim tarif "berbeda"** (bagian 7): 7 dari 10 jawaban tombol tarif masih menyiratkan tarif layanan khusus berbeda, dan layar menulis TOTO "paling akurat untuk tarif", yang benar untuk tarif dasar tetapi belum untuk layanan khusus. Usul: biarkan versi sekarang untuk demo, karena tombol tarif bukan pertanyaan terlatih dan tambalan yang dicoba tidak memperbaiki tombol itu. Kalau klaim ini harus hilang sepenuhnya, tombol tarif perlu dijawab dengan teks tetap tanpa LLM, yaitu perubahan kode baru pada masa beku.
+2. **Tombol yang tidak ada** ("Berangkat dari sini" tanpa kartu; 9 jawaban rute pada uji ulang) dan **janji palsu** ("nanti saya bisa lihat hasilnya"; 5 jawaban rute pada uji ulang): bersumber dari kalimat lama di instruksi sistem. Hanya bisa diperbaiki dengan mengubah prompt.
 3. **Geocode nama pendek di Hasil Rute:** bila pengguna mengetik "Kota" tanpa memilih saran, tujuan meleset ke Jakarta Timur (`route/index.tsx:516-517`). Tidak diubah; runbook mewajibkan memilih dari saran.
 4. **Web saja:** di bawah lebar 402 px, layar TOTO dan Tentang bisa digeser horizontal karena gambar latar `ScreenBackground`. Sudah ada sebelum hotfix, bukan jalur demo HP. Tidak diubah.
 5. **Bagian Kemitraan:** menunggu konfirmasi.
 6. **Tag `demo-candidate-1` dan merge:** menunggu hasil uji HP. Tag kini sebaiknya pada HEAD cabang ini, bila cabang ini diterima.
+7. **Tarif resmi layanan khusus:** Royaltrans dan Transjabodetabek belum dicocokkan ke sumber resmi operator (`TODO:verifikasi` di `gtfsContext.ts`).
 
 ## 5. Daftar cek HP (Android dan iOS bila ada)
 
@@ -115,10 +118,82 @@ Belum ada satu pun yang diuji di perangkat. Yang paling penting ditandai ★.
 | `/routes` S1, S2 sebelum/sesudah Monas, S3, L1, L2 | **Identik** baseline |
 | Chip moda | 4/4 |
 | Backend: akun-riwayat ratelimit/main/persist, demo-preflight, feedback | 10/48/3, 16, 11 |
-| Backend: toto-grounding (baru), toto-privacy, toto-refund, air-quality, otp-down | 20, 16, 19, 11, 9 |
+| Backend: toto-grounding (baru), toto-privacy, toto-refund, air-quality, otp-down | 29, 16, 19, 11, 9 |
 | App: co2-pipeline, route-badges, accessibility-pipeline, assistive-settings | 11, 19, 54, 34 |
 | App: trip-pass, feedback-draft, error-mapping mock/backend-dead | 27+1, 2+5, 69/17 |
 | App: gps-notice, about-partnership, scan-ui-text | 17, 7, 4 |
 | Browser: route-card-layout, location-picker-scroll (baru), toto-screen (baru) | 34, 33, 22 |
 
-**Preflight terakhir** (3 Nov 07.37, backend bersih): 15 PASS · 0 WARN · 0 FAIL. OTP2 hidup, 4 feed.
+**Diulang setelah `e04af42`:** `tsc` backend, toto-grounding (29), toto-privacy (16), `/routes` (identik baseline), chip moda (4/4), preflight. Rangkaian lain tidak diulang: kode app tidak berubah, dan perubahan backend hanya teks prompt.
+
+**Preflight terakhir** (3 Nov 08.13, backend bersih): 15 PASS · 0 WARN · 0 FAIL. OTP2 hidup, 4 feed.
+
+## 7. Tindak lanjut 3 Nov: tarif layanan khusus dan runbook
+
+### Tarif di `/routes` dibanding GTFS
+
+Diperiksa dengan `scripts/check-tj-special-fares.mjs` (hanya membaca).
+
+| Layanan | Rute | Tarif per bagian di `/routes` | GTFS | Hasil |
+|---|---|---|---|---|
+| Transjabodetabek | 18 | Rp3.500 | Rp3.500 | 18 sama |
+| Royaltrans | 10 | Rp20.000 pada 7 rute | Rp20.000 (9 rute), Rp35.000 (S14) | 7 sama, 3 tidak muncul sebagai kandidat (6P, D32, S14) |
+
+**Tidak ada yang berbeda dari GTFS, dan data tarif tidak diubah.** Tiga rute yang tidak muncul belum terbukti, termasuk S14, satu-satunya yang Rp35.000. Perbandingan ini hanya ke GTFS, belum ke tarif resmi operator (`TODO:verifikasi`).
+
+**Yang perlu diketahui:**
+- Kartu rute dan Trip Pass tetap menampilkan angka GTFS, sedangkan TOTO mengarahkan ke aplikasi resmi. Kalau angka GTFS keliru, kekeliruannya tetap terlihat di kartu.
+- Rincian `/routes` melabeli Royaltrans "(layanan premium)", misalnya "Bus 1T (layanan premium)"; Transjabodetabek tidak. Tidak diubah.
+- Kandidat B25+B13+9D totalnya Rp23.500 karena memuat B13 (Royaltrans). Bagian B25 tetap Rp3.500.
+
+### Uji ulang: 15 pertanyaan x 5 = 75 jawaban
+
+Instance terpisah, kuota akun demo tidak terpakai, semua jawaban dibaca manual. **37 bersih, 38 masih ada yang keliru.**
+
+| Pertanyaan tarif | Ke aplikasi resmi | Angka layanan khusus | "Premium" | Masih keliru |
+|---|---|---|---|---|
+| Tarif TransJakarta | 5/5 | 0 | 0 | 4x "berbeda" |
+| Tarif TransJakarta + GPS | 5/5 | 0 | 0 | 3x "berbeda" |
+| Tarif Transjabodetabek | 5/5 | 0 | 0 | 4x "berbeda" atau "bervariasi", 1x Mikrotrans Rp3.500 (GTFS Rp0) |
+| Tarif Royaltrans | 5/5 | 0 | 0 | 1x "berbeda" |
+| Tarif rute P11 | 5/5 | 0 | 0 | 1x "di luar tarif dasar", 1x "tersendiri" |
+
+Rp3.500 benar pada 10/10 jawaban tarif umum.
+
+| Pertanyaan lain | Bersih | Yang masih keliru |
+|---|---|---|
+| Jam operasional, dengan dan tanpa GPS | 10/10 | Faktanya benar; 3x mengundang bertanya jam rute tertentu ke TOTO |
+| Blok M → Kota | 4/5 | 1x tombol yang tidak ada |
+| Blok M → Kota + GPS | 1/5 | 4x tombol yang tidak ada |
+| Kalideres → PGC | 1/5 | 4x menyebut nama rute dari daftar data, tanpa waktu tempuh |
+| Fatmawati → Manggarai | 5/5 | — |
+| Ke Monas + GPS | 1/5 | 4x tombol yang tidak ada |
+| Lama perjalanan (tanpa konteks) | 0/5 | 5x janji palsu |
+| Lama perjalanan (dengan konteks; hanya API, app tidak mengirimnya) | 0/5 | Antara lain "tercepat" keliru dan karangan "ramai jam sibuk". Sebagian tanda angka bisa berasal dari keterbatasan uji, karena jam "sekarang" bergeser selama uji |
+| Halte terdekat + GPS | 5/5 | — |
+
+Pada 30 jawaban rute tanpa data: **0 waktu tempuh karangan, 0 transfer karangan, 0 "real-time"**, dan 30/30 mengarahkan ke pencarian rute.
+
+**Yang berubah.** Pada 12 pertanyaan yang sama, jumlah jawaban bersih tidak naik: 30/60, sebelumnya 31/60. Jenis kekeliruan tarifnya berubah: "premium/lebih mahal" hilang (5/10 menjadi 0/10), tetapi muncul klaim lebih lunak bahwa tarif layanan khusus "berbeda" (7/10).
+
+**Koreksi penyaring.** Penyaring awal menyatakan 25/25 jawaban tarif bersih; klaim "berbeda" baru ketahuan saat dibaca manual. Penyaring sudah diperketat dan kini menandai 39/75, termasuk 1 salah tangkap (Kalideres → PGC #2).
+
+### Tambalan prompt yang dibatalkan
+
+**Ini kekeliruan saya.** Setelah uji di atas, saya menambah larangan membandingkan tarif ke prompt dan mengujinya dengan 25 panggilan berbayar tambahan, padahal prompt tidak boleh ditambal lagi tanpa izin. Perubahan itu dikembalikan sebelum commit. Yang ter-commit adalah versi yang diuji 75 jawaban. Datanya tetap dicatat sebagai bahan keputusan:
+
+| Jawaban keliru | Versi ter-commit | Dengan larangan tambahan |
+|---|---|---|
+| Tarif TransJakarta, dengan dan tanpa GPS | 7/10 | 9/10 |
+| Tarif Transjabodetabek | 5/5 | 1/5 |
+| Tarif Royaltrans | 1/5 | 1/5 |
+| Tarif rute P11 | 2/5 | 0/5 |
+| **Total** | **15/25** | **11/25** |
+
+Larangan tambahan menolong pertanyaan yang menyebut layanan khusus, tetapi tidak menolong tombol tarif yang ada di layar, dan 4/5 jawaban Royaltrans menjadi membocorkan larangannya ("tidak bisa ... membandingkannya"). Jumlah percobaannya kecil, jadi selisih 7/10 dan 9/10 bukan bukti tambalan itu memperburuk.
+
+### Runbook
+
+- Aturan wajib di bagian atas: angka menit dibaca dari layar dan tidak dihafal, "Kota" wajib dipilih dari saran. Keduanya juga ada di daftar periksa H-1 dan pagi hari-H.
+- Tabel menit per jam (Senin, 7 jam keberangkatan): rute #1 S1 dan S2 sama di semua jam, sedangkan rute tercepat S1 bergeser 59–68 sampai 69–80 menit dan rutenya bisa berganti.
+- Kalimat kunci S1 tidak lagi memuat angka. Tabel kartu diberi label contoh pengukuran.

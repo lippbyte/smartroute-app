@@ -4,9 +4,13 @@
 **Dasar angka:** pengukuran **31 Okt 2026** dengan kode app asli (`smartroute/scripts/measure-demo-flow.mts`) dan preflight (`npm run preflight`), backend bersih setelah restart. Detail mentah di bagian 8.
 **Melengkapi:** `Runbook_Rehearsal_Demo_SmartRoute.md` (versi juri lomba, termasuk Model 0). Dokumen ini khusus alur investor 6–8 menit.
 
-> **Status 3 Nov (setelah hotfix, cabang `feat/hotfix-scroll-bahasa`):** kunci OpenRouter dan IQAir **valid**. Pilihan lokasi kini bisa digulir (teruji di Chrome, **belum di HP**). **Untuk TOTO, pakai pertanyaan jam operasional** (10/10 benar); jawaban rute diarahkan ke pencarian rute, tetapi TOTO tetap bisa keliru (segmen 4). Tolak ajakan mencoba rute lewat TOTO.
+> **Status 3 Nov (setelah hotfix, cabang `feat/hotfix-scroll-bahasa`):** kunci OpenRouter dan IQAir **valid**. Pilihan lokasi kini bisa digulir (teruji di Chrome, **belum di HP**). **Untuk TOTO, pakai pertanyaan jam operasional** (20/20 benar pada dua uji); jawaban rute diarahkan ke pencarian rute, tetapi TOTO tetap bisa keliru (segmen 4). Tolak ajakan mencoba rute lewat TOTO.
 
 > **Kode DIBEKUKAN sejak 31 Okt 2026 (keputusan Khalifa).** Yang boleh masuk hanya perbaikan yang menghalangi demo, masing-masing dengan uji dan regresi `/routes`. Tidak ada tag atau merge ke `main` sebelum hasil uji HP dari Khalifa.
+
+> **Dua aturan wajib untuk presenter:**
+> 1. **Baca angka menit dari layar, jangan menghafal.** Angka menit bergeser menurut jam keberangkatan, dan rute tercepatnya bisa berganti (tabel di bagian 1). Semua angka di runbook ini adalah contoh pengukuran, bukan naskah.
+> 2. **"Kota" wajib dipilih dari saran:** baris **Halte TransJakarta Kota**, bukan "Kota Bambu", "Kota Kasablanka", atau "Kota Harapan Indah 1". Kalau hanya diketik tanpa memilih saran, tujuan meleset ke Jakarta Timur dan hasilnya salah. Tekan Cari setelah centang hijau muncul.
 
 Semua kalimat di kolom **"Kalimat kunci"** berstatus **perlu ditinjau presenter**: itu usulan, bukan naskah final.
 
@@ -19,9 +23,9 @@ Durasi per segmen adalah **target**. Latensi sistem sudah diukur, tetapi waktu b
 | # | Segmen | Target | Terukur (gladi) | Latensi sistem terukur |
 |---|---|---|---|---|
 | 1 | Beranda | 0:30 | `TODO:verifikasi` | — |
-| 2 | S1 Blok M → Kota | 1:30 | `TODO:verifikasi` | 0,4–0,9 dtk per pencarian |
-| 3 | S2 Pasar Baru → Lebak Bulus + lapor Monas | 2:00 | `TODO:verifikasi` | 1,4–1,7 dtk per pencarian; lapor < 0,1 dtk |
-| 4 | TOTO | 1:00 | `TODO:verifikasi` | 2,3–2,9 dtk per jawaban (jam operasional) |
+| 2 | S1 Blok M → Kota | 1:30 | `TODO:verifikasi` | 0,3–0,9 dtk per pencarian |
+| 3 | S2 Pasar Baru → Lebak Bulus + lapor Monas | 2:00 | `TODO:verifikasi` | 1,0–1,7 dtk per pencarian; lapor < 0,1 dtk |
+| 4 | TOTO | 1:00 | `TODO:verifikasi` | 2,3–6,4 dtk per jawaban (jam operasional) |
 | 5 | Info aksesibilitas | 0:45 | `TODO:verifikasi` | 0,4–0,5 dtk |
 | 6 | Trip Pass (simulasi) | 0:45 | `TODO:verifikasi` | 0 (tanpa jaringan) |
 | 7 | Riwayat & rating | 0:45 | `TODO:verifikasi` | GET /trips < 0,1 dtk |
@@ -29,6 +33,20 @@ Durasi per segmen adalah **target**. Latensi sistem sudah diukur, tetapi waktu b
 | | **Total** | **7:45** | | |
 
 **Angka yang dikutip.** Angka di bawah adalah yang terlihat saat **memilih saran teratas** di Beranda (Stasiun MRT Blok M → Halte TransJakarta Kota; Halte TransJakarta Pasar Baru → Stasiun MRT Lebak Bulus), diukur dengan jam Senin 21 Sep 2026 07:30. **Preflight dan regresi memakai titik baseline yang sedikit berbeda** (S1 rute "1" 92–106 mnt), jadi jangan mencocokkan keduanya. Hasil juga bergantung jam dan hari: selalu **baca angka dari layar**. Untuk S2, rute #1 *sesudah* lapor Monas bisa berbeda antarjam, karena itu kalimat kunci S2 sengaja tidak menyebut nama rute pengganti.
+
+**Menit menurut jam keberangkatan** (contoh pengukuran Senin 21 Sep 2026, saran teratas, sebelum lapor Monas):
+
+| Jam | S1 #1 | S1 tercepat | S2 #1 | S2 tercepat |
+|---|---|---|---|---|
+| 05:30 | 1 · 88–102 | M+Cikarang+Bogor · 65–75 | 2+1+M · 72–83 | Bogor+Cikarang+M · 71–82 |
+| 07:30 | 1 · 88–102 | M+Cikarang+Bogor · 59–68 | 2+1+M · 73–84 | Bogor+Cikarang+M · 71–82 |
+| 10:00 | 1 · 88–102 | M+Cikarang+Tanjungpriuk · 65–75 | 2+1+M · 73–84 | Bogor+Cikarang+M · 71–82 |
+| 12:30 | 1 · 88–102 | M+Cikarang+Bogor · 62–72 | 2+1+M · 73–84 | 2+1+M · 73–84 |
+| 15:00 | 1 · 88–102 | M+Cikarang+Bogor · 63–73 | 2+1+M · 72–83 | Bogor+Cikarang+M · 69–80 |
+| 17:30 | 1 · 88–102 | M+Cikarang+Bogor · 63–73 | 2+1+M · 73–84 | Bogor+Cikarang+M · 68–79 |
+| 20:00 | 1 · 88–102 | M+Cikarang+Bogor · 69–80 | 2+1+M · 73–84 | 2+1+M · 73–84 |
+
+Rute #1 sama di semua jam yang diukur. Yang paling bergeser adalah rute tercepat S1 (batas bawah 59 sampai 69 menit, dan rutenya bisa berganti). Hari lain belum diukur per jam.
 
 ---
 
@@ -40,7 +58,7 @@ Durasi per segmen adalah **target**. Latensi sistem sudah diukur, tetapi waktu b
 
 ### Segmen 2 — S1 Blok M → Kota (1:30)
 - **Tekan:** Dari: ketik "Blok M", pilih **Stasiun MRT Blok M**. Ke: ketik "Kota", pilih baris teratas **Halte TransJakarta Kota** (bukan "Kota Bambu" atau "Kota Kasablanka"). Lalu Cari. **⚠ Wajib memilih dari saran:** kalau hanya mengetik, "Kota" di-geocode ke titik di Jakarta Timur (-6,26; 106,88) dan hasilnya salah tujuan. Pastikan centang hijau muncul di field.
-- **Harus muncul (4 kartu):**
+- **Harus muncul:** 4 kartu. Tabel ini contoh pengukuran Senin 07:30; **baca angkanya dari layar**, karena angka dan kandidat #3/#4 berganti menurut jam.
 
 | # | Rute | Label | Skor | Kartu (rentang ETA) | Transit | Tarif | CO₂ (estimasi) |
 |---|---|---|---|---|---|---|---|
@@ -52,15 +70,15 @@ Durasi per segmen adalah **target**. Latensi sistem sudah diukur, tetapi waktu b
 \* Lencana udara mengikuti AQI saat itu: udara kurang baik (terukur AQI 161) → "Minim paparan"; udara baik/sedang → "Aktif sehat" bila ada rute dengan jalan kaki 800–1.600 m. Bisa berbeda saat demo. Lencana "Paling hijau" (CO₂) tidak bergantung pada udara.
 
 - **Rentang ETA langsung di kartu** (sejak keputusan Khalifa 31 Okt), mis. "88–102 mnt · 07:30–08:57". Diuji di layar 320/360/412 px dan dengan nama lokasi sangat panjang: tidak terpotong.
-- **Ketuk kartu #1 → Detail:** kotak "Menit" di Detail masih **satu angka** (88, batas bawah), dan **Reliabilitas (Tepat Waktu) 90%**. Bandingkan dengan #3 (tercepat, 2 transit): reliabilitas **50%**. Itulah "risiko transfer" yang bisa ditunjukkan. Tunjuk rentang di kartu hasil, bukan di Detail.
+- **Ketuk kartu #1 → Detail:** kotak "Menit" di Detail masih **satu angka** (88, batas bawah), dan **Reliabilitas (Tepat Waktu) 90%**. Bandingkan dengan kartu tercepat (contoh 07:30: #3, 2 transit, reliabilitas **50%**; baca dari layar). Itulah "risiko transfer" yang bisa ditunjukkan. Tunjuk rentang di kartu hasil, bukan di Detail.
 - "Tingkat Kenyamanan" di Detail tertulis **"Data belum tersedia"**: memang belum ada datanya. Jangan diklaim.
-- **Kalimat kunci** *(perlu ditinjau presenter)*: "Kami tidak menjanjikan satu angka: bus langsung 88 sampai 102 menit, Rp3.500, tanpa transit. Rute tercepat, 59 sampai 68 menit, punya dua kali transit dan reliabilitasnya hanya 50%." (Baca angkanya dari layar saat itu.)
+- **Kalimat kunci** *(perlu ditinjau presenter)*: "Kami tidak menjanjikan satu angka. Bus langsung ini [baca rentang di kartu teratas] menit, tanpa transit. Rute tercepat [baca rentang di kartunya] menit, tetapi [baca jumlah] kali transit, dan reliabilitasnya [baca persen di Detail]." Isi kurung dibaca dari layar saat itu, tidak dihafal.
 - **Cadangan:** pencarian > 10 dtk → backend/OTP2 dingin; tunggu sekali (batas app 30 dtk). Kalau muncul "Layanan sedang tidak tersedia. Coba lagi sebentar lagi." → ketuk **Coba Lagi**. Masih gagal → petugas teknis menjalankan preflight; presenter lanjut ke video S1.
 - **⚠ Urutan wajib:** S1 **sebelum** S2. Jangan ulang S1 dalam 15 menit sesudah S2 tanpa restart backend (laporan Monas menggeser S1: #1 menjadi M+Cikarang+Bogor).
 
 ### Segmen 3 — S2 Pasar Baru → Lebak Bulus, laporan Monas membalik rekomendasi (2:00)
 - **Tekan (1):** Dari: pilih **Halte TransJakarta Pasar Baru**. Ke: pilih **Stasiun MRT Lebak Bulus** (saran teratas) → Cari.
-- **Harus muncul (sebelum):** #1 **2+1+M** (bus via Monas, lalu MRT), 73–84 mnt, 2x transit, Rp17.500, skor 5/10.
+- **Harus muncul (sebelum):** #1 **2+1+M** (bus via Monas, lalu MRT), 73–84 mnt, 2x transit, Rp17.500, skor 5/10. Angka contoh Senin 07:30; baca dari layar.
 - **Tekan (2):** kembali ke Beranda → **Peta Kepadatan** → **Lapor** → cari "Monumen Nasional" (muncul beberapa entri; pilih yang mana saja, semua peron digabung) → **Padat**.
 - **Tekan (3):** cari ulang Pasar Baru → Lebak Bulus.
 - **Harus muncul (sesudah):** rute via Monas **2+1+M turun ke #4** dengan label **PADAT** dan skor turun 5 → 3/10. Rute #1 berganti ke rute **KRL lalu MRT**:
@@ -71,15 +89,16 @@ Durasi per segmen adalah **target**. Latensi sistem sudah diukur, tetapi waktu b
 
 ### Segmen 4 — TOTO, asisten AI (1:00)
 - **Tekan:** masuk akun demo → TOTO → ketuk tombol saran **"Jam berapa TransJakarta mulai dan berhenti beroperasi?"**.
-- **Harus muncul (10/10 percobaan, 2,3–2,9 dtk):** mayoritas rute sekitar 05:00–22:00 WIB, disebut rentang umum, beberapa rute berbeda. Kata-katanya berbeda tiap kali. Di atas kotak ketik tampil catatan tetap: "Jawaban TOTO bisa keliru. Untuk rute, waktu tempuh, dan transfer, gunakan pencarian rute."
-- **⚠ Tombol tarif ("Berapa tarif TransJakarta?") bukan pilihan pertama:** Rp3.500 selalu benar, tetapi 5 dari 10 jawaban menyebut Transjabodetabek premium/lebih mahal, padahal di data 18 dari 18 rute Rp3.500. Kalau investor mengetuknya, sebut saja angka Rp3.500 dan transfer gratis 3 jam.
+- **Harus muncul (20/20 percobaan pada dua uji 3 Nov, 2,3–6,4 dtk):** mayoritas rute sekitar 05:00–22:00 WIB, disebut rentang umum, beberapa rute berbeda. Kata-katanya berbeda tiap kali. Di atas kotak ketik tampil catatan tetap: "Jawaban TOTO bisa keliru. Untuk rute, waktu tempuh, dan transfer, gunakan pencarian rute."
+- **Pertanyaan lanjutan:** 3 dari 10 jawaban terakhir mengundang bertanya jam rute tertentu ke TOTO, padahal TOTO tidak punya jam per rute. Kalau investor memintanya, arahkan ke aplikasi resmi.
+- **⚠ Tombol tarif ("Berapa tarif TransJakarta?") bukan pilihan pertama:** Rp3.500 selalu benar (10/10) dan layanan khusus diarahkan ke aplikasi resmi (10/10), tetapi 7 dari 10 jawaban masih menyiratkan tarifnya "berbeda", padahal di data Transjabodetabek juga Rp3.500 (belum dicocokkan ke tarif resmi, `TODO:verifikasi`). Kalau investor mengetuknya, sebut saja: "Tarif dasar reguler Rp3.500, transfer gratis 3 jam; layanan khusus dicek di aplikasi resmi." Jangan mengatakan sama atau berbeda.
 - **⚠ JANGAN pakai pertanyaan rute di depan investor.** Sejak hotfix, TOTO mengarahkannya ke pencarian rute (30/30) tanpa waktu tempuh atau transfer karangan, tetapi sebagian jawaban masih keliru:
 
-| Pertanyaan | Hasil uji 5x per pertanyaan (3 Nov) |
+| Pertanyaan | Hasil uji ulang 5x per pertanyaan (3 Nov) |
 |---|---|
-| Rute antartempat (Blok M → Kota, Kalideres → PGC, Fatmawati → Manggarai, ke Monas) | 0 waktu tempuh karangan, 0 transfer karangan, 0 "real-time". Tetapi dengan GPS menyala 9/10 menyuruh menekan "Berangkat dari sini" padahal kartunya tidak muncul; Kalideres → PGC sekali menyebut nama rute dan sekali berjanji menjelaskan hasilnya |
+| Rute antartempat (Blok M → Kota, Kalideres → PGC, Fatmawati → Manggarai, ke Monas) | 0 waktu tempuh karangan, 0 transfer karangan, 0 "real-time". Tetapi dengan GPS menyala 8/10 menyuruh menekan "Berangkat dari sini" padahal kartunya tidak muncul; Kalideres → PGC 4/5 menyebut nama rute dari daftar data, yang bisa terbaca sebagai saran |
 | "Berapa lama perjalanannya dan apakah ramai?" | 5/5 berjanji "nanti saya bisa lihat hasilnya", padahal TOTO tidak melihat hasil pencarian |
-| "Halte terdekat dari saya di mana?" | Nama & jarak benar 5/5, kartu halte tampil; 1/5 menawarkan "cari rute terbaik" |
+| "Halte terdekat dari saya di mana?" | Nama & jarak benar 5/5, kartu halte tampil |
 
 - **Kalimat kunci** *(perlu ditinjau presenter)*: "TOTO menjawab pertanyaan umum soal layanan, dan kami tulis terang-terangan bahwa jawabannya bisa keliru. Untuk rute, sumber kebenarannya tetap mesin rute yang tadi Anda lihat."
 - **Cadangan:** gagal/lambat > 15 dtk → katakan "asisten sedang tidak tersedia" dan lanjut; putar rekaman jawaban jam operasional bila ada (`TODO:verifikasi`: rekaman belum dibuat).
@@ -93,7 +112,7 @@ Durasi per segmen adalah **target**. Latensi sistem sudah diukur, tetapi waktu b
 
 ### Segmen 6 — Trip Pass, SIMULASI (0:45)
 - **Tekan:** dari hasil S1, ketuk kartu **#2 M+1** → **Trip Pass**.
-- **Harus muncul:** "Estimasi 71–82 mnt · 1x transit" (rentang yang sama dengan kartu hasil). Tarif per bagian: **MRT Blok M → Bundaran HI Rp8.000** + **TransJakarta 1 Rp3.500** = **Rp11.500**. Kartu berlabel **KARTU DEMO · SIMULASI**. Dengan saldo bawaan Rp10.000, status menjadi **kurang Rp1.500** → top-up simulasi Rp20.000 → cukup.
+- **Harus muncul:** "Estimasi 71–82 mnt · 1x transit" (contoh Senin 07:30; rentangnya sama dengan kartu hasil di layar). Tarif per bagian: **MRT Blok M → Bundaran HI Rp8.000** + **TransJakarta 1 Rp3.500** = **Rp11.500**. Kartu berlabel **KARTU DEMO · SIMULASI**. Dengan saldo bawaan Rp10.000, status menjadi **kurang Rp1.500** → top-up simulasi Rp20.000 → cukup.
 - **Kalimat kunci** *(perlu ditinjau presenter)*: "Penumpang tahu berapa yang ditap di tiap gerbang. Saldo dan top-up di sini masih simulasi; integrasi kartu sungguhan adalah rencana lewat kemitraan penerbit kartu."
 - **Cadangan:** saldo di HP demo bukan Rp10.000 (bekas gladi) → **Ubah saldo awal simulasi** → 10000. Input negatif ditolak ("Saldo tidak boleh negatif.").
 
@@ -115,7 +134,8 @@ Durasi per segmen adalah **target**. Latensi sistem sudah diukur, tetapi waktu b
 
 | Jangan katakan | Yang benar |
 |---|---|
-| **TOTO selalu akurat**, "tidak pernah mengarang", atau bisa dipakai merencanakan rute | Layar menulis: "TOTO paling akurat untuk tarif dan jam operasional; untuk rute gunakan pencarian rute." Jam operasional teruji 10/10; tarif Rp3.500 benar tetapi kategori bisa keliru; rute diarahkan ke pencarian rute (segmen 4) |
+| **TOTO selalu akurat**, "tidak pernah mengarang", atau bisa dipakai merencanakan rute | Layar menulis: "TOTO paling akurat untuk tarif dan jam operasional; untuk rute gunakan pencarian rute." Jam operasional teruji 20/20; tarif dasar Rp3.500 benar, tetapi jawaban soal layanan khusus bisa keliru; rute diarahkan ke pencarian rute (segmen 4) |
+| Tarif Royaltrans atau Transjabodetabek sebagai **tarif resmi**, atau "sama/berbeda dari tarif reguler" | Kartu rute dan Trip Pass menampilkan tarif dari GTFS, **belum dicocokkan ke tarif resmi operator** (`TODO:verifikasi`). TOTO tidak menyebut angkanya dan mengarahkan ke aplikasi resmi |
 | Posisi armada / kepadatan **real-time** | Kepadatan dari **laporan pengguna**, berlaku 15 menit; jadwal dari GTFS dan jadwal rakitan tim |
 | **Model prediksi terlatih** / "AI memprediksi waktu tempuh" | Rentang ETA dan skor rekomendasi berbasis **heuristik**; model prediksi ada di roadmap |
 | Pembayaran, NFC, saldo, atau top-up **sungguhan** | Trip Pass: tarif per bagian nyata dari data tarif; saldo dan top-up **SIMULASI** di perangkat |
@@ -145,6 +165,7 @@ Durasi per segmen adalah **target**. Latensi sistem sudah diukur, tetapi waktu b
 ### H-1
 - [ ] Preflight: baris TOTO dan "Kualitas udara" PASS (kunci terpasang 2 Nov; pastikan belum kedaluwarsa).
 - [ ] Presenter berlatih segmen 4 dengan pertanyaan jam operasional, dan menyiapkan jawaban bila investor meminta mencoba rute lewat TOTO.
+- [ ] Presenter berlatih membaca angka menit dari layar (tanpa menghafal) dan memilih "Kota" dari saran sampai centang hijau muncul.
 - [ ] Jalankan daftar cek HP di `Laporan_Hotfix_Scroll_TOTO.md` (gulir pilihan lokasi di Android/iOS).
 - [ ] Gladi penuh dengan stopwatch dan isi kolom "Terukur" di bagian 1.
 - [ ] Rekam **video cadangan** S1, S2 (dengan lapor Monas), dan TOTO jam operasional.
@@ -164,6 +185,7 @@ Durasi per segmen adalah **target**. Latensi sistem sudah diukur, tetapi waktu b
    Target: **tanpa FAIL**; "Laporan kepadatan aktif: 0 (bersih)"; S1 #1 `1`, S2 #1 `2+1+M`, S3 #1 `3+8+5C`. Preflight sekaligus memanaskan OTP2 dan membuat cadangan database.
 6. Baterai HP ≥ 80%, mode jangan-ganggu, hotspot cadangan siap.
 7. **Akun demo vs tamu:** pakai akun demo (TOTO dan Riwayat butuh masuk). Kredensial di `data/demo-account.local.json`; **jangan tampil di layar/projector**.
+8. **Ingatkan presenter:** angka menit dibaca dari layar, tidak dihafal; "Kota" dipilih dari saran sampai centang hijau muncul.
 
 ### Restart aman (hanya port backend)
 ```powershell
@@ -196,7 +218,8 @@ Akun, riwayat, dan rating tersimpan di SQLite, tidak ikut terhapus. Tunnel dan M
 ## 7. Yang masih menunggu
 | Butir | Siapa |
 |---|---|
-| Teks Transjabodetabek yang keliru di konteks TOTO, dan sisa jawaban TOTO yang keliru (lihat `Laporan_Hotfix_Scroll_TOTO.md`) | Keputusan Khalifa |
+| Sisa jawaban TOTO yang keliru: tarif layanan khusus "berbeda", tombol yang tidak ada, janji palsu (lihat `Laporan_Hotfix_Scroll_TOTO.md`) | Keputusan Khalifa |
+| Tarif Royaltrans dan Transjabodetabek dicocokkan ke sumber resmi operator (`TODO:verifikasi`) | Tim/Khalifa |
 | Uji gulir pilihan lokasi & layar TOTO di HP | Tim HP |
 | Kontak kemitraan resmi, tagline final | Khalifa |
 | Durasi nyata tiap segmen | Tim (gladi) |
@@ -210,9 +233,10 @@ Akun, riwayat, dan rating tersimpan di SQLite, tidak ikut terhapus. Tunnel dan M
 ## 8. Data pengukuran
 
 **3 Nov 2026 (setelah hotfix):**
-- Preflight terakhir (07.37, backend bersih): **15 PASS · 0 WARN · 0 FAIL**; S1 #1 `1` 484 ms, S2 #1 `2+1+M` 1.550 ms, S3 #1 `3+8+5C` 2.643 ms; TOTO 3.857 ms (preflight kini memeriksa jawaban tarif memuat Rp3.500); kualitas udara `available: true, stale: false`.
+- Preflight terakhir (08.13, backend bersih): **15 PASS · 0 WARN · 0 FAIL**; S1 #1 `1` 311 ms, S2 #1 `2+1+M` 1.000 ms, S3 #1 `3+8+5C` 1.746 ms; TOTO 4.444 ms (preflight kini memeriksa jawaban tarif memuat Rp3.500); kualitas udara `available: true, stale: false`.
 - Saran teratas (`measure-demo-flow.mts`, kode app asli, jam Senin 07:30): S1 rute "1" 88–102 mnt, tercepat 59–68 mnt; S2 #1 2+1+M 73–84 mnt, sesudah Monas #1 Bogor+Cikarang+M 71–82 mnt dan 2+1+M turun ke #4 berlabel PADAT. Titik baseline: S1 rute "1" 92–106 mnt, S2 #1 76–88 mnt.
-- TOTO, 12 pertanyaan x 5 (`test-toto-live.mjs`, jawaban dibaca manual): jam operasional 10/10 benar, 2,3–2,9 dtk; tarif 2,8–4,5 dtk.
+- TOTO, uji ulang 15 pertanyaan x 5 = 75 jawaban (`test-toto-live.mjs`, jawaban dibaca manual): jam operasional 10/10 benar, 2,5–6,4 dtk; tarif 2,1–4,3 dtk. Uji sebelumnya, 12 x 5: jam operasional 10/10 benar, 2,3–2,9 dtk. Rincian di `Laporan_Hotfix_Scroll_TOTO.md` bagian 7.
+- Tarif `/routes` vs GTFS (`scripts/check-tj-special-fares.mjs`): Transjabodetabek 18/18 sama (Rp3.500 per bagian); Royaltrans 7 sama (Rp20.000), 3 tidak muncul sebagai kandidat; 0 berbeda. Belum dicocokkan ke tarif resmi operator.
 - Regresi `/routes` bersih: S1, S2 sebelum/sesudah Monas, S3, L1, L2 **identik** baseline; chip moda 4/4.
 
 **2–3 Nov 2026 (kunci baru, sebelum hotfix):**
