@@ -15,6 +15,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { LayoutChangeEvent, Pressable, ScrollView, View } from "react-native";
+import { t } from "@/i18n";
 
 interface Props {
   route: RouteItem;
@@ -30,9 +31,24 @@ interface Props {
 }
 
 const CROWD_TEXT: Record<string, { label: string; color: string }> = {
-  LOW: { label: "Sepi", color: "#4ADE80" },
-  MEDIUM: { label: "Sedang", color: "#FACC15" },
-  HIGH: { label: "Padat", color: "#F87171" },
+  LOW: {
+    get label() {
+      return t("nav.crowd.low");
+    },
+    color: "#4ADE80",
+  },
+  MEDIUM: {
+    get label() {
+      return t("nav.crowd.medium");
+    },
+    color: "#FACC15",
+  },
+  HIGH: {
+    get label() {
+      return t("nav.crowd.high");
+    },
+    color: "#F87171",
+  },
 };
 
 export default function NavPanel({
@@ -67,7 +83,7 @@ export default function NavPanel({
         onPress={() => setExpanded((e) => !e)}
         className="items-center py-1"
         accessibilityRole="button"
-        accessibilityLabel={expanded ? "Tutup daftar langkah" : "Buka daftar langkah"}
+        accessibilityLabel={expanded ? t("nav.closeSteps") : t("nav.openSteps")}
       >
         <View className="w-10 h-1 rounded-full bg-line" />
       </Pressable>
@@ -76,18 +92,18 @@ export default function NavPanel({
       <View className="flex-row items-center gap-3">
         <View className="flex-1">
           <Text className="text-2xl font-bold" style={{ color: "#018959" }}>
-            {remainingMin} mnt
+            {t("format.minutes", { n: remainingMin })}
           </Text>
           <Text className="text-muted text-sm">
             {formatDistance(remainingM)}
-            {arrival ? ` · jadwal tiba ${arrival}` : ""}
+            {arrival ? ` · ${t("nav.scheduledArrival", { time: arrival })}` : ""}
           </Text>
         </View>
         <Pressable
           onPress={() => setExpanded((e) => !e)}
           className="w-11 h-11 rounded-full bg-surface-2 items-center justify-center"
           accessibilityRole="button"
-          accessibilityLabel="Daftar langkah"
+          accessibilityLabel={t("nav.steps")}
         >
           <Ionicons name={expanded ? "chevron-down" : "list"} size={20} color="#404040" />
         </Pressable>
@@ -96,10 +112,10 @@ export default function NavPanel({
           className="px-4 h-11 rounded-full items-center justify-center"
           style={{ backgroundColor: "#DC2626" }}
           accessibilityRole="button"
-          accessibilityLabel="Keluar navigasi"
+          accessibilityLabel={t("nav.exitLabel")}
         >
           <Text className="font-bold text-sm" style={{ color: "#FFFFFF" }}>
-            Keluar
+            {t("nav.exit")}
           </Text>
         </Pressable>
       </View>
@@ -110,7 +126,7 @@ export default function NavPanel({
           onPress={onPrev}
           disabled={currentLegIndex === 0}
           hitSlop={8}
-          accessibilityLabel="Langkah sebelumnya"
+          accessibilityLabel={t("nav.prev")}
           style={{ opacity: currentLegIndex === 0 ? 0.3 : 1 }}
         >
           <Ionicons name="chevron-back-circle" size={26} color="#404040" />
@@ -140,7 +156,7 @@ export default function NavPanel({
         <Pressable
           onPress={onNext}
           hitSlop={8}
-          accessibilityLabel={isLast ? "Selesai" : "Langkah berikutnya"}
+          accessibilityLabel={isLast ? t("common.finish") : t("nav.next")}
         >
           <Ionicons
             name={isLast ? "checkmark-circle" : "chevron-forward-circle"}
@@ -150,8 +166,7 @@ export default function NavPanel({
         </Pressable>
       </View>
       <Text className="text-muted text-xs -mt-1">
-        Langkah {currentLegIndex + 1} dari {legs.length} · berpindah otomatis
-        mengikuti GPS
+        {t("nav.stepAuto", { n: currentLegIndex + 1, total: legs.length })}
       </Text>
 
       {expanded && (
@@ -176,14 +191,14 @@ export default function NavPanel({
                 </View>
                 <View className="flex-1">
                   <Text className="text-ink text-sm font-semibold" numberOfLines={2}>
-                    {isWalkLeg(leg) ? `Jalan kaki ke ${leg.to}` : boardText(leg)}
+                    {isWalkLeg(leg) ? t("nav.walkTo", { place: leg.to }) : boardText(leg)}
                   </Text>
                   <Text className="text-muted text-xs" numberOfLines={1}>
                     {[
                       formatClock(leg.depart_at),
-                      !isWalkLeg(leg) ? `turun di ${leg.to}` : null,
+                      !isWalkLeg(leg) ? t("nav.getOffLower", { place: leg.to }) : null,
                       leg.distance_m ? formatDistance(leg.distance_m) : null,
-                      min ? `${min} mnt` : null,
+                      min ? t("format.minutes", { n: min }) : null,
                     ]
                       .filter(Boolean)
                       .join(" · ")}
@@ -195,15 +210,15 @@ export default function NavPanel({
 
           <View className="flex-row gap-2 pt-2">
             <View className="flex-1 bg-surface-2 rounded-xl p-3 gap-0.5">
-              <Text className="text-muted text-xs">Kepadatan</Text>
+              <Text className="text-muted text-xs">{t("nav.crowding")}</Text>
               <Text className="text-sm font-bold" style={{ color: crowd?.color ?? "#737373" }}>
-                {crowd?.label ?? "Belum ada laporan"}
+                {crowd?.label ?? t("nav.noReports")}
               </Text>
             </View>
             <View className="flex-1 bg-surface-2 rounded-xl p-3 gap-0.5">
-              <Text className="text-muted text-xs">Reliabilitas</Text>
+              <Text className="text-muted text-xs">{t("nav.reliability")}</Text>
               <Text className="text-ink text-sm font-bold">
-                {route.reliability ? `${Math.round(route.reliability.score * 100)}%` : "Belum tersedia"}
+                {route.reliability ? `${Math.round(route.reliability.score * 100)}%` : t("nav.notAvailable")}
               </Text>
             </View>
           </View>

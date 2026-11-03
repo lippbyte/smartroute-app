@@ -5,8 +5,7 @@
 import Text from "@/components/Text";
 import { Ionicons } from "@expo/vector-icons";
 import { View } from "react-native";
-
-export const SIMULATION_TEXT = "Simulasi — tidak terhubung ke bank atau kartu asli";
+import { t } from "@/i18n";
 
 export default function SimulationBanner() {
   return (
@@ -15,11 +14,11 @@ export default function SimulationBanner() {
       style={{ backgroundColor: "#FEF3C7", borderWidth: 1.5, borderColor: "#B45309" }}
       accessible
       accessibilityRole="text"
-      accessibilityLabel={SIMULATION_TEXT}
+      accessibilityLabel={t("pass.simulation")}
     >
       <Ionicons name="flask-outline" size={18} color="#78350F" />
       <Text className="flex-1 text-sm" weight="bold" style={{ color: "#78350F" }}>
-        {SIMULATION_TEXT}
+        {t("pass.simulation")}
       </Text>
     </View>
   );

@@ -17,20 +17,51 @@ import { Answer, clearDraft, EMPTY_DRAFT, loadDraft, RatingDraft, saveDraft } fr
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, TextInput, View } from "react-native";
+import { t } from "@/i18n";
 
 const MESSAGE_MAX = 500;
 const BLUE = "#0F3FC1";
 
 const QUESTIONS: { key: "eta" | "transferRisk" | "crowd"; label: string }[] = [
-  { key: "eta", label: "ETA sesuai?" },
-  { key: "transferRisk", label: "Risiko transfer sesuai?" },
-  { key: "crowd", label: "Kepadatan sesuai laporan?" },
+  {
+    key: "eta",
+    get label() {
+      return t("rating.q.eta");
+    },
+  },
+  {
+    key: "transferRisk",
+    get label() {
+      return t("rating.q.transfer");
+    },
+  },
+  {
+    key: "crowd",
+    get label() {
+      return t("rating.q.crowd");
+    },
+  },
 ];
 
 const ANSWERS: { value: Answer; label: string }[] = [
-  { value: "ya", label: "Ya" },
-  { value: "tidak", label: "Tidak" },
-  { value: null, label: "Lewati" },
+  {
+    value: "ya",
+    get label() {
+      return t("rating.yes");
+    },
+  },
+  {
+    value: "tidak",
+    get label() {
+      return t("rating.no");
+    },
+  },
+  {
+    value: null,
+    get label() {
+      return t("rating.skip");
+    },
+  },
 ];
 
 const toBool = (a: Answer) => (a === null ? null : a === "ya");
@@ -93,14 +124,14 @@ export default function RatingSheet({ visible, token, trip, onClose, onRated }: 
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
         await clearDraft(trip.id);
-        setError("Perjalanan ini sudah pernah dinilai. Penilaian hanya bisa dikirim sekali.");
+        setError(t("rating.already"));
         tripService.getTrip(token, trip.id).then(onRated).catch(() => {});
       } else if (err instanceof ApiError && (err.isNetwork || err.status >= 500)) {
         setError(
-          `${err.code === "timeout" ? err.message : networkErrorMessage()} Penilaian Anda tersimpan sebagai draf di perangkat ini — ketuk "Kirim penilaian" lagi kapan saja.`,
+          t("rating.draftSaved", { reason: err.code === "timeout" ? err.message : networkErrorMessage() }),
         );
       } else {
-        setError(err instanceof ApiError ? err.message : "Penilaian belum terkirim. Draf Anda tetap tersimpan.");
+        setError(err instanceof ApiError ? err.message : t("rating.notSent"));
       }
     } finally {
       setSending(false);
@@ -125,33 +156,32 @@ export default function RatingSheet({ visible, token, trip, onClose, onRated }: 
               <View className="gap-4 items-center py-4" accessibilityLiveRegion="polite">
                 <Ionicons name="checkmark-circle" size={56} color="#065F46" />
                 <Text className="text-ink text-xl text-center" weight="bold">
-                  Terima kasih
+                  {t("rating.thanks")}
                 </Text>
                 <Text className="text-ink-2 text-[15px] text-center" style={{ lineHeight: 22 }}>
-                  Penilaian Anda tersimpan dan terlihat di Riwayat. Masukan ini kami pakai untuk mengecek ketepatan
-                  perkiraan SmartRoute.
+                  {t("rating.thanksBody")}
                 </Text>
                 <View className="w-full">
-                  <PrimaryButton label="Tutup" onPress={close} />
+                  <PrimaryButton label={t("common.close")} onPress={close} />
                 </View>
               </View>
             ) : (
               <>
                 <View className="gap-1">
                   <Text className="text-ink text-xl" weight="bold" accessibilityRole="header">
-                    Beri penilaian
+                    {t("rating.action")}
                   </Text>
                   <Text className="text-ink-2 text-[15px]" numberOfLines={2}>
                     {trip.origin_label} → {trip.destination_label}
                   </Text>
-                  {hadDraft && <Text className="text-ink-2 text-sm">Draf sebelumnya dipulihkan.</Text>}
+                  {hadDraft && <Text className="text-ink-2 text-sm">{t("common.draftRestored")}</Text>}
                 </View>
 
                 <View className="gap-2">
                   <Text className="text-ink text-base" weight="bold">
-                    Seberapa membantu rute ini? <Text style={{ color: "#B91C1C" }}>*</Text>
+                    {t("rating.question")} <Text style={{ color: "#B91C1C" }}>*</Text>
                   </Text>
-                  <View className="flex-row gap-1" accessibilityRole="radiogroup" accessibilityLabel="Nilai bintang">
+                  <View className="flex-row gap-1" accessibilityRole="radiogroup" accessibilityLabel={t("rating.starGroup")}>
                     {[1, 2, 3, 4, 5].map((n) => {
                       const filled = (draft.stars ?? 0) >= n;
                       return (
@@ -160,7 +190,7 @@ export default function RatingSheet({ visible, token, trip, onClose, onRated }: 
                           onPress={() => update({ stars: n })}
                           accessibilityRole="radio"
                           accessibilityState={{ checked: draft.stars === n }}
-                          accessibilityLabel={`${n} dari 5 bintang`}
+                          accessibilityLabel={t("rating.stars", { n })}
                           hitSlop={4}
                           style={{ width: 52, height: 52, alignItems: "center", justifyContent: "center" }}
                         >
@@ -170,7 +200,7 @@ export default function RatingSheet({ visible, token, trip, onClose, onRated }: 
                     })}
                   </View>
                   <Text className="text-ink-2 text-sm">
-                    {draft.stars ? `${draft.stars} dari 5 bintang` : "Wajib diisi untuk mengirim."}
+                    {draft.stars ? t("rating.stars", { n: draft.stars }) : t("rating.required")}
                   </Text>
                 </View>
 
@@ -209,16 +239,16 @@ export default function RatingSheet({ visible, token, trip, onClose, onRated }: 
 
                 <View className="gap-1.5">
                   <Text className="text-ink text-[15px]" weight="semibold">
-                    Pesan (opsional)
+                    {t("rating.message")}
                   </Text>
                   <TextInput
                     value={draft.message}
                     onChangeText={(t) => update({ message: t.slice(0, MESSAGE_MAX) })}
                     maxLength={MESSAGE_MAX}
                     multiline
-                    placeholder="Ceritakan pengalaman Anda, mis. halte transit yang membingungkan."
+                    placeholder={t("rating.messagePlaceholder")}
                     placeholderTextColor="#737373"
-                    accessibilityLabel="Pesan, opsional, maksimal 500 karakter"
+                    accessibilityLabel={t("rating.messageLabel")}
                     className="font-jakarta text-ink text-base bg-white rounded-xl px-4 py-3"
                     style={{ minHeight: 96, textAlignVertical: "top", borderWidth: 1, borderColor: "#737373" }}
                   />
@@ -230,13 +260,13 @@ export default function RatingSheet({ visible, token, trip, onClose, onRated }: 
                 {error && <FormMessage tone="error" message={error} />}
 
                 <PrimaryButton
-                  label={sending ? "Mengirim…" : "Kirim penilaian"}
+                  label={sending ? t("common.sending") : t("rating.send")}
                   onPress={submit}
                   loading={sending}
                   disabled={!draft.stars}
-                  accessibilityHint={draft.stars ? undefined : "Pilih jumlah bintang terlebih dahulu."}
+                  accessibilityHint={draft.stars ? undefined : t("rating.pickStars")}
                 />
-                <PrimaryButton label="Nanti saja" variant="outline" onPress={close} disabled={sending} />
+                <PrimaryButton label={t("rating.later")} variant="outline" onPress={close} disabled={sending} />
               </>
             )}
           </ScrollView>

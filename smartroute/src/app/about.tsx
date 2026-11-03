@@ -13,16 +13,16 @@ import PrimaryButton from "@/components/form/PrimaryButton";
 import ScreenBackground from "@/components/ScreenBackground";
 import Text from "@/components/Text";
 import {
-  DATA_TRANSPARENCY,
+  dataTransparency,
   DEVELOPER_INFO,
-  FEATURES,
-  PARTNERSHIP_TEXT,
+  features,
   partnershipContactOrNull,
-  PROTOTYPE_STATUS,
-  ROADMAP,
+  partnershipText,
+  prototypeStatus,
+  roadmap,
   TAGLINE,
-  VALUE_PROPOSITION,
-  WHATS_NEW,
+  valueProposition,
+  whatsNew,
 } from "@/constants/developerInfo";
 import { useAuth } from "@/context/AuthContext";
 import { ApiError, networkErrorMessage } from "@/services/apiClient";
@@ -42,6 +42,7 @@ import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import { ReactNode, useEffect, useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from "react-native";
+import { t } from "@/i18n";
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -108,9 +109,9 @@ export default function AboutScreen() {
       setSent(true);
     } catch (err) {
       if (err instanceof ApiError && (err.isNetwork || err.status >= 500)) {
-        setError(`${err.code === "timeout" ? err.message : networkErrorMessage()} Masukan Anda tersimpan sebagai draf di perangkat ini — ketuk "Kirim masukan" lagi kapan saja.`);
+        setError(t("about.draftSaved", { reason: err.code === "timeout" ? err.message : networkErrorMessage() }));
       } else {
-        setError(err instanceof ApiError ? err.message : "Masukan belum terkirim. Draf Anda tetap tersimpan.");
+        setError(err instanceof ApiError ? err.message : t("about.notSent"));
       }
     } finally {
       setSending(false);
@@ -125,13 +126,13 @@ export default function AboutScreen() {
             <Pressable
               onPress={() => (router.canGoBack() ? router.back() : router.navigate("/"))}
               accessibilityRole="button"
-              accessibilityLabel="Kembali"
+              accessibilityLabel={t("common.back")}
               className="bg-surface p-2.5 rounded-full border border-line"
             >
               <Ionicons name="arrow-back" size={20} color="#0A0A0A" />
             </Pressable>
             <Text className="text-2xl font-bold text-white" accessibilityRole="header">
-              Tentang & Masukan
+              {t("about.title")}
             </Text>
           </View>
 
@@ -140,12 +141,12 @@ export default function AboutScreen() {
               SmartRoute AI — {TAGLINE}
             </Text>
             <Text className="text-sm" style={{ color: "#E2E8F0", lineHeight: 20 }}>
-              {VALUE_PROPOSITION}
+              {valueProposition()}
             </Text>
           </View>
 
-          <Section title="Fitur utama">
-            {FEATURES.map((f) => (
+          <Section title={t("about.features")}>
+            {features().map((f) => (
               <View key={f.title} className="flex-row gap-3 items-start">
                 <Ionicons name={f.icon as keyof typeof Ionicons.glyphMap} size={20} color="#0F3FC1" style={{ marginTop: 1 }} />
                 <View className="flex-1 gap-0.5">
@@ -160,15 +161,15 @@ export default function AboutScreen() {
             ))}
           </Section>
 
-          <Section title={`Versi ${version} · yang baru`}>
-            {WHATS_NEW.map((w) => (
+          <Section title={t("about.versionNew", { version })}>
+            {whatsNew().map((w) => (
               <Bullet key={w}>{w}</Bullet>
             ))}
-            <Text className="text-ink-2 text-xs">Dikembangkan oleh tim {DEVELOPER_INFO.teamName}.</Text>
+            <Text className="text-ink-2 text-xs">{t("about.team", { team: DEVELOPER_INFO.teamName })}</Text>
           </Section>
 
-          <Section title="Transparansi data">
-            {DATA_TRANSPARENCY.map((d) => (
+          <Section title={t("about.transparency")}>
+            {dataTransparency().map((d) => (
               <View key={d.name} className="gap-0.5">
                 <Text className="text-ink text-sm" weight="semibold">
                   {d.name}
@@ -180,19 +181,19 @@ export default function AboutScreen() {
             ))}
             <Pressable onPress={() => router.push("/co2-info")} accessibilityRole="link" hitSlop={6} className="self-start">
               <Text className="text-sm underline" weight="semibold" style={{ color: "#0F3FC1" }}>
-                Faktor emisi & sumbernya: Tentang angka ini
+                {t("about.co2Link")}
               </Text>
             </Pressable>
           </Section>
 
-          <Section title="Status prototipe">
+          <Section title={t("about.statusTitle")}>
             <Text className="text-ink-2 text-sm" style={{ lineHeight: 20 }}>
-              {PROTOTYPE_STATUS}
+              {prototypeStatus()}
             </Text>
             <Text className="text-ink text-sm mt-1" weight="semibold">
-              Rencana pengembangan (belum tersedia)
+              {t("about.roadmap")}
             </Text>
-            {ROADMAP.map((r) => (
+            {roadmap().map((r) => (
               <Bullet key={r}>{r}</Bullet>
             ))}
           </Section>
@@ -200,23 +201,23 @@ export default function AboutScreen() {
           {/* Hari 4 Task 1: tanpa kontak resmi, ajakan kemitraan tidak
               ditampilkan sama sekali (dulu ada teks cadangan). */}
           {partnershipContact && (
-            <Section title="Kemitraan">
+            <Section title={t("about.partnership")}>
               <Text className="text-ink-2 text-sm" style={{ lineHeight: 20 }}>
-                {PARTNERSHIP_TEXT}
+                {partnershipText()}
               </Text>
               <Text className="text-ink text-sm" weight="semibold">
-                Kontak: {partnershipContact}
+                {t("about.contact", { contact: partnershipContact })}
               </Text>
             </Section>
           )}
 
-          <Section title="Kirim masukan">
+          <Section title={t("about.send")}>
             <Text className="text-ink-2 text-sm">
-              Ceritakan rute yang kurang tepat, tarif yang berbeda, atau fitur yang Anda butuhkan.
-              {token ? " Masukan akan tertaut ke akun Anda." : " Bisa dikirim tanpa akun."}
+              {t("about.prompt")}
+              {" "}{token ? t("about.promptAccount") : t("about.promptGuest")}
             </Text>
-            {restored && <Text className="text-ink-2 text-xs">Draf sebelumnya dipulihkan.</Text>}
-            <View className="flex-row flex-wrap gap-2" accessibilityRole="radiogroup" accessibilityLabel="Kategori masukan">
+            {restored && <Text className="text-ink-2 text-xs">{t("common.draftRestored")}</Text>}
+            <View className="flex-row flex-wrap gap-2" accessibilityRole="radiogroup" accessibilityLabel={t("about.category")}>
               {FEEDBACK_CATEGORIES.map((c) => {
                 const selected = draft.category === c.value;
                 return (
@@ -241,9 +242,9 @@ export default function AboutScreen() {
               onChangeText={(t) => update({ message: t.slice(0, FEEDBACK_MAX) })}
               maxLength={FEEDBACK_MAX}
               multiline
-              placeholder="Tulis masukan Anda…"
+              placeholder={t("about.placeholder")}
               placeholderTextColor="#737373"
-              accessibilityLabel="Pesan masukan, maksimal 500 karakter"
+              accessibilityLabel={t("about.messageLabel")}
               className="font-jakarta text-ink text-base bg-white rounded-xl px-4 py-3"
               style={{ minHeight: 110, textAlignVertical: "top", borderWidth: 1, borderColor: "#737373" }}
             />
@@ -255,16 +256,16 @@ export default function AboutScreen() {
               <View className="flex-row items-center gap-2" accessibilityLiveRegion="polite">
                 <Ionicons name="checkmark-circle" size={18} color="#065F46" />
                 <Text className="text-sm" weight="semibold" style={{ color: "#065F46" }}>
-                  Terima kasih, masukan Anda sudah kami terima.
+                  {t("about.thanks")}
                 </Text>
               </View>
             )}
             <PrimaryButton
-              label={sending ? "Mengirim…" : "Kirim masukan"}
+              label={sending ? t("common.sending") : t("about.send")}
               onPress={submit}
               loading={sending}
               disabled={!canSend}
-              accessibilityHint={canSend ? undefined : "Pilih kategori dan tulis pesan terlebih dahulu."}
+              accessibilityHint={canSend ? undefined : t("about.fillFirst")}
             />
           </Section>
         </ScrollView>

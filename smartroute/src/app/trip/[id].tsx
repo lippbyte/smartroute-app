@@ -19,8 +19,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
+import { t } from "@/i18n";
 
-const ANSWER_LABEL = (v: boolean | null) => (v === null ? "Dilewati" : v ? "Ya" : "Tidak");
+const ANSWER_LABEL = (v: boolean | null) => (v === null ? t("rating.skipped") : v ? t("rating.yes") : t("rating.no"));
 
 export default function TripDetailScreen() {
   const router = useRouter();
@@ -36,7 +37,7 @@ export default function TripDetailScreen() {
     try {
       setTrip(await getTrip(token, id));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal memuat perjalanan.");
+      setError(err instanceof ApiError ? err.message : t("trip.loadError"));
     }
   }, [token, id]);
 
@@ -50,25 +51,25 @@ export default function TripDetailScreen() {
     <ScreenBackground>
       <ScrollView contentContainerStyle={{ paddingTop: 56, paddingBottom: 48, paddingHorizontal: 20, gap: 16 }}>
         <View className="flex-row items-center gap-3">
-          <Pressable onPress={back} accessibilityRole="button" accessibilityLabel="Kembali" className="bg-surface p-2.5 rounded-full border border-line">
+          <Pressable onPress={back} accessibilityRole="button" accessibilityLabel={t("common.back")} className="bg-surface p-2.5 rounded-full border border-line">
             <Ionicons name="arrow-back" size={20} color="#0A0A0A" />
           </Pressable>
           <Text className="text-2xl font-bold text-white" accessibilityRole="header">
-            Detail Perjalanan
+            {t("detail.title")}
           </Text>
         </View>
 
         {status !== "signedIn" && (
           <View className="bg-surface rounded-2xl p-5 gap-3 border border-line">
-            <Text className="text-ink-2 text-[15px]">Masuk untuk melihat riwayat perjalanan.</Text>
-            <PrimaryButton label="Masuk" onPress={() => router.push("/login")} />
+            <Text className="text-ink-2 text-[15px]">{t("trip.signIn")}</Text>
+            <PrimaryButton label={t("common.signIn")} onPress={() => router.push("/login")} />
           </View>
         )}
 
         {error && (
           <View className="bg-surface rounded-2xl p-4 gap-3 border border-line">
             <FormMessage tone="error" message={error} />
-            <PrimaryButton label="Coba lagi" variant="outline" onPress={load} />
+            <PrimaryButton label={t("common.retry")} variant="outline" onPress={load} />
           </View>
         )}
 
@@ -102,15 +103,15 @@ export default function TripDetailScreen() {
                 ))}
               </View>
               <View className="flex-row flex-wrap gap-x-5 gap-y-1 pt-3 border-t border-line">
-                <Text className="text-ink text-sm">Transfer: {trip.route_summary.transfers}x</Text>
-                <Text className="text-ink text-sm">Jalan kaki: {trip.route_summary.walking_distance_m} m</Text>
+                <Text className="text-ink text-sm">{t("trip.transferCount", { n: trip.route_summary.transfers })}</Text>
+                <Text className="text-ink text-sm">{t("trip.walkMeters", { n: trip.route_summary.walking_distance_m })}</Text>
                 <Text className="text-ink text-sm" weight="bold">
-                  Tarif: {formatRupiah(trip.fare_total)}
+                  {t("trip.fare", { value: formatRupiah(trip.fare_total) })}
                 </Text>
                 {trip.co2_estimate_g != null && (
                   <Pressable onPress={() => router.push("/co2-info")} accessibilityRole="link" hitSlop={6}>
                     <Text className="text-ink text-sm">
-                      CO₂: ≈ {formatCo2(trip.co2_estimate_g)} <Text className="text-ink-2 text-sm underline">(estimasi)</Text>
+                      CO₂: ≈ {formatCo2(trip.co2_estimate_g)} <Text className="text-ink-2 text-sm underline">{t("common.estimateParen")}</Text>
                     </Text>
                   </Pressable>
                 )}
@@ -132,14 +133,14 @@ export default function TripDetailScreen() {
 
             <View className="bg-surface rounded-2xl p-4 gap-3 border border-line">
               <Text className="text-ink text-base" weight="bold">
-                Penilaian
+                {t("rating.title")}
               </Text>
               {trip.rating ? (
                 <View className="gap-2">
                   <Stars value={trip.rating.stars} size={20} />
-                  <Text className="text-ink text-sm">ETA sesuai: {ANSWER_LABEL(trip.rating.eta_accurate)}</Text>
-                  <Text className="text-ink text-sm">Risiko transfer sesuai: {ANSWER_LABEL(trip.rating.transfer_risk_accurate)}</Text>
-                  <Text className="text-ink text-sm">Kepadatan sesuai laporan: {ANSWER_LABEL(trip.rating.crowd_accurate)}</Text>
+                  <Text className="text-ink text-sm">{t("rating.etaAnswer", { value: ANSWER_LABEL(trip.rating.eta_accurate) })}</Text>
+                  <Text className="text-ink text-sm">{t("rating.transferAnswer", { value: ANSWER_LABEL(trip.rating.transfer_risk_accurate) })}</Text>
+                  <Text className="text-ink text-sm">{t("rating.crowdAnswer", { value: ANSWER_LABEL(trip.rating.crowd_accurate) })}</Text>
                   {trip.rating.message && (
                     <Text className="text-ink-2 text-sm" style={{ lineHeight: 20 }}>
                       “{trip.rating.message}”
@@ -148,8 +149,8 @@ export default function TripDetailScreen() {
                 </View>
               ) : (
                 <>
-                  <Text className="text-ink-2 text-sm">Belum dinilai.</Text>
-                  <PrimaryButton label="Beri penilaian" variant="outline" onPress={() => setRating(true)} />
+                  <Text className="text-ink-2 text-sm">{t("trip.notRated")}</Text>
+                  <PrimaryButton label={t("rating.action")} variant="outline" onPress={() => setRating(true)} />
                 </>
               )}
             </View>

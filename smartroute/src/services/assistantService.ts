@@ -16,6 +16,7 @@
 import { Coordinate } from "@/utils/geocode";
 import { apiRequest } from "./apiClient";
 import { NearbyStop } from "./nearbyStopsService";
+import { t } from "@/i18n";
 
 // Backend memotong OpenRouter di 15 detik; sebelum itu ia bisa memanggil
 // mesin rute dulu (rute asal-tujuan, atau rute jalan kaki ke halte terdekat
@@ -62,11 +63,11 @@ export async function askAssistant(
         ...(history && history.length > 0 ? { history } : {}),
       },
       timeoutMs: ASSISTANT_TIMEOUT_MS,
-      timeoutMessage: "TOTO tidak menjawab dalam 25 detik. Coba tanya lagi dengan kalimat yang lebih singkat.",
+      timeoutMessage: t("toto.timeout"),
     },
   );
   if (typeof answer !== "string") {
-    throw new Error("Jawaban dari server tidak valid. Coba lagi.");
+    throw new Error(t("toto.invalid"));
   }
   return {
     answer,

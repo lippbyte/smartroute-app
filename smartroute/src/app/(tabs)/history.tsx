@@ -19,14 +19,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
-
-const MONTH_NAMES = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+import { monthLong, t } from "@/i18n";
 
 function groupByMonth(trips: Trip[]): { title: string; data: Trip[] }[] {
   const groups: { title: string; data: Trip[] }[] = [];
   for (const t of trips) {
     const d = new Date(t.created_at);
-    const title = `${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
+    const title = `${monthLong(d.getMonth())} ${d.getFullYear()}`;
     const last = groups[groups.length - 1];
     if (last?.title === title) last.data.push(t);
     else groups.push({ title, data: [t] });
@@ -53,7 +52,7 @@ function TripCard({ trip, onPress }: { trip: Trip; onPress: () => void }) {
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${trip.origin_label} ke ${trip.destination_label}, ${formatTripDate(trip.created_at)}. Ketuk untuk detail.`}
+      accessibilityLabel={t("history.cardLabel", { from: trip.origin_label, to: trip.destination_label, date: formatTripDate(trip.created_at) })}
       className="bg-surface rounded-2xl p-4 gap-3 border border-line active:opacity-80"
     >
       <View className="flex-row items-start justify-between gap-3">
@@ -67,7 +66,7 @@ function TripCard({ trip, onPress }: { trip: Trip; onPress: () => void }) {
         </View>
         <View className="items-end gap-1">
           <Text className="text-ink font-bold text-base">{formatRupiah(trip.fare_total)}</Text>
-          {trip.rating ? <Stars value={trip.rating.stars} /> : <Text className="text-ink-2 text-xs">Belum dinilai</Text>}
+          {trip.rating ? <Stars value={trip.rating.stars} /> : <Text className="text-ink-2 text-xs">{t("history.notRated")}</Text>}
         </View>
       </View>
       <View className="flex-row items-center justify-between gap-3 pt-3 border-t border-line">
@@ -93,7 +92,7 @@ export default function HistoryScreen() {
     try {
       setState({ kind: "ready", trips: await listTrips(token) });
     } catch (err) {
-      setState({ kind: "error", message: err instanceof ApiError ? err.message : "Gagal memuat riwayat." });
+      setState({ kind: "error", message: err instanceof ApiError ? err.message : t("history.loadError") });
     }
   }, [token]);
 
@@ -121,39 +120,39 @@ export default function HistoryScreen() {
           <Pressable
             onPress={() => (router.canGoBack() ? router.back() : router.navigate("/account"))}
             accessibilityRole="button"
-            accessibilityLabel="Kembali"
+            accessibilityLabel={t("common.back")}
             className="bg-surface p-2.5 rounded-full border border-line"
           >
             <Ionicons name="arrow-back" size={20} color="#0A0A0A" />
           </Pressable>
           <Text className="text-2xl font-bold text-white" accessibilityRole="header">
-            Riwayat Perjalanan
+            {t("history.title")}
           </Text>
         </View>
 
         {!signedIn && (
           <View className="bg-surface rounded-2xl p-5 gap-4 border border-line">
             <Text className="text-ink text-lg" weight="bold">
-              Masuk untuk melihat riwayat
+              {t("history.signInTitle")}
             </Text>
             <Text className="text-ink-2 text-[15px]" style={{ lineHeight: 22 }}>
-              Riwayat perjalanan dan penilaian disimpan di akun Anda. Mode tamu tidak menyimpan riwayat.
+              {t("history.signInBody")}
             </Text>
-            <PrimaryButton label="Masuk / Daftar" onPress={() => router.push("/login")} />
+            <PrimaryButton label={t("common.signInOrUp")} onPress={() => router.push("/login")} />
           </View>
         )}
 
         {signedIn && state.kind === "loading" && (
           <View className="items-center py-10 gap-3" accessibilityLiveRegion="polite">
             <ActivityIndicator size="large" color="#FFFFFF" />
-            <Text className="text-white text-sm">Memuat riwayat…</Text>
+            <Text className="text-white text-sm">{t("history.loading")}</Text>
           </View>
         )}
 
         {signedIn && state.kind === "error" && (
           <View className="bg-surface rounded-2xl p-4 gap-3 border border-line">
             <FormMessage tone="error" message={state.message} />
-            <PrimaryButton label="Coba lagi" variant="outline" onPress={load} />
+            <PrimaryButton label={t("common.retry")} variant="outline" onPress={load} />
           </View>
         )}
 
@@ -163,13 +162,13 @@ export default function HistoryScreen() {
               <Ionicons name="map-outline" size={30} color="#0F3FC1" />
             </View>
             <Text className="text-ink text-lg text-center" weight="bold">
-              Belum ada perjalanan tersimpan
+              {t("history.emptyTitle")}
             </Text>
             <Text className="text-ink-2 text-[15px] text-center" style={{ lineHeight: 22 }}>
-              Cari rute, lalu mulai navigasi. Perjalanan yang Anda selesaikan akan muncul di sini.
+              {t("history.emptyBody")}
             </Text>
             <View className="w-full">
-              <PrimaryButton label="Cari rute" onPress={() => router.navigate("/")} />
+              <PrimaryButton label={t("history.search")} onPress={() => router.navigate("/")} />
             </View>
           </View>
         )}
@@ -177,8 +176,8 @@ export default function HistoryScreen() {
         {signedIn && state.kind === "ready" && state.trips.length > 0 && (
           <>
             <View className="flex-row gap-2">
-              <SummaryCard value={String(state.trips.length)} label="Perjalanan" />
-              <SummaryCard value={formatRupiah(state.trips.reduce((sum, t) => sum + t.fare_total, 0))} label="Total tarif" />
+              <SummaryCard value={String(state.trips.length)} label={t("history.trips")} />
+              <SummaryCard value={formatRupiah(state.trips.reduce((sum, t) => sum + t.fare_total, 0))} label={t("history.totalFare")} />
               {/* Hari 2: total hanya dari perjalanan yang PUNYA estimasi CO₂
                   (perjalanan sebelum Hari 2 tidak punya) — jumlahnya ikut
                   dicantumkan, tanpa klaim "hemat". */}
@@ -186,9 +185,9 @@ export default function HistoryScreen() {
                 const withCo2 = state.trips.filter((t) => t.co2_estimate_g != null);
                 const total = withCo2.reduce((sum, t) => sum + (t.co2_estimate_g ?? 0), 0);
                 return withCo2.length === 0 ? (
-                  <SummaryCard value="—" label="CO₂ (estimasi)" />
+                  <SummaryCard value="—" label={t("history.co2")} />
                 ) : (
-                  <SummaryCard value={`≈ ${formatCo2(total)}`} label={`CO₂ estimasi · ${withCo2.length} dari ${state.trips.length} perjalanan`} />
+                  <SummaryCard value={`≈ ${formatCo2(total)}`} label={t("history.co2Count", { n: withCo2.length, total: state.trips.length })} />
                 );
               })()}
             </View>

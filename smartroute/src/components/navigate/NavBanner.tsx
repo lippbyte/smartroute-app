@@ -16,6 +16,7 @@ import {
 import { LegProgress } from "@/utils/navProgress";
 import { Ionicons } from "@expo/vector-icons";
 import { LayoutChangeEvent, View } from "react-native";
+import { stopWord, t } from "@/i18n";
 
 interface Props {
   leg: Leg;
@@ -35,28 +36,27 @@ function instruction(leg: Leg, p: LegProgress, isLastLeg: boolean) {
         icon: directionIcon(step.direction),
         big: p.distToNextStepM != null && p.nextStepIndex! > 0 ? formatDistance(p.distToNextStepM) : null,
         title: walkStepText(step),
-        subtitle: `Jalan kaki menuju ${target} · sisa ${formatDistance(p.remainingM || leg.distance_m || 0)}`,
+        subtitle: t("nav.walkTowardLeft", { place: target, distance: formatDistance(p.remainingM || leg.distance_m || 0) }),
         color: "#018959",
       };
     }
     return {
       icon: isLastLeg ? "flag" : "walk",
       big: formatDistance(p.remainingM || leg.distance_m || 0),
-      title: `Jalan kaki ke ${target}`,
-      subtitle: isLastLeg ? "Tujuan ada di ujung jalan ini" : "Lanjutkan sampai titik naik berikutnya",
+      title: t("nav.walkTo", { place: target }),
+      subtitle: isLastLeg ? t("nav.destAhead") : t("nav.continueToBoard"),
       color: "#018959",
     };
   }
 
-  const stopWord = style.isRail ? "stasiun" : "halte";
   if (!p.onBoard) {
     const at = formatClock(leg.depart_at);
     return {
       icon: style.icon,
       big: at,
       title: boardText(leg),
-      subtitle: `Di ${leg.from}${
-        p.stopsRemaining != null ? ` · ${p.stopsRemaining} ${stopWord} sampai ${leg.to}` : ""
+      subtitle: `${t("nav.at", { place: leg.from })}${
+        p.stopsRemaining != null ? ` · ${t("nav.stopsUntil", { n: p.stopsRemaining, unit: stopWord(style.isRail, p.stopsRemaining), place: leg.to })}` : ""
       }`,
       color: style.color,
     };
@@ -65,9 +65,9 @@ function instruction(leg: Leg, p: LegProgress, isLastLeg: boolean) {
   return {
     icon: "exit-outline",
     big: p.stopsRemaining != null ? `${p.stopsRemaining}` : null,
-    bigCaption: p.stopsRemaining != null ? `${stopWord} lagi` : undefined,
-    title: `Turun di ${leg.to}`,
-    subtitle: `${boardText(leg)}${arrive ? ` · tiba ${arrive}` : ""}`,
+    bigCaption: p.stopsRemaining != null ? t("nav.unitLeft", { unit: stopWord(style.isRail, p.stopsRemaining) }) : undefined,
+    title: t("nav.getOff", { place: leg.to }),
+    subtitle: `${boardText(leg)}${arrive ? ` · ${t("nav.arrives", { time: arrive })}` : ""}`,
     color: style.color,
   };
 }
@@ -75,7 +75,11 @@ function instruction(leg: Leg, p: LegProgress, isLastLeg: boolean) {
 function thenText(next: Leg): string {
   if (isWalkLeg(next)) {
     const min = legDurationMin(next);
-    return `Jalan kaki${next.distance_m ? ` ${formatDistance(next.distance_m)}` : ""}${min ? ` (${min} mnt)` : ""} ke ${next.to}`;
+    return t("nav.then.walk", {
+      distance: next.distance_m ? ` ${formatDistance(next.distance_m)}` : "",
+      minutes: min ? ` (${t("format.minutes", { n: min })})` : "",
+      place: next.to,
+    });
   }
   return boardText(next);
 }
@@ -116,7 +120,7 @@ export default function NavBanner({ leg, nextLeg, progress, isLastLeg, onLayout 
       {nextLeg && nextStyle && (
         <View className="self-start flex-row items-center gap-1.5 bg-surface rounded-xl px-3 py-1.5 border border-line max-w-full">
           <Text className="text-xs font-semibold" style={{ color: "#737373" }}>
-            Kemudian
+            {t("nav.then")}
           </Text>
           <Ionicons name={nextStyle.icon} size={14} color={nextStyle.color} />
           <Text className="text-xs flex-shrink" style={{ color: "#404040" }} numberOfLines={1}>

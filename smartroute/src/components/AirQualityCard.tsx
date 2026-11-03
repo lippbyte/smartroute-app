@@ -19,7 +19,7 @@ export default function AirQualityCard({ air, compact, onPress }: { air: AirQual
   if (!air) return null;
   const colors = AQI_COLORS[air.category_key];
   const updated = t("air.updated", { time: hhmm(air.fetched_at) });
-  const label = t("air.cardLabel", { city: air.city, category: air.category, aqi: air.aqi_us, stale: air.stale ? t("air.staleSentence") : "", updated });
+  const label = t("air.cardLabel", { city: air.city, category: air.category, aqi: air.aqi_us, stale: air.stale ? `${t("air.staleSentence")} ` : "", updated });
 
   const content = (
     <>

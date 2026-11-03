@@ -52,12 +52,10 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { t } from "@/i18n";
 
 // Hanya pertanyaan yang jawabannya teruji benar berulang kali (laporan Hari 4).
-const EXAMPLE_QUESTIONS = [
-  "Berapa tarif TransJakarta?",
-  "Jam berapa TransJakarta mulai dan berhenti beroperasi?",
-];
+const exampleQuestions = () => [t("toto.example.fare"), t("toto.example.hours")];
 
 // Giliran (tanya+jawab) yang ikut dikirim sebagai konteks — backend menolak
 // lebih dari 10 pesan.
@@ -153,17 +151,16 @@ function TotoSignInPrompt() {
             <Ionicons name="chatbubble-ellipses" size={32} color="#0F3FC1" />
           </View>
           <Text className="text-ink text-2xl text-center" weight="bold" accessibilityRole="header">
-            Masuk untuk memakai TOTO
+            {t("toto.signInTitle")}
           </Text>
           <Text className="text-ink-2 text-[15px] text-center" style={{ lineHeight: 22 }}>
-            TOTO, asisten AI SmartRoute, khusus untuk pengguna yang sudah masuk supaya layanannya tetap tersedia
-            untuk semua. Pencarian rute, peta kepadatan, dan halte terdekat tetap bisa dipakai tanpa akun.
+            {t("toto.signInBody")}
           </Text>
-          <PrimaryButton label="Masuk" onPress={() => router.push("/login")} />
-          <PrimaryButton label="Daftar" variant="outline" onPress={() => router.push("/register")} />
+          <PrimaryButton label={t("common.signIn")} onPress={() => router.push("/login")} />
+          <PrimaryButton label={t("common.signUp")} variant="outline" onPress={() => router.push("/register")} />
         </View>
         <PrimaryButton
-          label="Kembali"
+          label={t("common.back")}
           variant="ghost-light"
           onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
         />
@@ -230,7 +227,7 @@ function AssistantScreen({ token }: { token: string }) {
                 // ApiError membawa pesan siap tampil: batas per jam/harian
                 // (429), sesi berakhir (401 — AuthContext sekaligus
                 // mengarahkan ke Masuk), timeout, atau jaringan putus.
-                message: err instanceof Error ? err.message : "Gagal mendapat jawaban dari asisten.",
+                message: err instanceof Error ? err.message : t("toto.answerError"),
               }
             : e,
         ),
@@ -275,10 +272,10 @@ function AssistantScreen({ token }: { token: string }) {
 
   const locationHint =
     locationStatus === "locating"
-      ? "Membaca lokasimu..."
+      ? t("toto.locating")
       : locationStatus === "ready"
-        ? "Lokasi aktif · tanya halte terdekat"
-        : "Lokasi tidak aktif · halte terdekat tidak tersedia";
+        ? t("toto.locationOn")
+        : t("toto.locationOff");
 
   return (
     <ScreenBackground>
@@ -321,7 +318,7 @@ function AssistantScreen({ token }: { token: string }) {
         {entries.length === 0 && (
           <View className="items-center gap-3 py-10 px-4">
             <Ionicons name="chatbubble-ellipses-outline" size={40} color="#737373" />
-            <Text className="text-white text-center font-bold">Halo, aku TOTO!</Text>
+            <Text className="text-white text-center font-bold">{t("toto.hello")}</Text>
             <Text className="text-line text-sm text-center">{totoScopeNote()}</Text>
           </View>
         )}
@@ -347,7 +344,7 @@ function AssistantScreen({ token }: { token: string }) {
                 <AiAvatar />
                 <View className="flex-row items-center gap-2 bg-surface rounded-2xl rounded-bl-md px-4 py-3.5">
                   <ActivityIndicator size="small" color="#018959" />
-                  <Text className="text-muted text-sm">TOTO sedang menjawab...</Text>
+                  <Text className="text-muted text-sm">{t("toto.answering")}</Text>
                 </View>
               </View>
             );
@@ -370,7 +367,7 @@ function AssistantScreen({ token }: { token: string }) {
                     className="bg-surface-2 self-start px-3 py-1.5 rounded-lg"
                     style={{ opacity: isBusy ? 0.5 : 1 }}
                   >
-                    <Text className="text-ink text-xs font-bold">Coba Lagi</Text>
+                    <Text className="text-ink text-xs font-bold">{t("common.retryTitle")}</Text>
                   </Pressable>
                 </View>
               </View>
@@ -396,9 +393,9 @@ function AssistantScreen({ token }: { token: string }) {
 
         {entries.length === 0 && (
           <View className="gap-2">
-            <Text className="text-line text-xs">Contoh pertanyaan:</Text>
+            <Text className="text-line text-xs">{t("toto.examples")}</Text>
             <View className="flex-row flex-wrap gap-2">
-              {EXAMPLE_QUESTIONS.map((q) => (
+              {exampleQuestions().map((q) => (
                 <Pressable
                   key={q}
                   onPress={() => handleAsk(q)}
@@ -432,7 +429,7 @@ function AssistantScreen({ token }: { token: string }) {
           <TextInput
             value={input}
             onChangeText={setInput}
-            placeholder="Tanya TOTO..."
+            placeholder={t("toto.placeholder")}
             placeholderTextColor="#737373"
             multiline
             className="flex-1 font-jakarta text-ink text-sm py-2 max-h-24"
@@ -462,7 +459,7 @@ function AssistantScreen({ token }: { token: string }) {
           <Pressable
             onPress={handleSubmit}
             disabled={isBusy || input.trim().length === 0}
-            accessibilityLabel="Kirim pertanyaan"
+            accessibilityLabel={t("toto.send")}
             className="bg-[#018959] w-10 h-10 rounded-full items-center justify-center active:opacity-80"
             style={{ opacity: isBusy || input.trim().length === 0 ? 0.5 : 1 }}
           >

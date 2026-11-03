@@ -22,7 +22,7 @@ check(
 );
 
 const about = readFileSync(new URL("../src/app/about.tsx", import.meta.url), "utf8");
-check("K4 layar: Section Kemitraan hanya dirender bila kontak ada", /\{partnershipContact && \(\s*<Section title="Kemitraan">/.test(about));
+check("K4 layar: Section Kemitraan hanya dirender bila kontak ada", /\{partnershipContact && \(\s*<Section title=\{t\("about\.partnership"\)\}>/.test(about));
 check("K5 layar: tidak ada lagi teks cadangan 'segera tersedia'", !/segera tersedia/i.test(about));
 check("K6 layar: kontak dibaca lewat partnershipContactOrNull()", /const partnershipContact = partnershipContactOrNull\(\)/.test(about));
 

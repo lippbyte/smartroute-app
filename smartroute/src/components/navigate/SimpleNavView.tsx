@@ -13,6 +13,7 @@ import type { LegProgress } from "@/utils/navProgress";
 import { plainStep } from "@/utils/simpleSteps";
 import { Ionicons } from "@expo/vector-icons";
 import { ScrollView, View } from "react-native";
+import { t } from "@/i18n";
 
 interface Props {
   legs: Leg[];
@@ -36,7 +37,7 @@ export default function SimpleNavView({ legs, currentLegIndex, progress, remaini
     <View className="flex-1 bg-surface">
       <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 24, paddingTop: 64, gap: 20 }}>
         <Text className="text-ink-2 text-base" weight="semibold" accessibilityLiveRegion="polite">
-          Langkah {currentLegIndex + 1} dari {legs.length} · sisa sekitar {remainingMin} menit
+          {t("nav.simpleProgress", { n: currentLegIndex + 1, total: legs.length, minutes: remainingMin })}
         </Text>
         {notice ? (
           <Text className="text-ink text-base" accessibilityLiveRegion="polite">
@@ -60,9 +61,9 @@ export default function SimpleNavView({ legs, currentLegIndex, progress, remaini
         </View>
 
         <View className="gap-3">
-          <PrimaryButton label={isLast ? "Saya sudah sampai" : "Langkah berikutnya"} onPress={onNext} />
-          {currentLegIndex > 0 && <PrimaryButton label="Langkah sebelumnya" variant="outline" onPress={onPrev} />}
-          <PrimaryButton label="Keluar dari navigasi" variant="outline" onPress={onExit} />
+          <PrimaryButton label={isLast ? t("nav.imHere") : t("nav.next")} onPress={onNext} />
+          {currentLegIndex > 0 && <PrimaryButton label={t("nav.prev")} variant="outline" onPress={onPrev} />}
+          <PrimaryButton label={t("nav.exitFull")} variant="outline" onPress={onExit} />
         </View>
       </ScrollView>
     </View>

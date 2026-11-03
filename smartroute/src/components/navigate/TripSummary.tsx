@@ -29,6 +29,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
+import { decimal, t } from "@/i18n";
 
 interface Props {
   route: RouteItem;
@@ -59,7 +60,7 @@ export default function TripSummary({ route, originName, destinationName, actual
     try {
       setSave({ kind: "saved", trip: await tripService.createTrip(token, input) });
     } catch (err) {
-      setSave({ kind: "error", message: err instanceof ApiError ? err.message : "Gagal menyimpan perjalanan." });
+      setSave({ kind: "error", message: err instanceof ApiError ? err.message : t("summary.saveError") });
     }
   };
 
@@ -85,7 +86,7 @@ export default function TripSummary({ route, originName, destinationName, actual
             <Ionicons name="flag" size={32} color="#065F46" />
           </View>
           <Text className="text-ink text-2xl text-center" weight="bold" accessibilityRole="header">
-            Ringkasan Perjalanan
+            {t("summary.title")}
           </Text>
           <Text className="text-ink-2 text-base text-center" numberOfLines={3}>
             {originName} → {destinationName}
@@ -95,20 +96,20 @@ export default function TripSummary({ route, originName, destinationName, actual
         <View className="bg-white rounded-2xl border border-line p-4 gap-4">
           <View className="gap-2">
             <Text className="text-ink-2 text-sm" weight="semibold">
-              Moda yang dipakai
+              {t("summary.modes")}
             </Text>
             <LegChain modes={route.legs.map((l) => l.mode)} />
           </View>
 
           <View className="flex-row gap-3">
-            <SummaryStat icon="swap-horizontal" label="Transfer" value={`${route.transfers}x`} />
-            <SummaryStat icon="walk" label="Jalan kaki" value={walkM >= 1000 ? `${(walkM / 1000).toFixed(1).replace(".", ",")} km` : `${walkM} m`} />
-            <SummaryStat icon="wallet-outline" label="Tarif total" value={formatRupiah(route.cost_idr)} />
+            <SummaryStat icon="swap-horizontal" label={t("summary.transfers")} value={`${route.transfers}x`} />
+            <SummaryStat icon="walk" label={t("summary.walking")} value={walkM >= 1000 ? `${decimal((walkM / 1000).toFixed(1))} km` : `${walkM} m`} />
+            <SummaryStat icon="wallet-outline" label={t("summary.totalFare")} value={formatRupiah(route.cost_idr)} />
           </View>
 
           <View className="gap-1.5 pt-3 border-t border-line">
             <Text className="text-ink-2 text-sm" weight="semibold">
-              Durasi
+              {t("summary.duration")}
             </Text>
             <DurationBadge display={display} />
             <Text className="text-ink-2 text-xs" style={{ lineHeight: 18 }}>
@@ -121,32 +122,32 @@ export default function TripSummary({ route, originName, destinationName, actual
           {route.co2 && (
             <View className="gap-1.5 pt-3 border-t border-line">
               <Text className="text-ink-2 text-sm" weight="semibold">
-                Jejak karbon
+                {t("summary.carbon")}
               </Text>
               <View className="flex-row items-center gap-1.5">
                 <Ionicons name="leaf-outline" size={18} color="#065F46" />
                 <Text className="text-ink text-base" weight="bold">
-                  ≈ {formatCo2(route.co2.estimate_g)} CO₂ (estimasi)
+                  ≈ {formatCo2(route.co2.estimate_g)} CO₂ {t("common.estimateParen")}
                 </Text>
               </View>
               <Text className="text-ink-2 text-xs" style={{ lineHeight: 18 }}>
                 {[
-                  percentVs(route.co2.estimate_g, route.co2.car_g) && `${percentVs(route.co2.estimate_g, route.co2.car_g)} vs mobil sendirian`,
-                  percentVs(route.co2.estimate_g, route.co2.motorcycle_g) && `${percentVs(route.co2.estimate_g, route.co2.motorcycle_g)} vs motor`,
+                  percentVs(route.co2.estimate_g, route.co2.car_g) && t("route.vsCar", { pct: percentVs(route.co2.estimate_g, route.co2.car_g)! }),
+                  percentVs(route.co2.estimate_g, route.co2.motorcycle_g) && t("summary.vsMotorcycle", { pct: percentVs(route.co2.estimate_g, route.co2.motorcycle_g)! }),
                 ]
                   .filter(Boolean)
                   .join(" · ")}
-                {` untuk jarak proksi ${(route.co2.comparator_distance_m / 1000).toFixed(1).replace(".", ",")} km.`}
+                {` ${t("summary.proxyDistance", { km: decimal((route.co2.comparator_distance_m / 1000).toFixed(1)) })}`}
               </Text>
               <Pressable
                 onPress={() => router.push("/co2-info")}
                 accessibilityRole="link"
-                accessibilityLabel="Tentang angka CO₂ ini"
+                accessibilityLabel={t("summary.co2Label")}
                 hitSlop={6}
                 className="self-start"
               >
                 <Text className="text-xs underline" weight="semibold" style={{ color: "#0F3FC1" }}>
-                  Tentang angka ini
+                  {t("common.aboutFigures")}
                 </Text>
               </Pressable>
             </View>
@@ -156,38 +157,37 @@ export default function TripSummary({ route, originName, destinationName, actual
         {save.kind === "guest" && (
           <View className="rounded-2xl p-4 gap-3" style={{ backgroundColor: "#EEF2FF", borderWidth: 1, borderColor: "#C7D2FE" }}>
             <Text className="text-ink text-[15px]" style={{ lineHeight: 22 }}>
-              Perjalanan ini tidak disimpan karena Anda memakai mode tamu. Masuk untuk menyimpan riwayat perjalanan
-              berikutnya dan memberi penilaian.
+              {t("summary.guest")}
             </Text>
-            <PrimaryButton label="Masuk untuk menyimpan riwayat" variant="outline" onPress={() => router.push("/login")} />
+            <PrimaryButton label={t("summary.guestCta")} variant="outline" onPress={() => router.push("/login")} />
           </View>
         )}
         {save.kind === "saving" && (
           <View className="flex-row items-center gap-2 justify-center" accessibilityLiveRegion="polite">
             <ActivityIndicator size="small" color="#0F3FC1" />
-            <Text className="text-ink-2 text-sm">Menyimpan ke riwayat…</Text>
+            <Text className="text-ink-2 text-sm">{t("summary.saving")}</Text>
           </View>
         )}
         {save.kind === "saved" && (
           <View className="flex-row items-center gap-2 justify-center" accessibilityLiveRegion="polite">
             <Ionicons name="checkmark-circle" size={18} color="#065F46" />
             <Text className="text-sm" style={{ color: "#065F46" }} weight="semibold">
-              Tersimpan di Riwayat
+              {t("summary.saved")}
             </Text>
           </View>
         )}
         {save.kind === "error" && (
           <View className="gap-2">
-            <FormMessage tone="error" message={`Perjalanan belum tersimpan. ${save.message}`} />
-            <PrimaryButton label="Coba simpan lagi" variant="outline" onPress={persist} />
+            <FormMessage tone="error" message={t("summary.notSaved", { message: save.message })} />
+            <PrimaryButton label={t("summary.retrySave")} variant="outline" onPress={persist} />
           </View>
         )}
 
         <View className="gap-3">
           {save.kind === "saved" && !save.trip.rating && (
-            <PrimaryButton label="Beri penilaian" variant="outline" onPress={() => setRating(true)} />
+            <PrimaryButton label={t("rating.action")} variant="outline" onPress={() => setRating(true)} />
           )}
-          <PrimaryButton label="Selesai" onPress={onGoHome} accessibilityHint="Kembali ke Beranda" />
+          <PrimaryButton label={t("summary.done")} onPress={onGoHome} accessibilityHint={t("summary.doneHint")} />
         </View>
       </ScrollView>
 

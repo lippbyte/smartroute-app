@@ -5,6 +5,7 @@
 // Tamu TIDAK memanggil service ini — layar menampilkan ajakan masuk.
 import type { RouteItem } from "@/type";
 import { apiRequest } from "./apiClient";
+import { t } from "@/i18n";
 
 export type DurationBasis = "aktual" | "estimasi";
 
@@ -110,18 +111,18 @@ export function createTrip(token: string, input: TripInput): Promise<Trip> {
   return apiRequest("POST", "/trips", {
     token,
     body: input,
-    timeoutMessage: "Menyimpan perjalanan terlalu lama menunggu server. Coba lagi.",
+    timeoutMessage: t("trip.timeoutSave"),
   });
 }
 
 export function listTrips(token: string): Promise<Trip[]> {
-  return apiRequest("GET", "/trips", { token, timeoutMessage: "Memuat riwayat terlalu lama. Coba lagi." });
+  return apiRequest("GET", "/trips", { token, timeoutMessage: t("trip.timeoutList") });
 }
 
 export function getTrip(token: string, id: string): Promise<Trip> {
   return apiRequest("GET", `/trips/${encodeURIComponent(id)}`, {
     token,
-    timeoutMessage: "Memuat perjalanan terlalu lama. Coba lagi.",
+    timeoutMessage: t("trip.timeoutGet"),
   });
 }
 
@@ -129,6 +130,6 @@ export function rateTrip(token: string, id: string, input: RatingInput): Promise
   return apiRequest("POST", `/trips/${encodeURIComponent(id)}/rating`, {
     token,
     body: input,
-    timeoutMessage: "Mengirim penilaian terlalu lama menunggu server. Draf Anda tetap tersimpan.",
+    timeoutMessage: t("trip.timeoutRate"),
   });
 }

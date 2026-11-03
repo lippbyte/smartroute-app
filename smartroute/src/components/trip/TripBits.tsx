@@ -8,12 +8,13 @@ import { legModeStyle } from "@/components/transit/legModes";
 import type { DurationDisplay } from "@/utils/tripFormat";
 import { Ionicons } from "@expo/vector-icons";
 import { View } from "react-native";
+import { t } from "@/i18n";
 
 /** Rangkaian ikon moda (jalan kaki ikut ditampilkan, berurutan). */
 export function LegChain({ modes, size = 15 }: { modes: string[]; size?: number }) {
-  const labels = modes.map((m) => legModeStyle(m).label).join(", lalu ");
+  const labels = modes.map((m) => legModeStyle(m).label).join(`, ${t("trip.modesThen")} `);
   return (
-    <View className="flex-row items-center flex-wrap gap-1" accessible accessibilityLabel={`Moda: ${labels}`}>
+    <View className="flex-row items-center flex-wrap gap-1" accessible accessibilityLabel={t("trip.modesLabel", { labels })}>
       {modes.map((m, i) => {
         const style = legModeStyle(m);
         return (
@@ -43,7 +44,7 @@ export function DurationBadge({ display, compact }: { display: DurationDisplay; 
           style={{ backgroundColor: isActual ? "#D1FAE5" : "#F4F4F0", borderWidth: 1, borderColor: isActual ? "#065F46" : "#737373" }}
         >
           <Text className="text-xs" weight="bold" style={{ color: isActual ? "#065F46" : "#404040" }}>
-            {display.label}
+            {t(isActual ? "trip.actual" : "trip.estimate")}
           </Text>
         </View>
         <Text className={compact ? "text-ink text-sm" : "text-ink text-base"} weight="bold">
@@ -51,7 +52,7 @@ export function DurationBadge({ display, compact }: { display: DurationDisplay; 
         </Text>
       </View>
       {isActual && display.predicted && (
-        <Text className="text-ink-2 text-xs">Prediksi {display.predicted}</Text>
+        <Text className="text-ink-2 text-xs">{t("trip.predicted", { value: display.predicted })}</Text>
       )}
     </View>
   );
@@ -60,13 +61,13 @@ export function DurationBadge({ display, compact }: { display: DurationDisplay; 
 /** Penjelasan singkat arti label — ditampilkan di Ringkasan & Detail. */
 export function durationNote(display: DurationDisplay): string {
   return display.label === "Aktual"
-    ? "Diukur dari mulai navigasi sampai Anda tiba dalam radius 75 m dari tujuan."
-    : "Perkiraan dari rute; durasi sebenarnya tidak terukur (navigasi diselesaikan manual atau tidak sampai titik tujuan).";
+    ? t("trip.noteActual")
+    : t("trip.noteEstimate");
 }
 
 export function Stars({ value, size = 14 }: { value: number; size?: number }) {
   return (
-    <View className="flex-row items-center gap-0.5" accessible accessibilityLabel={`${value} dari 5 bintang`}>
+    <View className="flex-row items-center gap-0.5" accessible accessibilityLabel={t("rating.stars", { n: value })}>
       {[1, 2, 3, 4, 5].map((n) => (
         <Ionicons key={n} name={n <= value ? "star" : "star-outline"} size={size} color={n <= value ? "#B45309" : "#A3A3A3"} />
       ))}

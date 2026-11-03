@@ -31,6 +31,7 @@ import * as Location from "expo-location";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, LayoutChangeEvent, Pressable, Vibration, View } from "react-native";
+import { t } from "@/i18n";
 
 // Hari 3 Task 2: peringatan teks besar tampil sekian lama lalu hilang sendiri.
 const NAV_ALERT_MS = 7000;
@@ -220,7 +221,7 @@ export default function NavigateScreen() {
         }
         setIsFollowingUser(false);
         setIsFinished(true);
-        notify({ kind: "arrived", title: "Anda sudah tiba", detail: stored?.destinationName ?? leg.to });
+        notify({ kind: "arrived", title: t("nav.arrived"), detail: stored?.destinationName ?? leg.to });
       }
       return;
     }
@@ -269,13 +270,13 @@ export default function NavigateScreen() {
       <View className="flex-1 bg-surface items-center justify-center gap-3 px-8">
         <Ionicons name="warning-outline" size={40} color="#EF4444" />
         <Text className="text-ink text-center font-bold">
-          {stored ? "Rute ini tidak punya data peta" : "Data rute sudah tidak tersedia"}
+          {stored ? t("nav.noMap") : t("common.routeGone")}
         </Text>
         <Text className="text-muted text-center text-sm">
-          Cari ulang rute dari Beranda untuk memulai navigasi.
+          {t("nav.searchAgain")}
         </Text>
         <Pressable onPress={handleGoHome} className="bg-brand-blue px-5 py-2.5 rounded-xl mt-2">
-          <Text className="text-white font-bold">Ke Beranda</Text>
+          <Text className="text-white font-bold">{t("common.toHome")}</Text>
         </Pressable>
       </View>
     );
@@ -354,7 +355,7 @@ export default function NavigateScreen() {
               setIsFollowingUser((f) => !f);
             }}
             accessibilityRole="button"
-            accessibilityLabel={isFollowingUser ? "Berhenti mengikuti lokasi" : "Ikuti lokasi saya"}
+            accessibilityLabel={isFollowingUser ? t("nav.stopFollow") : t("nav.follow")}
             className={`w-12 h-12 rounded-full items-center justify-center shadow-lg border ${
               isFollowingUser ? "bg-[#1D4ED8] border-[#1D4ED8]" : "bg-surface border-line"
             }`}

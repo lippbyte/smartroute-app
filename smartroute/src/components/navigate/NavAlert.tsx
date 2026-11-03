@@ -7,6 +7,7 @@
 import Text from "@/components/Text";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable } from "react-native";
+import { t } from "@/i18n";
 
 export interface NavAlertContent {
   title: string;
@@ -21,7 +22,7 @@ export default function NavAlert({ alert, onDismiss }: { alert: NavAlertContent;
       onPress={onDismiss}
       accessibilityRole="alert"
       accessibilityLiveRegion="assertive"
-      accessibilityLabel={`${alert.title}. ${alert.detail}. Ketuk untuk menutup.`}
+      accessibilityLabel={t("nav.alertLabel", { title: alert.title, detail: alert.detail })}
       className="absolute left-3 right-3 z-30 rounded-3xl px-5 py-5 gap-2 flex-row items-start"
       style={{
         top: 52,

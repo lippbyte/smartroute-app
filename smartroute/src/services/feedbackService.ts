@@ -5,15 +5,23 @@
 // disimpan di perangkat (pola penilaian Hari 1) supaya tidak hilang saat
 // jaringan gagal; client_ref yang sama dipakai saat kirim ulang -> tidak dobel.
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { t, type TKey } from "@/i18n";
 import { apiRequest } from "./apiClient";
 
+const category = <T extends string>(value: T, label: TKey) => ({
+  value,
+  get label() {
+    return t(label);
+  },
+});
+
 export const FEEDBACK_CATEGORIES = [
-  { value: "saran_fitur", label: "Saran fitur" },
-  { value: "rute_tidak_tepat", label: "Rute kurang tepat" },
-  { value: "tarif", label: "Tarif" },
-  { value: "aksesibilitas", label: "Aksesibilitas" },
-  { value: "lainnya", label: "Lainnya" },
-] as const;
+  category("saran_fitur", "feedback.feature"),
+  category("rute_tidak_tepat", "feedback.route"),
+  category("tarif", "feedback.fare"),
+  category("aksesibilitas", "feedback.a11y"),
+  category("lainnya", "feedback.other"),
+];
 export type FeedbackCategory = (typeof FEEDBACK_CATEGORIES)[number]["value"];
 
 export const FEEDBACK_MAX = 500;
@@ -56,6 +64,6 @@ export function sendFeedback(
   return apiRequest("POST", "/feedback", {
     token,
     body: input,
-    timeoutMessage: "Mengirim masukan terlalu lama menunggu server. Draf Anda tetap tersimpan.",
+    timeoutMessage: t("feedback.timeout"),
   });
 }
